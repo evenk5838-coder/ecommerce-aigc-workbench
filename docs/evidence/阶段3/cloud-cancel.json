@@ -1,0 +1,16 @@
+{
+ "before": {
+  "status": "remote_queued",
+  "remote_task_id": "cgt-20261022163607-ztp47"
+ },
+ "cancel": {
+  "result": "cancel_failed",
+  "phase": "cloud_queued",
+  "cloud_canceled": false,
+  "message": "云端取消失败：云端错误 409：Cannot delete task `cgt-20261022163607-ztp47` because it is currently running. Request id: 0217926581739662de38"
+ },
+ "after": {
+  "status": "remote_queued",
+  "remote_status": "running"
+ }
+}

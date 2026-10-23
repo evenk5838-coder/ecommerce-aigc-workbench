@@ -1,0 +1,23 @@
+{
+ "text": {
+  "input_asset_id": null,
+  "mode": null
+ },
+ "i2i": {
+  "input_asset_id": "asset_a55ade164d1c42589749",
+  "mode": "image_to_image",
+  "params_ref": "asset_a55ade164d1c42589749"
+ },
+ "retry": {
+  "retry_of": "task_90883d5137174f8b8f7c",
+  "input_asset_id": "asset_a55ade164d1c42589749",
+  "mode": "image_to_image",
+  "prompt": "保持主体换背景-重试",
+  "same_ref": true
+ },
+ "retry_switch_mode": {
+  "input_asset_id": "asset_a55ade164d1c42589749",
+  "mode": "text_to_image"
+ },
+ "cleanup": "已删除 4 条测试任务（未执行、未产生费用）"
+}

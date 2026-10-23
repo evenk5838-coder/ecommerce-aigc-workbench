@@ -1,0 +1,337 @@
+"""配置：全部来自环境变量，密钥类内容本项目不需要。"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]          # 项目根目录
+
+
+def _load_dotenv() -> None:
+    """在读取任何配置前加载本机 .env（不覆盖已存在的环境变量）。"""
+    p = ROOT / ".env"
+    if not p.exists():
+        return
+    for line in p.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, _, v = line.partition("=")
+        k, v = k.strip(), v.strip().strip('"').strip("'")
+        if k and k not in os.environ:
+            os.environ[k] = v
+
+
+_load_dotenv()
+DATA = ROOT / "data"
+ASSETS = DATA / "assets"
+MODELS = DATA / "models"
+DB_PATH = DATA / "app.db"
+
+DATA.mkdir(parents=True, exist_ok=True)
+ASSETS.mkdir(parents=True, exist_ok=True)
+MODELS.mkdir(parents=True, exist_ok=True)
+
+HOST = os.getenv("APP_HOST", "127.0.0.1")
+PORT = int(os.getenv("APP_PORT", "8000"))
+CONCURRENCY = int(os.getenv("APP_CONCURRENCY", "1"))     # 默认单并发；提高前必须实测内存
+MAX_UPLOAD_MB = int(os.getenv("APP_MAX_UPLOAD_MB", "20"))
+POLL_INTERVAL = float(os.getenv("APP_WORKER_POLL", "1.0"))
+MPS_BUDGET_RATIO = float(os.getenv("APP_MPS_BUDGET_RATIO", "0.9"))
+
+# 模型登记表：只声明"本机是否存在权重 + 元信息"，不代表已验证可用
+MODEL_REGISTRY = {
+    "sd15": {
+        "name": "Stable Diffusion 1.5 (fp16, diffusers)",
+        "kind": "image",
+        "dir": str(MODELS / "sd15"),
+        "license": "creativeml-openrail-m",
+        "max_size": 768,
+        "default_size": 512,
+        "default_steps": 25,
+        "note": "备选模型；本次用于链路验证与出图",
+    },
+    "sdxl-base-1.0": {
+        "name": "SDXL Base 1.0 (fp16, diffusers)",
+        "kind": "image",
+        "dir": str(MODELS / "sdxl-base-1.0"),
+        "license": "openrail++",
+        "max_size": 1024,
+        "default_size": 768,
+        "default_steps": 25,
+        "note": "首测候选；权重未就位时不可用",
+    },
+    "i2vgen-xl": {
+        "name": "I2VGen-XL (fp16, diffusers, I2V)",
+        "kind": "video",
+        "dir": str(MODELS / "i2vgen-xl"),
+        "license": "模型卡标注 MIT，另含研究/非商业说明 → 商用许可待核实",
+        "max_size": 896,
+        "default_size": 512,
+        "default_steps": 25,
+        "default_frames": 8,
+        "note": "首测候选；本次仅学习验证",
+    },
+}
+
+# ---------- 云端（火山方舟 Ark）模型登记：模型 ID 来自官方「模型列表」，是否已开通需账号核对 ----------
+CLOUD = os.getenv("APP_PROVIDER", "ark") == "ark"
+
+# 图片计价（2026-10-23 官方《模型价格》核对）：
+#   flash  输出图 0.12 元/张（不区分像素档），输入图免费
+#   pro    单图生成按输出像素档：≤261 万像素 0.30，>261 万像素 0.60；
+#          输入图首张免费，第 2 张起 0.02 元/张
+#   图层拆分场景单价不同（≤261 万 0.15 / >261 万 0.30），本项目未使用图层拆分。
+IMAGE_PRICE_CNY = {  # 旧字段保留：单一价（不分像素档）的模型放这里
+    "doubao-seedream-5-0-flash-260915": 0.12,
+}
+# 按输出像素档计价的模型：tiers 按 max_mp 升序，命中第一个 mp <= max_mp
+IMAGE_PIXEL_TIERS = {
+    "doubao-seedream-5-0-pro-260628": [
+        {"max_mp": 2.61, "price": 0.30},
+        {"max_mp": 999999.0, "price": 0.60},
+    ],
+    "doubao-seedream-5-0-260128": [
+        {"max_mp": 2.61, "price": 0.30},
+        {"max_mp": 999999.0, "price": 0.60},
+    ],
+}
+# 图生图输入图加价（元/张，从第 2 张起）；缺省视为免费
+IMAGE_INPUT_PRICE = {
+    "doubao-seedream-5-0-pro-260628": {"free_first": True, "from_second": 0.02},
+}
+
+VIDEO_PRICE_PER_MTOKEN = {
+    # 2026-10-22 17:29 官方《模型价格》核实：1.0-pro-fast = 4.20 元/百万 token（不含输入视频）
+    # 2026-10-23 复核：2.0-mini = 23.00（输入不含视频）/ 14.00（输入含视频）
+    # 历史记录（旧口径 15.0 估算）保留不重算，差异见 docs/交付/评测报告.md
+    "doubao-seedance-1-0-pro-fast-251015": 4.20,
+    "doubao-seedance-2-5-260628": 70.0,
+    "doubao-seedance-2-0-260128": 46.0,
+    "doubao-seedance-2-0-fast-260128": 37.0,
+    "doubao-seedance-2-0-mini-260615": 23.0,
+}
+# 官方 token 估算公式：(输入时长+输出时长) × 输出宽 × 输出高 × 帧率 / 1024
+# 已用本项目实测 704×1248 / 5.041667s / 24fps = 103,818 tokens 反算验证通过。
+VIDEO_OUTPUT_FPS = 24
+RESOLUTION_WH = {  # 分辨率档 → (宽, 高)，按常见横版；竖版比例自动交换
+    "480p": (854, 480),
+    "720p": (1280, 720),
+    "1080p": (1920, 1080),
+    "4k": (3840, 2160),
+}
+# 账号开通状态（来自真实调用探测，2026-10-22）：
+#   verified  = 真实调用成功
+#   not_opened = 真实调用返回 ModelNotOpen
+MODEL_ACTIVATION = {
+    "doubao-seedream-5-0-flash-260915": "verified",
+    "doubao-seedance-1-0-pro-fast-251015": "verified",
+    "doubao-seedream-5-0-pro-260628": "not_opened",
+    "doubao-seedream-5-0-260128": "not_opened",
+    "doubao-seedance-2-0-260128": "not_opened",
+    "doubao-seedance-2-0-fast-260128": "not_opened",
+    "doubao-seedance-2-0-mini-260615": "not_opened",
+    "doubao-seedance-2-5-260628": "not_opened",
+    "sd15": "local_history",
+    "sdxl-base-1.0": "local_not_downloaded",
+    "i2vgen-xl": "local_not_downloaded",
+}
+
+BUDGET_CNY = float(os.getenv("APP_BUDGET_CNY", "0"))   # 0 = 未批准预算，禁止调用云端
+
+MODEL_REGISTRY.update({
+    "doubao-seedream-5-0-pro-260628": {
+        "name": "Seedream 5.0 pro（云端）", "kind": "image", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 1024, "max_size": 2048,
+        "default_steps": None, "note": "云端推理；需账号已开通",
+    },
+    "doubao-seedream-5-0-flash-260915": {
+        "name": "Seedream 5.0 flash（云端）", "kind": "image", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 1024, "max_size": 2048,
+        "default_steps": None, "note": "更便宜（0.12 元/张）",
+    },
+    "doubao-seedance-2-0-260128": {
+        "name": "Seedance 2.0（云端·图生视频）", "kind": "video", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 720, "max_size": 1080,
+        "default_steps": None, "default_frames": None,
+        "note": "云端推理；先跑 I2V；时长/分辨率档位以官方文档为准",
+    },
+    "doubao-seedance-1-0-pro-fast-251015": {
+        "name": "Seedance 1.0 pro fast（云端·图生视频，账号已开通）", "kind": "video", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 720, "max_size": 1080,
+        "default_steps": None, "default_frames": None,
+        "note": "用户账号已开通；官方模型列表标注即将下线",
+    },
+    "doubao-seedance-2-0-mini-260615": {
+        "name": "Seedance 2.0 mini（云端·图生视频）", "kind": "video", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 720, "max_size": 1080,
+        "default_steps": None, "default_frames": None, "note": "最便宜档",
+    },
+    "doubao-seedance-2-5-260628": {
+        "name": "Seedance 2.5（云端·图生视频）", "kind": "video", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 720, "max_size": 1080,
+        "default_steps": None, "default_frames": None, "note": "最新档，单价最高",
+    },
+    "doubao-seedance-2-0-fast-260128": {
+        "name": "Seedance 2.0 fast（云端·图生视频）", "kind": "video", "provider": "ark",
+        "license": "火山方舟商用服务（按量计费）", "default_size": 720, "max_size": 1080,
+        "default_steps": None, "default_frames": None, "note": "更快更便宜档",
+    },
+})
+
+# 仅供流程测试的假模型（APP_TEST_FAKE=1 时注册）；不参与任何真实模型验收
+if os.getenv("APP_TEST_FAKE") == "1":
+    MODEL_REGISTRY["fake-image"] = {
+        "name": "[测试] 模拟图片引擎（不推理、不做真实生成）",
+        "kind": "image",
+        "dir": str(MODELS / "_fake"),
+        "license": "N/A",
+        "max_size": 1024,
+        "default_size": 512,
+        "default_steps": 10,
+        "note": "仅用于验证队列/取消/重试/恢复流程",
+    }
+
+# ---------- 模型能力元数据（2026-10-23 官方《模型列表》核对） ----------
+# 用途：前端/调用方按能力过滤与校验参数，不靠复制各模型参数规则。
+MODEL_CAPABILITIES = {
+    "doubao-seedream-5-0-flash-260915": {
+        "input_modes": ["text_to_image", "image_to_image"],
+        "max_reference_images": 10,
+        "ratios": ["1:1", "3:4", "4:3", "9:16", "16:9"],
+        "resolutions": [],
+        "sizes": ["1024x1024", "2048x2048", "1728x2304", "2304x1728", "1536x2688", "2688x1536"],
+        "duration_s": [],
+        "supports": ["图层拆分", "单图生成", "文生图", "单张图生图", "多参考图生图"],
+        "max_ipm": 500,
+        "pricing": {"kind": "per_image", "cny_per_image": 0.12, "input_image": "免费"},
+    },
+    "doubao-seedream-5-0-pro-260628": {
+        "input_modes": ["text_to_image", "image_to_image"],
+        "max_reference_images": 10,
+        "ratios": ["1:1", "3:4", "4:3", "9:16", "16:9"],
+        "resolutions": [],
+        "sizes": ["1024x1024", "2048x2048", "1728x2304", "2304x1728", "1536x2688", "2688x1536"],
+        "duration_s": [],
+        "supports": ["图层拆分", "单图生成", "文生图", "单张图生图", "多参考图生图"],
+        "max_ipm": 500,
+        "pricing": {"kind": "per_pixel_tier",
+                    "tiers": [{"max_mp": 2.61, "cny": 0.30}, {"max_mp": None, "cny": 0.60}],
+                    "input_image": {"first_free": True, "from_second_cny": 0.02}},
+        "note": "能力项与 flash 一致；画质/速度差异待同题实测",
+    },
+    "doubao-seedance-1-0-pro-fast-251015": {
+        "input_modes": ["image_to_video", "text_to_video"],
+        "max_reference_images": 1,
+        "ratios": ["9:16", "16:9", "1:1"],
+        "resolutions": ["480p", "720p", "1080p"],
+        "sizes": [],
+        "duration_s": [5, 10],
+        "supports": ["首帧生视频", "文生视频"],
+        "fps": 24,
+        "pricing": {"kind": "per_mtoken", "cny_per_mtoken": 4.20, "billing": "仅成功生成计费"},
+    },
+    "doubao-seedance-2-0-mini-260615": {
+        "input_modes": ["image_to_video", "text_to_video"],
+        "max_reference_images": 1,
+        "ratios": ["9:16", "16:9", "1:1"],
+        "resolutions": ["480p", "720p"],
+        "sizes": [],
+        "duration_s": [5, 10],
+        "duration_range_s": [4, 15],
+        "supports": ["全模态参考生视频", "参考生视频", "编辑视频", "延长视频",
+                     "首尾帧生视频", "首帧生视频", "文生视频"],
+        "fps": 24,
+        "pricing": {"kind": "per_mtoken", "cny_per_mtoken": 23.00,
+                    "cny_per_mtoken_with_input_video": 14.00, "billing": "仅成功生成计费"},
+        "limits": {"rpm_personal": 180, "concurrency_personal": 3},
+    },
+}
+
+# ---------- 模型生命周期（2026-10-23 官方《模型下线公告》核实） ----------
+# 公告：https://www.volcengine.com/docs/82379/1350667（第十批模型下线说明）
+#   通知 2026-09-22 10:00 (UTC+8)；EOM 2026-09-24 10:00 (UTC+8) 停止新购；
+#   EOS 2026-11-24 14:00 (UTC+8) 模型服务下线。
+# 官方明确：“生图生视频模型不会自动迁移到新模型”——因此本项目不静默替换。
+MODEL_LIFECYCLE = {
+    "doubao-seedance-1-0-pro-fast-251015": {
+        "eom_at": "2026-09-24T10:00:00+08:00",
+        "eos_at": "2026-11-24T14:00:00+08:00",
+        "migrate_to": "doubao-seedance-2-0-mini-260615",
+        "action": "关停",
+        "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+    },
+    "doubao-seedance-1-0-pro-250528": {
+        "eom_at": "2026-09-24T10:00:00+08:00",
+        "eos_at": "2026-11-24T14:00:00+08:00",
+        "migrate_to": "doubao-seedance-2-0-mini-260615",
+        "action": "关停",
+        "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+    },
+}
+
+# 仅供流程测试的假模型（APP_TEST_FAKE=1 时注册）；不参与任何真实模型验收
+if os.getenv("APP_TEST_FAKE") == "1":
+    MODEL_REGISTRY["fake-image"] = {
+        "name": "[测试] 模拟图片引擎（不推理、不做真实生成）",
+        "kind": "image",
+        "dir": str(MODELS / "_fake"),
+        "license": "N/A",
+        "max_size": 1024,
+        "default_size": 512,
+        "default_steps": 10,
+        "note": "仅用于验证队列/取消/重试/恢复流程",
+    }
+
+
+# ---------- 价格计算 ----------
+def parse_size_px(size: str | None) -> tuple[int, int]:
+    """'2048x2048' → (2048, 2048)；无法解析时回退 1024×1024。"""
+    try:
+        w, h = str(size or "").lower().replace("*", "x").split("x")[:2]
+        return int(w), int(h)
+    except Exception:  # noqa: BLE001
+        return 1024, 1024
+
+
+def image_cost_cny(model_id: str, size: str | None, reference_images: int = 0) -> float:
+    """图片单次调用估算价：支持单一价与像素档两种口径；ref 图从第 2 张起加价。"""
+    cost = 0.0
+    if model_id in IMAGE_PIXEL_TIERS:
+        w, h = parse_size_px(size)
+        mp = (w * h) / 1_000_000
+        for tier in IMAGE_PIXEL_TIERS[model_id]:
+            if mp <= tier["max_mp"]:
+                cost = float(tier["price"])
+                break
+        priced = IMAGE_INPUT_PRICE.get(model_id)
+        if priced and reference_images > 1:
+            cost += priced["from_second"] * (reference_images - 1)
+    else:
+        cost = float(IMAGE_PRICE_CNY.get(model_id, 0.30))
+    return round(cost, 4)
+
+
+def video_token_estimate(duration_s: float, resolution: str, ratio: str) -> int:
+    """按官方公式估算 token：(输出时长) × 宽 × 高 × 帧率 / 1024。"""
+    w, h = RESOLUTION_WH.get(str(resolution or "720p"), (1280, 720))
+    if str(ratio or "9:16").split(":")[0] < str(ratio or "9:16").split(":")[-1]:
+        w, h = h, w
+    return int(float(duration_s) * w * h * VIDEO_OUTPUT_FPS / 1024)
+
+
+def video_cost_cny(model_id: str, params: dict) -> float:
+    """视频估算价：token 公式 × 单价。实际成本以云端 usage.completion_tokens 重算。"""
+    tokens = video_token_estimate(
+        float(params.get("duration") or 5),
+        params.get("resolution") or "720p",
+        params.get("ratio") or "9:16",
+    )
+    price = float(VIDEO_PRICE_PER_MTOKEN.get(model_id, 46.0))
+    return round(tokens / 1e6 * price, 4)
+
+
+REQUIRED_FILES = {
+    "image": ["model_index.json", "unet", "vae", "text_encoder", "tokenizer", "scheduler"],
+    "video": ["model_index.json", "unet", "vae", "text_encoder", "tokenizer", "scheduler"],
+}

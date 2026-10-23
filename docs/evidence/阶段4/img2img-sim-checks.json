@@ -1,0 +1,57 @@
+{
+ "all_ok": true,
+ "cases": [
+  {
+   "case": "text_to_image_no_ref",
+   "ok": true,
+   "image_is_none": true
+  },
+  {
+   "case": "image_to_image_ref_passed",
+   "ok": true,
+   "mime": "image/jpeg",
+   "prefix_ok": true,
+   "b64_len": 313591
+  },
+  {
+   "case": "batch_isolation_distinct_refs",
+   "ok": true,
+   "different_from_a": true
+  },
+  {
+   "case": "REFERENCE_IMAGE_REQUIRED",
+   "ok": true,
+   "got": "REFERENCE_IMAGE_REQUIRED",
+   "message": "图生图必须提供 input_asset_id 作为参考图"
+  },
+  {
+   "case": "ASSET_NOT_FOUND",
+   "ok": true,
+   "got": "ASSET_NOT_FOUND",
+   "message": "素材不存在：asset_not_exist"
+  },
+  {
+   "case": "ASSET_NOT_IMAGE",
+   "ok": true,
+   "got": "ASSET_NOT_IMAGE",
+   "message": "参考素材不是图片（kind=video）"
+  },
+  {
+   "case": "VALIDATION_FAILED",
+   "ok": true,
+   "got": "VALIDATION_FAILED",
+   "message": "generation_mode 只能为 text_to_image 或 image_to_image"
+  },
+  {
+   "case": "text_to_image_ignores_ref",
+   "ok": true
+  }
+ ],
+ "note": "模拟：ark.image_generate 被替换，未产生任何云端调用与费用",
+ "refs": {
+  "a": "asset_a55ade164d1c42589749",
+  "b": "asset_5094c5652a8c4beea758",
+  "a_mime": "image/jpeg",
+  "b_mime": "image/jpeg"
+ }
+}

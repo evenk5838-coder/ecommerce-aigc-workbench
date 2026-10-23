@@ -1,0 +1,40 @@
+{
+ "non_image_asset": {
+  "http": 400,
+  "error": {
+   "error": {
+    "code": "ASSET_NOT_IMAGE",
+    "message": "参考素材不是图片（kind=video）",
+    "detail": {
+     "asset_id": "asset_027b0b623bb04174937d",
+     "kind": "video"
+    }
+   }
+  }
+ },
+ "real_img2img": {
+  "id": "task_2c5bcbe40bae43dca4b3",
+  "status": "succeeded",
+  "latency_ms": 11656,
+  "cost_cny": 0.12,
+  "usage_json": "{\"images\": 1, \"generation_mode\": \"image_to_image\", \"reference_image\": true, \"raw_usage\": {\"input_images\": 1, \"generated_images\": 1, \"output_tokens\": 4096, \"total_tokens\": 4096}}",
+  "output_asset_id": "asset_4f3cfb0ada7543f1a743",
+  "width": 1024,
+  "height": 1024,
+  "error_code": null,
+  "error_message": null
+ },
+ "regression_txt2img": {
+  "id": "task_50bdd1e56fa94d15b7fb",
+  "status": "succeeded",
+  "latency_ms": 10524,
+  "cost_cny": 0.12,
+  "output_asset_id": "asset_c4224a60497e4ce5b0be",
+  "error_code": null,
+  "error_message": null
+ },
+ "ref": {
+  "asset_id": "asset_d73231ab405540b68eb6",
+  "mime": "image/jpeg"
+ }
+}

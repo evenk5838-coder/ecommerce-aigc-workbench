@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-23",
+  "authorization": "用户明确要求删除旧本地模型",
+  "scope": "data/models/sd15, sdxl-base-1.0, i2vgen-xl",
+  "models": [
+    {
+      "model": "sd15",
+      "state": "deleted",
+      "file_count": 14,
+      "logical_bytes": 2134197252,
+      "allocated_bytes": 2134237184
+    },
+    {
+      "model": "sdxl-base-1.0",
+      "state": "deleted",
+      "file_count": 45,
+      "logical_bytes": 1592726,
+      "allocated_bytes": 1683456
+    },
+    {
+      "model": "i2vgen-xl",
+      "state": "deleted",
+      "file_count": 10,
+      "logical_bytes": 3548727364,
+      "allocated_bytes": 1062748160
+    }
+  ],
+  "preserved": [
+    "data/assets",
+    "data/app.db",
+    "docs/evidence",
+    "backend/app",
+    "Python环境与依赖"
+  ],
+  "cloud_generation_test": "未新增付费调用，删除后仅检查服务状态",
+  "postcheck": {
+    "health": "ok",
+    "old_models": [
+      {
+        "id": "sd15",
+        "downloaded": false
+      },
+      {
+        "id": "sdxl-base-1.0",
+        "downloaded": false
+      },
+      {
+        "id": "i2vgen-xl",
+        "downloaded": false
+      }
+    ],
+    "assets_and_database_present": true
+  }
+}

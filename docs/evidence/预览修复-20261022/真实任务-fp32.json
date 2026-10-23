@@ -1,0 +1,95 @@
+{
+  "task": {
+    "id": "task_86ac32a10cac445b9e06",
+    "kind": "image",
+    "status": "succeeded",
+    "params_json": "{\"prompt\": \"白色背景的护肤品主图，柔和棚拍光，高级质感，留白构图\", \"width\": 512, \"height\": 512, \"steps\": 25, \"seed\": 1459234100, \"precision\": \"fp32\"}",
+    "model_id": "sd15",
+    "model_revision": "local-snapshot",
+    "input_asset_id": null,
+    "output_asset_id": "asset_0069e4bdcebd4207b6e5",
+    "progress": 1.0,
+    "stage": "done",
+    "latency_ms": 46626,
+    "load_ms": 10085,
+    "peak_mem_mb": 11162,
+    "frames": null,
+    "fps": null,
+    "width": 512,
+    "height": 512,
+    "duration_ms": null,
+    "error_code": null,
+    "error_message": null,
+    "attempts": 1,
+    "cancel_requested": 0,
+    "batch_id": null,
+    "retry_of": "task_59ff0cb3ec4f4a9a9398",
+    "client_request_id": null,
+    "created_at": 1792652379.35526,
+    "started_at": 1792652379.7809842,
+    "finished_at": 1792652426.40875,
+    "updated_at": 1792652426.409707,
+    "params": {
+      "prompt": "白色背景的护肤品主图，柔和棚拍光，高级质感，留白构图",
+      "width": 512,
+      "height": 512,
+      "steps": 25,
+      "seed": 1459234100,
+      "precision": "fp32"
+    },
+    "attempts_log": [
+      {
+        "id": "att_4881f52ef89a48f0b8ec",
+        "task_id": "task_86ac32a10cac445b9e06",
+        "attempt_no": 1,
+        "started_at": 1792652379.782231,
+        "finished_at": 1792652426.410657,
+        "result": "succeeded",
+        "error_code": null,
+        "error_message": null,
+        "peak_mem_mb": 11162,
+        "latency_ms": 46628,
+        "params_json": "{\"prompt\": \"白色背景的护肤品主图，柔和棚拍光，高级质感，留白构图\", \"width\": 512, \"height\": 512, \"steps\": 25, \"seed\": 1459234100, \"precision\": \"fp32\"}"
+      }
+    ]
+  },
+  "asset": {
+    "id": "asset_0069e4bdcebd4207b6e5",
+    "sha256": "adf06527f575f08d79675a9edfd79cbacf10b23e5eed27cabe32b97d775418cf",
+    "kind": "image",
+    "mime": "image/png",
+    "size": 464199,
+    "width": 512,
+    "height": 512,
+    "duration_ms": null,
+    "fps": null,
+    "frames": null,
+    "rel_path": "ad/f0/adf06527f575f08d79675a9edfd79cbacf10b23e5eed27cabe32b97d775418cf.png",
+    "source": "generated",
+    "meta_json": "{\"model_id\": \"sd15\", \"prompt\": \"白色背景的护肤品主图，柔和棚拍光，高级质感，留白构图\", \"seed\": 1459234100, \"steps\": 25, \"guidance\": 7.5, \"precision\": \"fp32\", \"task_id\": \"task_86ac32a10cac445b9e06\", \"mode\": \"RGB\"}",
+    "created_at": 1792652426.407706,
+    "owner": "local"
+  },
+  "pixel_check": {
+    "extrema": [
+      [
+        0,
+        255
+      ],
+      [
+        0,
+        255
+      ],
+      [
+        0,
+        255
+      ]
+    ],
+    "stddev": [
+      76.58911930271036,
+      68.6093161273914,
+      53.209273413964375
+    ],
+    "bytes": 464199
+  }
+}

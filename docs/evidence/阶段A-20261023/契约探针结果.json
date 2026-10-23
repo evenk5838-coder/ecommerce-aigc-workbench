@@ -1,0 +1,215 @@
+{
+  "date": "2026-10-23",
+  "stage": "A",
+  "paid_calls": 0,
+  "total": 12,
+  "passed": 12,
+  "conclusion": "契约可用（本机测试调用方）；不代表两产品已联通，也未实现鉴权",
+  "checks": [
+    {
+      "check": "GET /api/models 返回云端模型与能力元数据",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "cloud_models": 7
+      }
+    },
+    {
+      "check": "GET /api/templates 返回 4 个模板且带稳定 ID 与版本",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "count": 4,
+        "ids": [
+          "tpl_season_theme",
+          "tpl_product_motion_5s",
+          "tpl_scene_bg",
+          "tpl_white_bg"
+        ]
+      }
+    },
+    {
+      "check": "GET /api/templates/{id} 含版本列表与快照",
+      "ok": {
+        "template_id": "tpl_season_theme",
+        "version": 1,
+        "category": "hot",
+        "kind": "image",
+        "name": "季节上新主题",
+        "description": "季节/节日主题氛围图。默认使用商品参考图；未提供参考图时进入「创意概念图」模式，产物不代表真实商品。",
+        "effect_sample": {
+          "asset_id": null,
+          "note": "发布时补真实样例"
+        },
+        "required_assets": [
+          {
+            "role": "product_reference",
+            "kind": "image",
+            "required": false,
+            "max_count": 1,
+            "label": "商品图（建议提供）"
+          }
+        ],
+        "fields": [
+          {
+            "key": "product_name",
+            "label": "商品名称",
+            "type": "text",
+            "required": false
+          },
+          {
+            "key": "theme",
+            "label": "主题",
+            "type": "select",
+            "required": true,
+            "options": [
+              "春季上新",
+              "夏季清凉",
+              "秋季",
+              "冬季",
+              "节日",
+              "自定义"
+            ],
+            "allow_custom": true,
+            "custom_key": "theme_custom"
+          },
+          {
+            "key": "theme_copy",
+            "label": "主题文案（可选）",
+            "type": "text",
+            "required": false,
+            "placeholder": "例：焕新一季"
+          },
+          {
+            "key": "keep_features",
+            "label": "需保留特征（可选）",
+            "type": "textarea",
+            "required": false,
+            "placeholder": "例：瓶盖金色、标签文字不可改、正面标志位"
+          },
+          {
+            "key": "forbidden_elements",
+            "label": "禁用元素（可选）",
+            "type": "textarea",
+            "required": false,
+            "placeholder": "例：不要出现人物、不要添加其他商品、不要加促销贴纸"
+          }
+        ],
+        "default_params": {
+          "generation_mode": "image_to_image",
+          "size": "2048x2048",
+          "purpose": "scene"
+        },
+        "compatible_models": {
+          "kind": "image",
+          "input_modes": [
+            "text_to_image",
+            "image_to_image"
+          ]
+        },
+        "prompt": {
+          "preset": "以参考图中实际出现的商品为准，保留所有商品及其数量、相对位置、形状比例、材质、颜色、品牌标识和包装文字，不增加或删除商品。将背景与整体色调替换为{theme}，氛围自然，商品完整清晰，构图留白。",
+          "concept_preset": "生成一张{theme}主题的电商创意概念图，商品依据文字描述：{product_name}。此为创意概念图，不代表真实商品外观。",
+          "scene_field": "theme",
+          "scene_custom_key": "theme_custom",
+          "field_order": [
+            "theme_copy",
+            "keep_features",
+            "forbidden_elements"
+          ]
+        },
+        "status": "active",
+        "_stored_status": "active"
+      },
+      "detail": {
+        "status": 200,
+        "versions": [
+          {
+            "version": 1,
+            "status": "active",
+            "created_at": 1792778530.697025
+          }
+        ]
+      }
+    },
+    {
+      "check": "GET /api/tasks/{id} 可读历史任务与模型/费用口径",
+      "ok": {
+        "prompt": "保留参考图中唯一白色瓶子的外形、颜色、瓶盖和标识，仅把背景换成浅米色摄影棚背景，柔和侧光，不添加其他商品或文字。",
+        "generation_mode": "image_to_image",
+        "size": "2048x2048",
+        "input_asset_id": "asset_d73231ab405540b68eb6"
+      },
+      "detail": {
+        "status": 200,
+        "model_id": "doubao-seedream-5-0-flash-260915",
+        "template_id": null
+      }
+    },
+    {
+      "check": "同一 client_request_id 重复提交返回已有任务且任务数不变",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "returned": "task_d6da966ec6164687aac0",
+        "before": 65,
+        "after": 65
+      }
+    },
+    {
+      "check": "未知模板 → TEMPLATE_NOT_FOUND",
+      "ok": true,
+      "detail": {
+        "status": 404,
+        "code": "TEMPLATE_NOT_FOUND"
+      }
+    },
+    {
+      "check": "模板必填字段缺失 → TEMPLATE_FIELD_REQUIRED",
+      "ok": true,
+      "detail": {
+        "status": 400,
+        "code": "TEMPLATE_FIELD_REQUIRED"
+      }
+    },
+    {
+      "check": "模板要求参考图却未提供 → REFERENCE_IMAGE_REQUIRED",
+      "ok": true,
+      "detail": {
+        "status": 400,
+        "code": "REFERENCE_IMAGE_REQUIRED"
+      }
+    },
+    {
+      "check": "季节模板无参考图且无商品名 → TEMPLATE_FIELD_REQUIRED（概念图路径）",
+      "ok": true,
+      "detail": {
+        "status": 400,
+        "code": "TEMPLATE_FIELD_REQUIRED"
+      }
+    },
+    {
+      "check": "负向用例未创建任何任务",
+      "ok": true,
+      "detail": {
+        "before": 65,
+        "after": 65
+      }
+    },
+    {
+      "check": "GET /api/assets/{id}/file 可取回真实产物文件",
+      "ok": true,
+      "detail": {
+        "bytes": 159571,
+        "content_type": "image/jpeg"
+      }
+    },
+    {
+      "check": "鉴权状态核对：当前对外接口无鉴权（仅本机限制）——预留非已实现",
+      "ok": true,
+      "detail": {
+        "note": "本轮不实现鉴权校验；对外接入前必须补齐"
+      }
+    }
+  ]
+}

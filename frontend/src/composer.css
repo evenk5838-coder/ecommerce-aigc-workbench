@@ -1,0 +1,43 @@
+.composer-content .kind-switch { margin: 0 0 20px; padding: 5px; background: #f3f1fa; border-radius: 12px; display: flex; gap: 5px; }
+.composer-content .kind-switch button { display: flex; flex: 1; justify-content: center; align-items: center; gap: 8px; min-height: 43px; border-radius: 9px; font-size: 15px; font-weight: 650; color: #777183; }
+.composer-content .kind-switch button.selected { background: #fff; color: #6150c2; box-shadow: 0 2px 6px #3d286b0c; }
+.composer-content .mode-switch { display: flex; gap: 20px; border-bottom: 1px solid #efedf4; margin-bottom: 20px; }
+.composer-content .mode-switch button { padding: 0 0 11px; border-bottom: 2px solid transparent; color: #817a90; font-size: 13px; }
+.composer-content .mode-switch button.selected { color: #6654ca; border-color: #7967d6; font-weight: 600; }
+.composer-content .field-label { display: flex; align-items: center; justify-content: space-between; margin: 20px 0 9px; font-size: 13px; color: #494354; font-weight: 600; }
+.composer-content .field-label span { color: #91889e; font-size: 11px; font-weight: 400; }
+.composer-content .purpose-options { display: flex; gap: 6px; flex-wrap: wrap; }
+.composer-content .purpose-options button { border: 1px solid #e8e3ef; border-radius: 7px; padding: 8px 9px; font-size: 12px; color: #7b708c; }
+.composer-content .purpose-options button.selected { color: #6a54c2; background: #f4f0fc; border-color: #c7b9ee; }
+.composer-content textarea { width: 100%; min-height: 142px; resize: vertical; font-size: 13px; line-height: 1.85; background: #faf9fc; border: 1px solid #e9e5ef; border-radius: 10px; padding: 12px; color: #4b4557; }
+.composer-content select, .composer-content input { font-size: 12px; min-height: 40px; border-radius: 8px; background: #faf9fc; border: 1px solid #e9e5ef; width: 100%; padding: 8px 10px; color: #575060; }
+.composer-content .field-pair { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.composer-content .field-pair label { display: grid; gap: 8px; color: #5e556b; font-size: 12px; }
+.composer-content .ratio-options { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; }
+.composer-content .ratio-options button { min-height: 34px; height: 36px; padding: 6px 0; font-size: 12px; border-radius: 7px; }
+.composer-content .composer-intro { font-size: 13px; color: #84788f; line-height: 1.7; margin-bottom: 22px; }
+.reference-empty { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #faf8fd; border: 1px dashed #cfc4e2; border-radius: 10px; padding: 22px 10px; color: #8b76b5; }
+.reference-empty strong { font-size: 13px; font-weight: 500; }.reference-empty span { font-size: 11px; color: #9b90a9; }
+.selected-reference { display: flex; align-items: center; gap: 12px; padding: 10px; background: #faf8fd; border: 1px solid #e8e0f1; border-radius: 10px; }
+.selected-reference>img { width: 70px; height: 78px; object-fit: contain; border-radius: 7px; background: white; }
+.selected-reference>div { display: grid; flex: 1; gap: 6px; min-width: 0; }.selected-reference strong { font-size: 12px; font-weight: 600; }.selected-reference span { font-size: 11px; color: #978ca3; }.selected-reference div button { justify-self: start; color: #7b60c5; font-size: 12px; }
+.composer-content .microcopy { font-size: 11px; line-height: 1.8; color: #958aa3; margin-top: 10px; }
+.composer-content .generation-footer { border-top: 1px solid #efebf4; padding-top: 20px; margin-top: 22px; }
+.composer-content .generate-button { width: 100%; min-height: 45px; border-radius: 10px; background: #7961cc; font-size: 14px; }.composer-content .generate-button:disabled { opacity: .5; cursor: not-allowed; }
+.composer-budget { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; color: #a194ad; font-size: 10px; margin-top: 12px; }.composer-budget>span:last-child { margin-left: auto; }
+.view-home .projectbar { display: flex; padding: 0 28px; flex-wrap: wrap; gap: 8px; min-height: 56px; height: auto; }.view-home .project-name input { max-width: 250px; }.view-home .save-status { font-size: 11px; }
+.reference-modal { width: min(760px,92vw); max-height: 85vh; overflow: auto; background: #fff; border-radius: 18px; padding: 25px; box-shadow: 0 24px 100px #20163140; }
+.reference-modal header { display: flex; justify-content: space-between; gap: 15px; align-items: start; }.reference-modal h2 { font-size: 20px; margin: 0 0 7px; }.reference-modal p { font-size: 12px; color: #8b8099; line-height: 1.8; }.reference-upload { margin: 18px 0; }
+.reference-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; }.reference-grid button { position: relative; border: 2px solid transparent; border-radius: 10px; overflow: hidden; background: #f7f5fa; }.reference-grid button.selected { border-color: #8a70d2; }.reference-grid button:disabled { opacity: .4; }.reference-grid img { width: 100%; aspect-ratio: 1; object-fit: contain; }.reference-grid span { display: block; padding: 8px; font-size: 11px; color: #8a7b9a; }.reference-grid svg { position: absolute; top: 8px; right: 8px; background: #8a70d2; color: white; border-radius: 50%; }
+.modal-backdrop .preview-actions { flex-wrap: wrap; }.toast { z-index: 120; }
+button:focus-visible,a:focus-visible { outline: 2px solid #9e86e5; outline-offset: 3px; }
+@media(max-width:700px) { .view-home .projectbar { padding: 10px 14px; align-items: flex-start; }.view-home .project-name { flex-wrap: wrap; gap: 6px; }.view-home .project-name input { max-width: 170px; font-size: 12px; }.view-home .project-actions { width: 100%; justify-content: flex-end; }.view-home .project-actions button { font-size: 11px; }.composer-content .field-label { font-size: 12px; }.composer-content .purpose-options button { padding: 7px; font-size: 11px; }.composer-content .mode-switch button { font-size: 13px; }.composer-content textarea { font-size: 14px; }.reference-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }.reference-modal { padding: 18px; }.reference-modal h2 { font-size: 17px; }.preview-actions button { font-size: 11px; }.nav-project { display: none; } }
+.composer-content { margin: 0; padding: 20px; border: 0; min-width: 0; }
+
+.composer-content .field-pair label { line-height: 1.5; }
+.workbench-result-actions button { font-size: 11px; }
+.workbench-result-details strong { font-size: 12px; }
+.workbench-content { padding-top: 20px; }
+.workbench-welcome { margin-bottom: 20px; }
+@media(min-width:981px) { .workbench-composer { position: sticky; top: 15px; max-height: calc(100dvh - 155px); overflow: auto; } }
+@media(max-width:700px) { .composer-content { padding: 16px; } .view-home .project-name .save-status { font-size: 10px; } }

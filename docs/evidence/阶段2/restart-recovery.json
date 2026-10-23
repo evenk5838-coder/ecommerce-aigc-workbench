@@ -1,0 +1,31 @@
+{
+  "case": "F_restart_recovery",
+  "method": "SIGKILL 后端进程模拟崩溃，重启后检查",
+  "observed": {
+    "health_recovery": {
+      "interrupted": 1,
+      "queued": 2
+    },
+    "running_task_before_kill": "running",
+    "running_task_after_restart": {
+      "status": "interrupted",
+      "code": "TASK_INTERRUPTED",
+      "message": "进程中断（重启后不自动重跑，请手动重试）"
+    },
+    "queued_tasks_after_restart": [
+      {
+        "id_suffix": "477994d1",
+        "status": "succeeded",
+        "attempts": 1
+      },
+      {
+        "id_suffix": "4762affc",
+        "status": "succeeded",
+        "attempts": 1
+      }
+    ],
+    "auto_rerun_of_interrupted": false
+  },
+  "note": "使用 fake-image 假引擎验证恢复语义，不代表真实模型生成；真实模型任务的重启语义相同（状态落库 → 重启扫描）",
+  "ts": "2026-10-22 14:36:51"
+}

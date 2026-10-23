@@ -1,0 +1,35 @@
+{
+ "batch_id": "batch_9b9bd7497e3a4eb8964a",
+ "tasks": [
+  {
+   "id": "task_57c0a6f6324f4c52a24d",
+   "status": "succeeded",
+   "size": "1024x1024",
+   "latency_ms": 13340,
+   "cost_cny": 0.12,
+   "asset": "asset_d73231ab405540b68eb6",
+   "started_at": 1792658506.418196,
+   "finished_at": 1792658519.887746
+  },
+  {
+   "id": "task_1d18bebe75ac47d8a1f1",
+   "status": "succeeded",
+   "size": "864x1152",
+   "latency_ms": 14707,
+   "cost_cny": 0.12,
+   "asset": "asset_a7bfb856aea54519b0ba",
+   "started_at": 1792658519.891933,
+   "finished_at": 1792658534.6499882
+  },
+  {
+   "id": "task_916f48707fc540c697de",
+   "status": "succeeded",
+   "size": "720x1280",
+   "latency_ms": 23384,
+   "cost_cny": 0.12,
+   "asset": "asset_d4e40ca414e94f0c8680",
+   "started_at": 1792658534.657331,
+   "finished_at": 1792658558.0544262
+  }
+ ]
+}

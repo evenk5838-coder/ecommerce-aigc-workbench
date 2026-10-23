@@ -1,0 +1,80 @@
+{
+  "note": "使用 fake-image 假引擎，仅验证流程语义，不代表真实模型能力",
+  "cases": {
+    "A_batch_sequential": {
+      "task_ids": [
+        "task_580447bad2a747429ff4",
+        "task_80312c2bc19e47cbb281",
+        "task_ea4bc362ea9445ff982d"
+      ],
+      "statuses": [
+        "succeeded",
+        "succeeded",
+        "succeeded"
+      ],
+      "started_at": [
+        1792650896.192,
+        1792650898.076,
+        1792650899.937
+      ],
+      "finished_at": [
+        1792650898.073,
+        1792650899.932,
+        1792650901.79
+      ],
+      "no_overlap": true,
+      "batch_api": {
+        "batch_id": "batch_c8bf702c7d8948209718",
+        "task_ids": [
+          "task_5d7bdc81747a48b6b31f",
+          "task_187cb9547ae04dee9e5d"
+        ]
+      }
+    },
+    "B_cancel_queued": {
+      "cancel_response": {
+        "result": "canceled",
+        "phase": "queued"
+      },
+      "task_status": "canceled",
+      "stage": "canceled"
+    },
+    "C_cancel_running": {
+      "status_before_cancel": "running",
+      "stage_before": "running",
+      "cancel_response": {
+        "result": "cancel_requested",
+        "phase": "running"
+      },
+      "final_status": "canceled",
+      "final_stage": "canceled",
+      "elapsed_ms": 1219,
+      "cancel_requested_flag": 1
+    },
+    "D_fail_then_retry": {
+      "failed_task": {
+        "id": "task_0682dc8898914015b67a",
+        "status": "failed",
+        "code": "INTERNAL_ERROR",
+        "message": "注入失败（第 2 步）"
+      },
+      "retry_task": {
+        "id": "task_e2084682f4cf405cbcd4",
+        "retry_of": "task_0682dc8898914015b67a",
+        "final_status": "failed"
+      }
+    },
+    "E_cancel_rejected_terminal": {
+      "http_body": {
+        "error": {
+          "code": "CANCEL_REJECTED_PHASE",
+          "message": "当前状态不可取消：failed",
+          "task_id": "task_0682dc8898914015b67a",
+          "detail": {
+            "status": "failed"
+          }
+        }
+      }
+    }
+  }
+}

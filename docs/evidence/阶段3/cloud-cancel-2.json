@@ -1,0 +1,12 @@
+{
+ "cancel": {
+  "result": "cancel_requested",
+  "phase": "cloud_running",
+  "cloud_canceled": false,
+  "message": "已停止本地等待并停止下载；云端任务可能仍在执行并计费"
+ },
+ "after": {
+  "status": "remote_queued",
+  "remote_status": "running"
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "model": "sd15",
+ "note": "真实本地推理产物",
+ "images": [
+  {
+   "task": "task_59ff0cb3ec4f4a9a9398",
+   "spec": "512x512",
+   "latency_ms": 49598,
+   "load_ms": 10439,
+   "file": "sd15_512x512_49598ms_9a9398.png",
+   "params": {
+    "prompt": "白色背景的护肤品主图，柔和棚拍光，高级质感，留白构图",
+    "width": 512,
+    "height": 512,
+    "steps": 25,
+    "seed": -1
+   }
+  },
+  {
+   "task": "task_86ac32a10cac445b9e06",
+   "spec": "512x512",
+   "latency_ms": 46626,
+   "load_ms": 10085,
+   "file": "sd15_512x512_46626ms_5b9e06.png",
+   "params": {
+    "prompt": "白色背景的护肤品主图，柔和棚拍光，高级质感，留白构图",
+    "width": 512,
+    "height": 512,
+    "steps": 25,
+    "seed": 1459234100,
+    "precision": "fp32"
+   }
+  },
+  {
+   "task": "task_51f460d99e2f4710ae98",
+   "spec": "512x512",
+   "latency_ms": 37077,
+   "load_ms": 9137,
+   "file": "sd15_512x512_37077ms_10ae98.png",
+   "params": {
+    "prompt": "a skincare bottle on white background, soft studio light, minimal, e-commerce product shot, high quality",
+    "negative_prompt": "blurry, low quality, text, watermark",
+    "width": 512,
+    "height": 512,
+    "steps": 25,
+    "seed": 12345
+   }
+  },
+  {
+   "task": "task_5c126e92af884d7a8285",
+   "spec": "512x512",
+   "latency_ms": 39444,
+   "load_ms": 0,
+   "file": "sd15_512x512_39444ms_7a8285.png",
+   "params": {
+    "prompt": "a white cosmetic jar on light beige background, soft shadow, minimal e-commerce product photography",
+    "width": 512,
+    "height": 512,
+    "steps": 25,
+    "seed": 777
+   }
+  },
+  {
+   "task": "task_cc8f1bef46db4af89174",
+   "spec": "640x640",
+   "latency_ms": 116265,
+   "load_ms": 0,
+   "file": "sd15_640x640_116265ms_f89174.png",
+   "params": {
+    "prompt": "a white cosmetic jar on light beige background, soft shadow, minimal e-commerce product photography",
+    "width": 640,
+    "height": 640,
+    "steps": 25,
+    "seed": 777
+   }
+  },
+  {
+   "task": "task_748a81a0c78040f08aa5",
+   "spec": "512x512",
+   "latency_ms": 17230,
+   "load_ms": 6543,
+   "file": "sd15_512x512_17230ms_f08aa5.png",
+   "params": {
+    "prompt": "a red mug on white desk, product photo",
+    "width": 512,
+    "height": 512,
+    "steps": 8,
+    "seed": 2026
+   }
+  }
+ ]
+}
