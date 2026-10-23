@@ -35,9 +35,60 @@ button:focus-visible,a:focus-visible { outline: 2px solid #9e86e5; outline-offse
 .composer-content { margin: 0; padding: 20px; border: 0; min-width: 0; }
 
 .composer-content .field-pair label { line-height: 1.5; }
-.workbench-result-actions button { font-size: 11px; }
-.workbench-result-details strong { font-size: 12px; }
 .workbench-content { padding-top: 20px; }
 .workbench-welcome { margin-bottom: 20px; }
 @media(min-width:981px) { .workbench-composer { position: sticky; top: 15px; max-height: calc(100dvh - 155px); overflow: auto; } }
 @media(max-width:700px) { .composer-content { padding: 16px; } .view-home .project-name .save-status { font-size: 10px; } }
+
+/* 2026-10-24: creation flow and recoverable feedback */
+.composer-content .kind-switch { flex-shrink: 0; margin-bottom: 16px; }
+.composer-fields { min-height: 0; }
+.composer-section-heading { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 650; color: #443b52; margin: 0 0 16px; }
+.composer-section-heading>span { font-size: 11px; color: #7c63a8; background: #f1ecf8; border-radius: 5px; padding: 4px 6px; }
+.composer-parameters { border-top: 1px solid #ebe6f2; margin-top: 20px; padding-top: 16px; }
+.composer-parameters>summary { cursor: pointer; display: flex; align-items: center; gap: 8px; list-style: none; min-height: 44px; }
+.composer-parameters>summary::-webkit-details-marker { display: none; }
+.composer-parameters>summary .composer-section-heading { margin: 0; }
+.composer-parameters>summary>span:nth-child(2) { margin-left: auto; font-size: 11px; color: #766583; }
+.composer-parameters[open]>summary>svg { transform: rotate(180deg); }
+.composer-content .generation-footer { flex-shrink: 0; margin-top: 12px; padding-top: 14px; background: white; }
+.composer-content .microcopy,.composer-budget { color: #71647e; }
+.composer-content .generation-footer .microcopy { line-height: 1.55; }
+.composer-budget { font-size: 11px; }
+.field-error { color: #a43c4e; font-size: 13px; line-height: 1.7; margin: 8px 0; }
+[aria-invalid=true] { border-color: #c85868!important; }
+.persistent-notice { flex-shrink: 0; display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 12px 20px; background: #fff5ec; color: #874c28; font-size: 13px; line-height: 1.65; border-bottom: 1px solid #f0d8c5; }
+.persistent-notice span { min-width: 0; overflow-wrap: anywhere; }
+.task-drawer .persistent-notice { border-radius: 8px; margin-bottom: 12px; }
+.properties-toggle,.properties-close { display: none; }
+.asset-visual img,.asset-visual video { object-fit: contain; }
+@media(min-width:981px) {
+  .workbench-composer { overflow: hidden; }
+  .composer-content { display: flex; flex-direction: column; height: min(740px,calc(100dvh - 300px)); min-height: 460px; }
+  .composer-fields { overflow-y: auto; flex: 1; scrollbar-width: thin; padding: 2px 5px 5px 2px; }
+}
+@media(max-width:1000px) {
+  .properties-toggle { display: inline-flex; position: fixed; right: 20px; bottom: 22px; z-index: 35; min-height: 44px; box-shadow: 0 5px 24px #35234d24; color: #66509b; }
+  .view-canvas .properties { display: none; position: fixed; right: 14px; bottom: 76px; width: min(340px,calc(100vw - 82px)); max-height: 62dvh; overflow-y: auto; z-index: 36; border: 1px solid #ddd3eb; border-radius: 14px; box-shadow: 0 12px 48px #35234d30; }
+  .view-canvas .properties.properties-open { display: flex; }
+  .properties-close { display: inline-flex; margin-left: auto; }
+  .view-canvas .properties input,.view-canvas .properties textarea,.view-canvas .properties select { font-size: 16px; }
+  .view-canvas .property-content label { font-size: 13px; }
+}
+@media(max-width:700px) {
+  .rail-item { font-size: 10px; min-height: 52px; }
+  .task-top { font-size: 12px; min-height: 44px; }
+  .composer-content .purpose-options button,.composer-content .ratio-options button,.composer-content .mode-switch button { min-height: 44px; font-size: 12px; }
+  .composer-content textarea,.composer-content input,.composer-content select { font-size: 16px; }
+  .composer-content .field-label { font-size: 13px; }
+  .composer-content .field-label span,.selected-reference span,.reference-empty span { font-size: 12px; color: #766583; }
+  .selected-reference div button { min-height: 36px; }
+  .view-home .project-actions button,.preview-actions .secondary,.preview-actions .primary { min-height: 44px; font-size: 12px; }
+  .view-home .project-name .save-status { font-size: 12px; }
+  .persistent-notice { padding: 12px; flex-wrap: wrap; }
+  .composer-parameters>summary { flex-wrap: wrap; }
+  .composer-content .generate-button { min-height: 48px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior: auto!important; animation-duration: .01ms!important; animation-iteration-count: 1!important; transition-duration: .01ms!important; }
+}
