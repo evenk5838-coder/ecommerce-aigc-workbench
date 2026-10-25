@@ -331,6 +331,84 @@ def video_cost_cny(model_id: str, params: dict) -> float:
     return round(tokens / 1e6 * price, 4)
 
 
+# ---------- 模型生命周期（到期保护） ----------
+def _iso_to_ts(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        from datetime import datetime
+        return datetime.fromisoformat(value).timestamp()
+    except ValueError:
+        return None
+
+
+def model_lifecycle_state(model_id: str, now_ts: float | None = None) -> dict:
+    """**生命周期状态的唯一判定入口**（`/api/models` 列表与提交校验共用）。
+
+    status:
+      active        无下线计划
+      eos_scheduled 已公告未到期 → **允许使用**，返回 eos_at/migrate_to 供前端提示
+      eos_expired   已到期（now >= eos_at） → 提交路径必须拒绝（MODEL_EOS）
+
+    `migrate_to_activation` 只**转述** `MODEL_ACTIVATION` 中目标模型的真实调用结果
+    （`verified` / `not_opened` / `unknown`），**不表示迁移目标已开通或可用**；
+    调用方需以目标模型自身的 `activation` 为准。
+    """
+    import time as _time
+
+    life = MODEL_LIFECYCLE.get(model_id)
+    if not life:
+        return {"status": "active"}
+    now = _time.time() if now_ts is None else float(now_ts)
+    eos_ts = _iso_to_ts(life.get("eos_at"))
+    eom_ts = _iso_to_ts(life.get("eom_at"))
+    expired = eos_ts is not None and now >= eos_ts      # 到期时刻即视为到期
+    migrate_to = life.get("migrate_to")
+    return {
+        "status": "eos_expired" if expired else "eos_scheduled",
+        "eos_at": life.get("eos_at"),
+        "eom_at": life.get("eom_at"),
+        "migrate_to": migrate_to,
+        # 仅转述目标模型的真实调用结果；不做“可用/已开通”的断言
+        "migrate_to_activation": MODEL_ACTIVATION.get(migrate_to, "unknown") if migrate_to else None,
+        "action": life.get("action"),
+        "announce_url": life.get("announce_url"),
+        "seconds_remaining": (int(eos_ts - now) if (eos_ts is not None and not expired) else 0),
+        "eom_passed": (eom_ts is not None and now >= eom_ts),
+    }
+
+
+def validate_params_for_model(model_id: str, kind: str, params: dict) -> list[dict]:
+    """对**最终生效参数**做模型能力校验；返回问题列表（空=通过）。"""
+    caps = MODEL_CAPABILITIES.get(model_id)
+    if not caps:
+        return []
+    problems: list[dict] = []
+    if kind == "image":
+        mode = params.get("generation_mode", "text_to_image")
+        allowed_modes = caps.get("input_modes", [])
+        if allowed_modes and mode not in allowed_modes:
+            problems.append({"field": "generation_mode", "got": mode, "allowed": allowed_modes})
+        size = params.get("size")
+        allowed_sizes = caps.get("sizes") or []
+        if size and allowed_sizes and size not in allowed_sizes:
+            problems.append({"field": "size", "got": size, "allowed": allowed_sizes})
+    else:
+        duration = params.get("duration")
+        allowed_duration = caps.get("duration_s") or []
+        if duration is not None and allowed_duration and int(duration) not in allowed_duration:
+            problems.append({"field": "duration", "got": duration, "allowed": allowed_duration})
+        ratio = params.get("ratio")
+        allowed_ratios = caps.get("ratios") or []
+        if ratio and allowed_ratios and ratio not in allowed_ratios:
+            problems.append({"field": "ratio", "got": ratio, "allowed": allowed_ratios})
+        resolution = params.get("resolution")
+        allowed_res = caps.get("resolutions") or []
+        if resolution and allowed_res and resolution not in allowed_res:
+            problems.append({"field": "resolution", "got": resolution, "allowed": allowed_res})
+    return problems
+
+
 REQUIRED_FILES = {
     "image": ["model_index.json", "unet", "vae", "text_encoder", "tokenizer", "scheduler"],
     "video": ["model_index.json", "unet", "vae", "text_encoder", "tokenizer", "scheduler"],

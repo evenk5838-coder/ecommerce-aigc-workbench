@@ -123,6 +123,46 @@ SEED_TEMPLATES: list[dict[str, Any]] = [
         },
         "status": "active",
     },
+    # ---- v2：修复“模板字段未生效”——新增 field_params 映射，v1 快照保持不变 ----
+    {
+        "template_id": "tpl_product_motion_5s",
+        "version": 2,
+        "category": "work",
+        "kind": "video",
+        "name": "5 秒商品动态展示",
+        "description": "以商品图为首帧生成 5 秒动态展示短片。要求提供商品首帧图。",
+        "effect_sample": {"asset_id": None, "note": "发布时补真实样例"},
+        "required_assets": [
+            {"role": "first_frame", "kind": "image", "required": True, "max_count": 1,
+             "label": "商品首帧图"},
+        ],
+        "fields": [
+            {"key": "product_name", "label": "商品名称", "type": "text", "required": False},
+            {"key": "motion", "label": "动态方式", "type": "select", "required": True,
+             "options": ["缓慢旋转", "推近特写", "环绕展示", "自定义"],
+             "allow_custom": True, "custom_key": "motion_custom"},
+            {"key": "duration", "label": "时长（秒）", "type": "select", "required": False,
+             "options": [5, 10], "param_key": "duration",
+             "note": "不填时使用模板默认 5 秒，避免选了 10 秒却静默用 5 秒"},
+            {"key": "ratio", "label": "画面比例", "type": "select", "required": False,
+             "options": ["9:16", "1:1"], "param_key": "ratio"},
+            {"key": "keep_features", "label": "需保留特征（可选）", "type": "textarea", "required": False},
+            {"key": "forbidden_elements", "label": "禁用元素（可选）", "type": "textarea", "required": False},
+        ],
+        "default_params": {"generation_mode": "image_to_video", "duration": 5, "ratio": "9:16",
+                            "resolution": "720p", "generate_audio": False},
+        # 模板字段 → 生成参数映射（优先级：显式 params > 此映射 > default_params）
+        "field_params": {"duration": "duration", "ratio": "ratio"},
+        "compatible_models": {"kind": "video", "input_modes": ["image_to_video"]},
+        "prompt": {
+            "preset": ("以首帧图中的商品为准，保持商品外形、数量、颜色、品牌标识与包装文字不变，"
+                       "不增加或删除商品。{motion}，镜头平稳，光线自然，适合电商短视频。"),
+            "scene_field": "motion",
+            "scene_custom_key": "motion_custom",
+            "field_order": ["keep_features", "forbidden_elements"],
+        },
+        "status": "active",
+    },
     {
         "template_id": "tpl_season_theme",
         "version": 1,
@@ -254,7 +294,14 @@ def _pick_custom(fields: dict, key: str, custom_key: str | None, default: str = 
 
 
 def validate_fields(snap: dict, fields: dict, has_reference: bool) -> dict:
-    """按模板字段定义校验；返回清洗后的字段值。"""
+    """按模板字段定义校验；返回清洗后的字段值（含关联的自定义字段）。
+
+    修复要点：
+    - `scene_custom` / `motion_custom` / `theme_custom` 等由 `custom_key` 声明的字段
+      **必须被保留**，否则选“自定义”时下游 _pick_custom 读不到内容。
+    - 选“自定义”但内容为空 → TEMPLATE_FIELD_REQUIRED（指向 custom_key）。
+    - 未选“自定义”时，对应自定义值**不写入**清洗结果（不污染提示词）。
+    """
     clean: dict = {}
     for f in snap.get("fields", []):
         key = f["key"]
@@ -270,6 +317,18 @@ def validate_fields(snap: dict, fields: dict, has_reference: bool) -> dict:
         if val not in (None, ""):
             clean[key] = val
 
+        # ---- 关联自定义字段 ----
+        custom_key = f.get("custom_key")
+        if custom_key:
+            cval = str(fields.get(custom_key) or "").strip()
+            if str(val or "").strip() == "自定义":
+                if not cval:
+                    raise err("TEMPLATE_FIELD_REQUIRED",
+                              f"{f['label']}选择「自定义」时必须填写具体内容",
+                              detail={"field": custom_key, "parent": key})
+                clean[custom_key] = cval
+            # 未选择“自定义”：cval 被丢弃，不进入提示词与任务快照
+
     for req in snap.get("required_assets", []):
         if req.get("required") and not has_reference:
             raise err("REFERENCE_IMAGE_REQUIRED",
@@ -283,6 +342,25 @@ def validate_fields(snap: dict, fields: dict, has_reference: bool) -> dict:
                       "未提供商品参考图时，必须填写商品名称（将生成创意概念图）",
                       detail={"field": "product_name", "concept_mode": True})
     return clean
+
+
+def _field_params(snap: dict, clean: dict) -> dict:
+    """模板字段 → 生成参数映射（如 duration / ratio）。"""
+    mapping = snap.get("field_params") or {}
+    out: dict = {}
+    for field_key, param_key in mapping.items():
+        val = clean.get(field_key)
+        if val in (None, ""):
+            continue
+        if param_key == "duration":
+            try:
+                out[param_key] = int(val)
+            except (TypeError, ValueError):
+                raise err("TEMPLATE_FIELD_INVALID", f"时长必须为数字，收到：{val}",
+                          detail={"field": field_key}) from None
+        else:
+            out[param_key] = str(val)
+    return out
 
 
 def compose_prompt(snap: dict, fields: dict, has_reference: bool) -> tuple[str, bool]:
@@ -313,8 +391,16 @@ def compose_prompt(snap: dict, fields: dict, has_reference: bool) -> tuple[str, 
 
 
 def resolve_for_task(template_id: str, template_version: int | None, fields: dict,
-                     has_reference: bool) -> dict:
-    """任务创建时调用：校验 + 组装 + 返回需要写入任务的字段。"""
+                     has_reference: bool, explicit_params: dict | None = None) -> dict:
+    """任务解析（**纯函数，无副作用**）：供提交与费用预估共用。
+
+    参数优先级：
+        1. 调用方显式 params（最高）
+        2. 模板字段映射（如 duration/ratio）
+        3. 模板默认值 default_params（最低）
+    例外：季节模板的 `generation_mode` 由**参考图存在性派生**（模板规则），
+    否则会出现“概念图却要求参考图”的矛盾；被忽略的显式值会回显供排查。
+    """
     snap = snapshot(template_id, template_version)
     if not snap:
         raise err("TEMPLATE_NOT_FOUND", f"模板或版本不存在：{template_id} v{template_version}")
@@ -324,17 +410,41 @@ def resolve_for_task(template_id: str, template_version: int | None, fields: dic
                   detail={"status": snap.get("_stored_status")})
     clean = validate_fields(snap, fields or {}, has_reference)
     prompt, concept = compose_prompt(snap, clean, has_reference)
-    if snap["kind"] == "video" and str(clean.get("duration") or "").strip() == "":
-        pass
+
+    explicit = dict(explicit_params or {})
+    explicit_prompt = explicit.pop("prompt", None)
+    explicit.pop("fields", None)
+    warnings: list[dict] = []
+
+    # 1) 默认值 → 2) 字段映射 → 3) 显式参数
+    params: dict = dict(snap.get("default_params", {}))
+    params.update(_field_params(snap, clean))
+    params.update(explicit)
+
+    # 4) 概念图路径：模式由参考图派生
+    if snap["template_id"] == "tpl_season_theme":
+        derived = "image_to_image" if has_reference else "text_to_image"
+        if str(params.get("generation_mode") or "") not in ("", derived):
+            warnings.append({"code": "GENERATION_MODE_DERIVED",
+                             "message": f"季节模板的生成方式由参考图存在性决定，已改为 {derived}",
+                             "ignored_value": params.get("generation_mode"),
+                             "applied_value": derived})
+        params["generation_mode"] = derived
+        if concept:
+            params["concept_mode"] = True
+
     return {
         "template_id": snap["template_id"],
         "template_version": int(snap["version"]),
         "template_name": snap["name"],
         "fields": clean,
         "prompt": prompt,
+        "explicit_prompt": explicit_prompt,
         "concept_mode": concept,
+        "params": params,
         "default_params": snap.get("default_params", {}),
         "compatible_models": snap.get("compatible_models", {}),
+        "warnings": warnings,
     }
 
 

@@ -63,6 +63,33 @@ CODES = {
     "TEMPLATE_DEPRECATED": (409, False),
     "MODEL_TEMPLATE_INCOMPATIBLE": (400, False),
     "MODEL_EOS": (409, False),
+    "MODEL_CAPABILITY_MISMATCH": (400, False),
+    # v0.9 助手（阶段一）
+    "ASSISTANT_UNAVAILABLE": (503, False),
+    "ASSISTANT_SESSION_NOT_FOUND": (404, False),
+    "ASSISTANT_TURN_LIMIT": (429, False),
+    "ASSISTANT_TOOL_BUDGET": (429, False),
+    "ASSISTANT_BUDGET_EXCEEDED": (429, False),
+    "TOOL_FORBIDDEN": (400, False),
+    "TOOL_NOT_FOUND": (400, False),
+    "QUOTE_NOT_ALLOWED": (400, False),
+    "QUOTE_NOT_FOUND": (404, False),
+    "QUOTE_EXPIRED": (409, False),
+    "QUOTE_SESSION_MISMATCH": (400, False),
+    "APPROVAL_NOT_FOUND": (404, False),
+    "APPROVAL_EXPIRED": (409, False),
+    "APPROVAL_PLAN_MISMATCH": (409, False),
+    "APPROVAL_ALREADY_USED": (409, False),
+    "APPROVAL_INVALID": (409, False),
+    "CONFIRM_NOT_ALLOWED": (400, False),
+    "INTENT_NOT_ALLOWED": (400, False),
+    # DeepSeek 通道：错误分类必须可区分（不能都归为“Key 有问题”）
+    "ASSISTANT_CONFIG_INCOMPLETE": (400, False),
+    "ASSISTANT_KEY_INVALID": (401, False),
+    "ASSISTANT_INSUFFICIENT_BALANCE": (402, False),
+    "ASSISTANT_MODEL_UNAVAILABLE": (404, False),
+    "ASSISTANT_TIMEOUT": (504, True),
+    "ASSISTANT_NETWORK_ERROR": (503, True),
 }
 
 

@@ -49,6 +49,11 @@ app.add_middleware(
 )
 app.add_exception_handler(AppError, app_error_handler)
 app.add_exception_handler(Exception, unhandled_handler)
+
+# 可选创作助手（阶段一）：不影响既有路由与手动生成路径
+from .assistant.router import router as assistant_router  # noqa: E402
+
+app.include_router(assistant_router)
 if STATIC.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
 if (FRONTEND_DIST / "assets").exists():
@@ -85,11 +90,12 @@ def system_status():
 
 @app.get("/api/models")
 def models():
+    # 列表与提交校验共用同一判定入口，避免“列表说未到期、提交却拒绝”
+    now = _now()
     out = []
     for mid, meta in config.MODEL_REGISTRY.items():
         is_cloud = meta.get("provider") == "ark"
         caps = config.MODEL_CAPABILITIES.get(mid, {})
-        life = config.MODEL_LIFECYCLE.get(mid, {})
         out.append({
             "id": mid,
             "name": meta["name"],
@@ -119,14 +125,8 @@ def models():
                 "limits": caps.get("limits"),
             },
             "pricing": caps.get("pricing"),
-            "lifecycle": ({
-                "status": "eos_scheduled",
-                "eos_at": life.get("eos_at"),
-                "eom_at": life.get("eom_at"),
-                "migrate_to": life.get("migrate_to"),
-                "action": life.get("action"),
-                "announce_url": life.get("announce_url"),
-            } if life else {"status": "active"}),
+            # 生命周期由 config.model_lifecycle_state() 计算（服务端时间比较，到期即 expired）
+            "lifecycle": config.model_lifecycle_state(mid, now),
         })
     return {"items": out}
 
@@ -230,46 +230,84 @@ class TaskIn(BaseModel):
     template_fields: dict | None = None
     external_request_id: str | None = None
     caller_id: str | None = None
+    # v0.9 助手：用户确认后的批准（仅助手路径使用；手动路径不传）
+    approval_id: str | None = None
 
 
-def create_task(body: TaskIn) -> dict:
-    if body.client_request_id:
-        hit = db.query("SELECT * FROM tasks WHERE client_request_id=?", (body.client_request_id,))
-        if hit:
-            return hit[0]
+def _normalize_caller(caller_id: str | None) -> str:
+    """手动路径的调用方标识。
+
+    无鉴权阶段：禁止通过请求体把任务伪装成助手来源——助手来源只能由
+    「报价→用户确认→批准」流程产生（见 assistant/approval.py）。
+    未来接入鉴权后，才可信任外部调用方自报的 caller_id。
+    """
+    cid = (caller_id or "local").strip() or "local"
+    return "local" if cid == "assistant" else cid
+
+
+# 可注入时钟（测试用；生产为 time.time）
+def _now() -> float:
+    return time.time()
+
+
+# 前端展示用的“最终生效参数”字段
+def _effective(params: dict, kind: str) -> dict:
+    if kind == "image":
+        return {"generation_mode": params.get("generation_mode"), "size": params.get("size")}
+    return {"duration": params.get("duration"), "ratio": params.get("ratio"),
+            "resolution": params.get("resolution"), "generate_audio": params.get("generate_audio")}
+
+
+def resolve_task(body: TaskIn, now_ts: float | None = None) -> dict:
+    """**纯函数：不建任务、不入队、不调模型、不扣预算**。
+
+    提交（create_task）与费用预估（estimate_task）共用本函数，保证两者参数完全一致。
+    """
+    now = _now() if now_ts is None else float(now_ts)
+
     if body.model_id not in config.MODEL_REGISTRY:
-        raise err("VALIDATION_FAILED", f"未知模型：{body.model_id}", detail={"models": list(config.MODEL_REGISTRY)})
+        raise err("VALIDATION_FAILED", f"未知模型：{body.model_id}",
+                  detail={"models": list(config.MODEL_REGISTRY)})
     meta = config.MODEL_REGISTRY[body.model_id]
     if meta["kind"] != body.kind:
         raise err("VALIDATION_FAILED", f"模型 {body.model_id} 不是 {body.kind} 模型")
 
-    # ---- 模板解析（在参数校验之前：模板可提供默认参数与提示词）----
-    params = dict(body.params)
+    # ---- 模型生命周期：到期后禁止新增任务（不自动替换模型）----
+    lifecycle = config.model_lifecycle_state(body.model_id, now)
+    if lifecycle.get("status") == "eos_expired":
+        raise err("MODEL_EOS",
+                  f"模型 {body.model_id} 已于 {lifecycle.get('eos_at')} 下线，不可新增生成任务；"
+                  f"请改用 {lifecycle.get('migrate_to') or '已验收的替代模型'}",
+                  detail=lifecycle)
+
+    params = dict(body.params or {})
     tpl_info: dict | None = None
+    warnings: list[dict] = []
+
     if body.template_id:
         fields = dict(body.template_fields or {})
-        # 允许调用方把字段直接放在 params.fields 里
         if not fields and isinstance(params.get("fields"), dict):
             fields = dict(params["fields"])
         has_ref = bool(body.input_asset_id)
-        tpl_info = templates.resolve_for_task(body.template_id, body.template_version, fields, has_ref)
-        # 模板默认参数只补缺，不覆盖调用方显式值
-        for k, v in {**tpl_info["default_params"], **params}.items():
-            params.setdefault(k, v)
-        params["prompt"] = params.get("prompt") or tpl_info["prompt"]
+        tpl_info = templates.resolve_for_task(body.template_id, body.template_version, fields,
+                                              has_ref, explicit_params=params)
+        params = dict(tpl_info["params"])
+        params["prompt"] = (tpl_info.get("explicit_prompt") or tpl_info["prompt"])
         params["fields"] = tpl_info["fields"]
         params["template_id"] = tpl_info["template_id"]
         params["template_version"] = tpl_info["template_version"]
+        warnings.extend(tpl_info.get("warnings") or [])
         if tpl_info["concept_mode"]:
             params["concept_mode"] = True
-        # 模板与模型兼容性校验
+        # 兼容性校验（用模板声明的兼容约束）
         caps = {**config.MODEL_CAPABILITIES.get(body.model_id, {}), "kind": meta["kind"]}
         if config.MODEL_CAPABILITIES.get(body.model_id) and not templates.model_compatible(
                 tpl_info, body.model_id, caps):
             raise err("MODEL_TEMPLATE_INCOMPATIBLE",
-                     f"模型 {body.model_id} 与模板「{tpl_info['template_name']}」不兼容",
-                     detail={"template_id": tpl_info["template_id"],
-                             "compatible_models": _compatible_model_ids({"compatible_models": tpl_info["compatible_models"]})})
+                      f"模型 {body.model_id} 与模板「{tpl_info['template_name']}」不兼容",
+                      detail={"template_id": tpl_info["template_id"],
+                              "compatible_models": _compatible_model_ids(
+                                  {"compatible_models": tpl_info["compatible_models"]})})
 
     if body.kind == "video":
         if not body.input_asset_id:
@@ -295,43 +333,127 @@ def create_task(body: TaskIn) -> dict:
             # 兼容旧行为：文生图即使带了参考图也不传给模型，仅回显提示
             params["ignored_reference"] = True
             params["input_asset_id"] = body.input_asset_id
-        body.params = params
 
+    # ---- 最终生效参数的模型能力校验 ----
+    problems = config.validate_params_for_model(body.model_id, body.kind, params)
+    if problems:
+        raise err("MODEL_CAPABILITY_MISMATCH",
+                  f"模型 {body.model_id} 不支持所选参数：" +
+                  "，".join(f"{p['field']}={p['got']}" for p in problems),
+                  detail={"template_id": (tpl_info or {}).get("template_id"), "problems": problems})
+
+    # ---- 费用估算（与提交共用同一函数）----
+    from . import cloud_tasks
+    estimated = cloud_tasks.estimate_cost(body.kind, body.model_id, params)
+
+    return {
+        "kind": body.kind,
+        "model_id": body.model_id,
+        "input_asset_id": body.input_asset_id,
+        "params": params,
+        "template_id": (tpl_info or {}).get("template_id"),
+        "template_version": (tpl_info or {}).get("template_version"),
+        "template_name": (tpl_info or {}).get("template_name"),
+        "concept_mode": bool(params.get("concept_mode")),
+        "estimated_cost_cny": estimated,
+        "effective": _effective(params, body.kind),
+        "lifecycle": lifecycle,
+        "warnings": warnings,
+        "external_request_id": body.external_request_id,
+        "caller_id": _normalize_caller(body.caller_id),
+    }
+
+
+@app.post("/api/tasks/estimate")
+def estimate_task(body: TaskIn):
+    """**无副作用**费用预估：不建任务、不入队、不调用模型、不扣预算。
+
+    注意：本路由必须在任何 `/api/tasks/{task_id}` 形态的 POST 路由之前注册；
+    当前 `/api/tasks/{task_id}` 仅支持 GET，因此无冲突（已由测试断言路由顺序）。
+    """
+    resolved = resolve_task(body)
+    return {
+        "kind": resolved["kind"],
+        "model_id": resolved["model_id"],
+        "template_id": resolved["template_id"],
+        "template_version": resolved["template_version"],
+        "template_name": resolved["template_name"],
+        "concept_mode": resolved["concept_mode"],
+        "estimated_cost_cny": resolved["estimated_cost_cny"],
+        "effective": resolved["effective"],
+        "params_preview": {
+            "prompt": resolved["params"].get("prompt"),
+            "fields": resolved["params"].get("fields"),
+        },
+        "model_lifecycle": resolved["lifecycle"],
+        "warnings": resolved["warnings"],
+        "side_effects": {"task_created": False, "queued": False,
+                          "model_called": False, "budget_deducted": False},
+    }
+
+
+def _insert_resolved(resolved: dict, body: TaskIn) -> dict:
+    params = resolved["params"]
     task = {
-        "id": db.new_id("task"), "kind": body.kind, "status": "queued",
-        "params_json": db.dumps(params), "model_id": body.model_id,
-        "model_revision": "local-snapshot", "input_asset_id": body.input_asset_id,
+        "id": db.new_id("task"), "kind": resolved["kind"], "status": "queued",
+        "params_json": db.dumps(params), "model_id": resolved["model_id"],
+        "model_revision": "local-snapshot", "input_asset_id": resolved["input_asset_id"],
         "batch_id": body.batch_id, "client_request_id": body.client_request_id,
         "progress": 0.0, "stage": "queued", "attempts": 0, "cancel_requested": 0,
         "created_at": db.now(), "updated_at": db.now(),
-        "template_id": (tpl_info or {}).get("template_id"),
-        "template_version": (tpl_info or {}).get("template_version"),
-        "external_request_id": body.external_request_id,
-        "caller_id": body.caller_id or "local",
-        "concept_mode": 1 if params.get("concept_mode") else 0,
+        "template_id": resolved["template_id"],
+        "template_version": resolved["template_version"],
+        "external_request_id": resolved["external_request_id"],
+        "caller_id": resolved["caller_id"],
+        "concept_mode": 1 if resolved["concept_mode"] else 0,
     }
     db.insert("tasks", task)
     q = db.query("SELECT COUNT(*) c FROM tasks WHERE status='queued'")[0]["c"]
-    return {**task, "queue_position": q}
+    return {**task, "queue_position": q, "estimated_cost_cny": resolved["estimated_cost_cny"]}
+
+
+def create_task(body: TaskIn) -> dict:
+    # ---- 助手路径：必须带批准，且来源/幂等键均由后端确定 ----
+    if body.approval_id:
+        # 助手路径：以报价时冻结的方案为准，不重新解析模板（防模板升版漂移）。
+        # 方案校验在幂等回放之前完成，改方案后同一批准会被拒绝。
+        from .assistant import approval as approval_gate
+        return approval_gate.submit_with_approval(body)
+
+    if body.client_request_id:
+        hit = db.query("SELECT * FROM tasks WHERE client_request_id=?", (body.client_request_id,))
+        if hit:
+            # 幂等回放：补上任务级费用估算，避免响应字段为空
+            row = hit[0]
+            try:
+                from . import cloud_tasks
+                row["estimated_cost_cny"] = cloud_tasks.estimate_cost(
+                    row["kind"], row["model_id"], db.loads(row.get("params_json")) or {})
+            except Exception:  # noqa: BLE001
+                row["estimated_cost_cny"] = None
+            row["idempotent_replay"] = True
+            return row
+    resolved = resolve_task(body)
+    return _insert_resolved(resolved, body)
 
 
 @app.post("/api/tasks")
 def post_task(body: TaskIn):
     t = create_task(body)
-    est = None
-    try:
-        from . import cloud_tasks
-        params = db.loads(t.get("params_json")) or {}
-        est = cloud_tasks.estimate_cost(t["kind"], t["model_id"], params)
-    except Exception:  # noqa: BLE001
-        est = None
     return {"task_id": t["id"], "status": t["status"], "queue_position": t.get("queue_position"),
             "estimated_memory_mb": GUARD.snapshot().get("budget_mb"),
-            "estimated_cost_cny": est,
+            # 注意：这是“提交后”的任务级费用估算，不是提交前确认；
+            # 提交前确认必须使用 POST /api/tasks/estimate。
+            "estimated_cost_cny": t.get("estimated_cost_cny"),
             "template_id": t.get("template_id"),
             "template_version": t.get("template_version"),
             "external_request_id": t.get("external_request_id"),
-            "concept_mode": bool(t.get("concept_mode"))}
+            "concept_mode": bool(t.get("concept_mode")),
+            # 助手路径回显：来源由后端强制
+            "origin": t.get("origin") or ("assistant" if body.approval_id else "manual"),
+            "caller_id": t.get("caller_id"),
+            "approval_id": body.approval_id,
+            "idempotent_replay": bool(t.get("idempotent_replay"))}
 
 
 @app.get("/api/tasks")
@@ -377,6 +499,7 @@ def retry_task(task_id: str, body: RetryIn | None = None):
     if body and body.params:
         params = {**params, **body.params}
     tfields = params.get("fields") if isinstance(params.get("fields"), dict) else None
+    # 重试同样受模型生命周期保护：到期后 create_task → resolve_task 抛 MODEL_EOS
     new = create_task(TaskIn(kind=t["kind"], model_id=t["model_id"],
                              params=params,
                              input_asset_id=t["input_asset_id"], batch_id=t["batch_id"],
@@ -388,7 +511,8 @@ def retry_task(task_id: str, body: RetryIn | None = None):
     db.update("tasks", new["id"], {"retry_of": task_id})
     return {"task_id": new["id"], "retry_of": task_id, "status": "queued",
             "template_id": new.get("template_id"),
-            "template_version": new.get("template_version")}
+            "template_version": new.get("template_version"),
+            "estimated_cost_cny": new.get("estimated_cost_cny")}
 
 
 # ---------- 批量 ----------
@@ -403,14 +527,18 @@ def post_batch(body: BatchIn):
     if not body.items:
         raise err("VALIDATION_FAILED", "items 不能为空")
     batch_id = db.new_id("batch")
-    db.insert("batches", {"id": batch_id, "name": body.name, "created_at": db.now(),
-                          "params_json": db.dumps({"count": len(body.items)})})
-    ids = []
+
+    # 先全批解析（纯函数，不写库）：任一项非法（含模型 EOS）→ 整批拒绝，不产生半成品任务
+    resolved_items: list[tuple[dict, TaskIn]] = []
     for it in body.items:
         it.batch_id = batch_id
         if body.caller_id and not it.caller_id:
             it.caller_id = body.caller_id
-        ids.append(create_task(it)["id"])
+        resolved_items.append((resolve_task(it), it))
+
+    db.insert("batches", {"id": batch_id, "name": body.name, "created_at": db.now(),
+                          "params_json": db.dumps({"count": len(resolved_items)})})
+    ids = [_insert_resolved(res, it)["id"] for res, it in resolved_items]
     return {"batch_id": batch_id, "task_ids": ids}
 
 

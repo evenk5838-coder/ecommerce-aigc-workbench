@@ -50,6 +50,35 @@ CREATE TABLE IF NOT EXISTS template_versions(
   status TEXT DEFAULT 'active', created_at REAL,
   UNIQUE(template_id, version));
 
+-- ===== v0.9 助手（阶段一）：会话 / brief / 报价 / 批准 / 用量 =====
+CREATE TABLE IF NOT EXISTS assistant_sessions(
+  id TEXT PRIMARY KEY, project_id TEXT, intent TEXT, status TEXT DEFAULT 'active',
+  turns INTEGER DEFAULT 0, questions INTEGER DEFAULT 0, tool_calls INTEGER DEFAULT 0,
+  input_tokens INTEGER DEFAULT 0, output_tokens INTEGER DEFAULT 0,
+  created_at REAL, updated_at REAL);
+
+CREATE TABLE IF NOT EXISTS assistant_briefs(
+  project_id TEXT PRIMARY KEY, brief_json TEXT, version INTEGER DEFAULT 1, updated_at REAL);
+
+CREATE TABLE IF NOT EXISTS assistant_quotes(
+  id TEXT PRIMARY KEY, session_id TEXT, project_id TEXT, plan_hash TEXT,
+  payload_json TEXT, effective_json TEXT, cost_cny REAL,
+  expires_at REAL, created_at REAL);
+
+CREATE TABLE IF NOT EXISTS assistant_approvals(
+  id TEXT PRIMARY KEY, quote_id TEXT, session_id TEXT, project_id TEXT, plan_hash TEXT,
+  expires_at REAL, max_uses INTEGER DEFAULT 1, used_count INTEGER DEFAULT 0,
+  task_id TEXT, created_at REAL, used_at REAL);
+
+CREATE TABLE IF NOT EXISTS assistant_messages(
+  id TEXT PRIMARY KEY, session_id TEXT, role TEXT, content TEXT,
+  reply_type TEXT, structured_json TEXT, created_at REAL);
+
+CREATE TABLE IF NOT EXISTS assistant_usage(
+  id TEXT PRIMARY KEY, session_id TEXT, kind TEXT, provider TEXT, model TEXT,
+  input_tokens INTEGER, output_tokens INTEGER, tool_calls INTEGER,
+  cost_cny REAL, note TEXT, created_at REAL);
+
 CREATE TABLE IF NOT EXISTS drafts(
   id TEXT PRIMARY KEY, name TEXT, content_json TEXT, version INTEGER,
   created_at REAL, updated_at REAL);
@@ -61,6 +90,11 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status, created_at);
 CREATE INDEX IF NOT EXISTS idx_tasks_batch ON tasks(batch_id);
 CREATE INDEX IF NOT EXISTS idx_assets_sha ON assets(sha256);
 CREATE INDEX IF NOT EXISTS idx_template_versions ON template_versions(template_id, version);
+CREATE INDEX IF NOT EXISTS idx_assistant_quotes ON assistant_quotes(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_assistant_approvals ON assistant_approvals(quote_id);
+CREATE INDEX IF NOT EXISTS idx_assistant_usage ON assistant_usage(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_assistant_messages ON assistant_messages(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_assistant_sessions_project ON assistant_sessions(project_id, updated_at);
 """
 
 
@@ -85,6 +119,32 @@ def conn():
             c.close()
 
 
+@contextmanager
+def transaction():
+    """显式事务（BEGIN IMMEDIATE … COMMIT/ROLLBACK）。
+
+    用于需要“多步写要么全成要么全不成”的场景，例如：
+    消费助手批准 + 创建任务必须原子完成。
+    """
+    with _lock:
+        c = sqlite3.connect(config.DB_PATH, timeout=30, isolation_level=None)
+        c.row_factory = sqlite3.Row
+        try:
+            c.execute("PRAGMA journal_mode=WAL")
+            c.execute("PRAGMA synchronous=NORMAL")
+            c.execute("BEGIN IMMEDIATE")
+            yield c
+            c.execute("COMMIT")
+        except Exception:
+            try:
+                c.execute("ROLLBACK")
+            except sqlite3.Error:
+                pass
+            raise
+        finally:
+            c.close()
+
+
 MIGRATIONS = [
     ("tasks", "remote_task_id", "TEXT"),
     ("tasks", "remote_status", "TEXT"),
@@ -97,6 +157,11 @@ MIGRATIONS = [
     ("tasks", "external_request_id", "TEXT"),
     ("tasks", "caller_id", "TEXT"),
     ("tasks", "concept_mode", "INTEGER DEFAULT 0"),
+    # v0.9.1 助手：报价/批准冻结完整方案（模板版本 + 解析后参数），防模板升版漂移
+    ("assistant_quotes", "frozen_json", "TEXT"),
+    ("assistant_approvals", "frozen_json", "TEXT"),
+    ("assistant_messages", "reply_type", "TEXT"),
+    ("assistant_messages", "structured_json", "TEXT"),
 ]
 
 

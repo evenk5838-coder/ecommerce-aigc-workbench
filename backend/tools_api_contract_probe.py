@@ -138,7 +138,39 @@ def main() -> int:
         rec("GET /api/assets/{id}/file 可取回真实产物文件", n > 1000,
             {"bytes": n, "content_type": ctype})
 
-    # 10. 记录“未实现鉴权”的事实，避免误读为已可对外接入
+    # 10. 提交前费用预估：无副作用（不建任务/不入队/不调模型/不扣预算）
+    before_est = len(http("GET", "/api/tasks?limit=200")[1].get("items", []))
+    est_body = {
+        "kind": "video", "model_id": "doubao-seedance-1-0-pro-fast-251015",
+        "input_asset_id": "asset_cd91e2f9dda14123a622",
+        "template_id": "tpl_product_motion_5s",
+        "template_fields": {"motion": "缓慢旋转", "duration": 10, "ratio": "1:1"},
+    }
+    st1, est1 = http("POST", "/api/tasks/estimate", est_body)
+    st2, est2 = http("POST", "/api/tasks/estimate", est_body)
+    after_est = len(http("GET", "/api/tasks?limit=200")[1].get("items", []))
+    rec("POST /api/tasks/estimate 无副作用（任务数不变 + side_effects 全 false）",
+        st1 == 200 and st2 == 200 and before_est == after_est
+        and est1.get("side_effects", {}).get("task_created") is False
+        and est1.get("side_effects", {}).get("model_called") is False,
+        {"status": st1, "before": before_est, "after": after_est,
+         "cost": est1.get("estimated_cost_cny")})
+
+    rec("预估结果与模板字段一致（duration=10 / ratio=1:1）+ 费用稳定可重复",
+        est1.get("effective", {}).get("duration") == 10
+        and est1.get("effective", {}).get("ratio") == "1:1"
+        and est1.get("estimated_cost_cny") == est2.get("estimated_cost_cny"),
+        {"effective": est1.get("effective"), "cost": est1.get("estimated_cost_cny")})
+
+    rec("预估返回模型生命周期信息（下线时间/迁移目标）",
+        (est1.get("model_lifecycle") or {}).get("eos_at") is not None,
+        {"lifecycle": est1.get("model_lifecycle")})
+
+    # 11. 任务数变化时同时核对“未调用模型”的事实：预估不应写入 cost
+    rec("预估不写入用量/费用记录（tasks.cost_cny 未被新增）",
+        before_est == after_est, {"tasks": after_est})
+
+    # 12. 记录“未实现鉴权”的事实，避免误读为已可对外接入
     st, _ = http("GET", "/api/models")
     rec("鉴权状态核对：当前对外接口无鉴权（仅本机限制）——预留非已实现",
         st == 200, {"note": "本轮不实现鉴权校验；对外接入前必须补齐"})
