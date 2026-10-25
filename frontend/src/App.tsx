@@ -10,17 +10,18 @@ import { getDefaultImageSize, getDurationPolicy, getImageSizesForRatio, getModel
 import './S1Workbench.css';
 import ReferencePicker from './ReferencePicker';
 import { buildGenerationInput, getImagePrompt } from './generation';
+import { inspectGenerationEstimates } from './estimates';
 import type { ImageMode, ImagePurpose } from './generation';
 import { api, ApiError, mediaUrl } from './api';
 import { downloadBlob, fitAsset, metadata, moveLayer, newProject, realAssets, renderCanvas, safeName } from './editor';
-import type { Asset, GenerationSettings, Layer, Model, Project, SystemStatus, Task, TaskInput } from './types';
+import type { Asset, GenerationSettings, Layer, Model, Project, SystemStatus, Task, TaskEstimate, TaskInput } from './types';
 
 const STORAGE = 'material-studio-project-v1';
 const ACTIVE = ['queued','loading','running','postprocess','remote_queued','remote_running','cancel_requested'];
 const NAMES: Record<string,string> = {queued:'排队中',loading:'加载中',running:'生成中',postprocess:'保存结果',remote_queued:'云端排队',remote_running:'云端生成',cancel_requested:'已请求取消',succeeded:'已完成',failed:'生成失败',canceled:'已取消',interrupted:'已中断'};
 const DEFAULT_GENERATION: GenerationSettings = {kind:'image',imageMode:'text_to_image',purpose:'white',imagePrompt:getImagePrompt('text_to_image','white'),videoPrompt:'镜头缓慢推近商品，柔和光线掠过表面，保持商品形态和包装稳定，适合电商商品展示。',imageRatio:'1:1',videoRatio:'9:16',imageReference:null,videoReference:null,batchCount:1,duration:5,videoResolution:'720p'};
 const ERRORS: Record<string,string> = {AUTH_MISSING:'尚未配置云端 Key，请在后端配置后重试。',AUTH_FAILED:'模型鉴权失败，请检查 Key 与模型开通权限。',BUDGET_NOT_APPROVED:'后端尚未批准云端预算。',BUDGET_EXCEEDED:'已达到本次预算上限，请先核对用量。',MODEL_NOT_DOWNLOADED:'本地模型权重未就位。',MODEL_NOT_OPENED:'当前账号尚未开通该模型，请核对火山控制台。',CREATE_RESULT_UNKNOWN:'创建结果暂不明确，请先核对云端任务，避免重复扣费。'};
-type PendingGeneration = { id:string; items:TaskInput[]; kind:'image'|'video'; modelName:string; specLabel:string; costs:number[]|null; error:string };
+type PendingGeneration = { id:string; items:TaskInput[]; kind:'image'|'video'; modelName:string; specLabel:string; costs:number[]|null; estimates:TaskEstimate[]|null; error:string };
 const time = (ms?: number) => ms == null ? '—' : ms < 60000 ? `${(ms/1000).toFixed(1)}秒` : `${(ms/60000).toFixed(1)}分钟`;
 function IconButton({ children, label, onClick, disabled = false, active = false }: {children:ReactNode;label:string;onClick:()=>void;disabled?:boolean;active?:boolean}) {
   return <button className={`icon-button ${active?'active':''}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}>{children}</button>;
@@ -165,6 +166,8 @@ export default function App() {
   const resolution=settings.videoResolution??'720p';
   const imageSize=project.generation?.imageSize??getDefaultImageSize(selectedModel,ratio)??'';
   const selectionError=validateModelSelection(selectedModel,kind)||(!supportedRatios.includes(ratio)?'请重新选择当前模型支持的画面比例。':kind==='video'?(validateVideoDuration(selectedModel,duration)||(!supportedResolutions.includes(resolution)?'请重新选择视频清晰度。':null)):(!imageSizes.includes(imageSize)?'请为当前比例选择输出尺寸。':null));
+  const pendingPermissionError=pendingGeneration?getModelUnavailableReason(models.find(model=>model.id===pendingGeneration.items[0]?.model_id)):null;
+  const pendingEstimateError=pendingGeneration?.estimates?inspectGenerationEstimates(pendingGeneration.estimates,pendingGeneration.items.length).error:null;
   const assistantProjectId=project.assistantProjectId??draftRef.current?.id??'';
   const refAsset=assets.find(a=>a.id===reference);
   const filteredAssets=assets.filter(a=>(assetTab==='all'||(assetTab==='upload'?a.source==='upload':a.kind===assetTab))&&(assetName(a)+' '+String(metadata(a).prompt||'')+' '+(project.assetGroups[a.id]||'')).toLowerCase().includes(query.toLowerCase()));
@@ -223,18 +226,19 @@ export default function App() {
     const id=crypto.randomUUID();
     const items=Array.from({length:batchCount},()=>({...base,params:{...base.params},client_request_id:crypto.randomUUID()}));
     pendingRef.current=id;
-    setPendingGeneration({id,items,kind,modelName:selectedModel?.name||modelId,specLabel:kind==='video'?`${ratio} · ${resolution} · ${duration} 秒`:`${ratio} · ${imageSize.replace('x',' × ')}`,costs:null,error:''});
+    setPendingGeneration({id,items,kind,modelName:selectedModel?.name||modelId,specLabel:kind==='video'?`${ratio} · ${resolution} · ${duration} 秒`:`${ratio} · ${imageSize.replace('x',' × ')}`,costs:null,estimates:null,error:''});
     try{
       const quotes=await Promise.all(items.map(item=>api.estimateTask(item)));
-      const costs=quotes.map(quote=>quote.estimated_cost_cny);
-      if(costs.some(cost=>typeof cost!=='number'||!Number.isFinite(cost)||cost<0))throw new Error('后端未提供有效费用预估，请刷新后再试。');
-      if(pendingRef.current===id)setPendingGeneration(current=>current?.id===id?{...current,costs}:current);
+      const estimateCheck=inspectGenerationEstimates(quotes,items.length);
+      if(pendingRef.current===id)setPendingGeneration(current=>current?.id===id?{...current,estimates:quotes,costs:estimateCheck.costs,error:estimateCheck.error??''}:current);
     }catch(e){if(pendingRef.current===id)setPendingGeneration(current=>current?.id===id?{...current,error:e instanceof Error?e.message:'费用预估失败，请返回修改。'}:current);}
   };
   const closeGeneration=()=>{if(busy)return;pendingRef.current=null;setPendingGeneration(null);};
   const confirmGeneration=async()=>{
     const frozen=pendingGeneration;
-    if(submitLock.current||!frozen?.costs||frozen.error)return;
+    if(submitLock.current||!frozen||frozen.error)return;
+    const estimateCheck=inspectGenerationEstimates(frozen.estimates,frozen.items.length);
+    if(estimateCheck.error){setPendingGeneration({...frozen,error:estimateCheck.error});return;}
     const model=models.find(item=>item.id===frozen.items[0].model_id);
     const unavailable=getModelUnavailableReason(model);
     if(unavailable){setPendingGeneration({...frozen,error:unavailable});return;}
@@ -341,7 +345,7 @@ export default function App() {
       </div>
       <footer className="statusbar"><span><span className="green-dot"/>本地工作台 + 云端推理</span><span>{system?`${activeTasks.length} 个任务处理中`:'等待连接'}<i/>画布编辑不占用生成队列</span></footer>
     </div>
-    {pendingGeneration&&<GenerationConfirm modelName={pendingGeneration.modelName} kind={pendingGeneration.kind} count={pendingGeneration.items.length} specLabel={pendingGeneration.specLabel} costs={pendingGeneration.costs} error={pendingGeneration.error} busy={busy} hasReference={!!pendingGeneration.items[0].input_asset_id} onConfirm={()=>void confirmGeneration()} onClose={closeGeneration}/>}
+    {pendingGeneration&&<GenerationConfirm modelName={pendingGeneration.modelName} kind={pendingGeneration.kind} count={pendingGeneration.items.length} specLabel={pendingGeneration.specLabel} costs={pendingGeneration.costs} error={pendingGeneration.error||pendingPermissionError||pendingEstimateError||''} busy={busy} hasReference={!!pendingGeneration.items[0].input_asset_id} onConfirm={()=>void confirmGeneration()} onClose={closeGeneration}/>}
     <input ref={fileRef} className="hidden" type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={e=>void upload(e.target.files)}/>
     {referencePicker&&<ReferencePicker assets={assets} selectedId={reference} onSelect={a=>selectReference(a,kind)} onUpload={()=>openUpload(kind)} onClose={()=>setReferencePicker(false)} uploading={uploading} error={resourceErrors.assets} onRefresh={()=>void refresh()}/>}
     {preview&&<div className="modal-backdrop" onClick={()=>setPreview(null)}><section className="preview-modal" role="dialog" aria-modal="true" aria-label="素材预览" onClick={e=>e.stopPropagation()}><header><div><strong>{assetName(preview)}</strong><span>{preview.width}×{preview.height} · {(preview.size/1e6).toFixed(2)} MB</span></div><IconButton label="关闭预览" onClick={()=>setPreview(null)}><X size={20}/></IconButton></header><div className="preview-media">{preview.kind==='image'?<img src={mediaUrl(preview.id)} alt={assetName(preview)}/>:<video src={mediaUrl(preview.id)} controls autoPlay/>}</div><div className="preview-actions"><a className="secondary" href={mediaUrl(preview.id)} download><ArrowDownToLine size={15}/>下载原文件</a>{preview.kind==='image'&&<><button className="secondary" onClick={()=>selectReference(preview,'image')}><ImageIcon size={15}/>用作图生图参考</button><button className="secondary" onClick={()=>selectReference(preview,'video')}><Film size={15}/>用作视频首帧</button><button className="primary" onClick={()=>{addAsset(preview);setPreview(null);}}>加入排版<Plus size={15}/></button></>}</div><label className="sku-label">SKU 分组（仅用于项目内管理）<input placeholder="例如：面霜系列 / 白色款" value={project.assetGroups[preview.id]||''} onChange={e=>mutate(p=>({...p,assetGroups:{...p.assetGroups,[preview.id]:e.target.value}}),false)}/></label></section></div>}

@@ -8,6 +8,7 @@ const reference: Asset = {
 };
 const imageModel: Model = {
   id: 'doubao-seedream-5-0-flash-260915', name: '图片模型', kind: 'image', provider: 'ark',
+  submittability: { submittable: true, reasons: [] },
   downloaded: true, loaded: false, weights_mb: 0, activation: 'verified', lifecycle: { status: 'active' },
   capabilities: {
     input_modes: ['text_to_image', 'image_to_image'], ratios: ['1:1', '3:4', '4:3', '9:16', '16:9'],
@@ -85,9 +86,16 @@ describe('cloud generation requests', () => {
     expect(() => buildGenerationInput({ ...imageOptions, model: undefined })).toThrow('模型信息');
     expect(() => buildGenerationInput({ ...imageOptions, modelId: 'other' })).toThrow('不一致');
     expect(() => buildGenerationInput({ ...imageOptions, model: videoModel })).toThrow('生成类型');
-    expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, activation: 'not_opened' } })).toThrow('尚未开通');
-    expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, lifecycle: { status: 'eos_expired' } } })).toThrow('已下线');
+    expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, submittability: { submittable: false, reasons: ['MODEL_NOT_OPENED'] } } })).toThrow('尚未开通');
+    expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, lifecycle: { status: 'eos_expired' }, submittability: { submittable: false, reasons: ['MODEL_EOS'] } } })).toThrow('已下线');
     expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, capabilities: { ...imageModel.capabilities, input_modes: ['text_to_image'] } } })).toThrow('生图方式');
+  });
+
+  it('requires an explicit server grant before building a generation request', () => {
+    for (const submittability of [undefined, null, { submittable: false, reasons: ['FUTURE_POLICY'] }]) {
+      expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, submittability } })).toThrow();
+    }
+    expect(() => buildGenerationInput({ ...imageOptions, model: { ...imageModel, activation: 'unknown', downloaded: false } })).not.toThrow();
   });
 
   it('keeps reference and parameters isolated between independent requests', () => {

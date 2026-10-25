@@ -4,6 +4,7 @@ import type { DurationPolicy, Model } from './types';
 
 const video: Model = {
   id: 'server-video-model', name: 'Video', kind: 'video', provider: 'ark', activation: 'verified',
+  submittability: { submittable: true, reasons: [] },
   downloaded: true, loaded: false, weights_mb: 0, lifecycle: { status: 'active' },
   capabilities: { ratios: ['9:16', '16:9', '1:1'], resolutions: ['480p', '720p', '1080p'],
     duration_s: [5, 10], duration_range_s: [2, 12], duration_step_s: 1,
@@ -65,16 +66,44 @@ describe('model capability and availability', () => {
     expect(getDefaultImageSize({ ...image, capabilities: { ratios: ['1:1'], sizes: ['1024x1024'] } }, '1:1')).toBeUndefined();
   });
 
-  it('blocks unverified/unopened/local and expired models but permits scheduled EOS', () => {
+  it('uses the server permission rather than recomputing activation, downloaded or lifecycle metadata', () => {
     expect(getModelUnavailableReason(video)).toBeNull();
-    for (const activation of ['unknown', 'not_opened', 'local_history', undefined] as const) {
-      expect(getModelUnavailableReason({ ...video, activation })).not.toBeNull();
-    }
-    expect(getModelUnavailableReason({ ...video, provider: 'local' })).not.toBeNull();
-    expect(getModelUnavailableReason({ ...video, downloaded: false })).not.toBeNull();
-    expect(getModelUnavailableReason({ ...video, lifecycle: { status: 'eos_expired' } })).toContain('已下线');
+    expect(getModelUnavailableReason({ ...video, activation: 'unknown', downloaded: false, lifecycle: undefined })).toBeNull();
+    expect(getModelUnavailableReason({ ...video, activation: 'not_opened' })).toBeNull();
     expect(getModelUnavailableReason({ ...video, lifecycle: { status: 'eos_scheduled', migrate_to: 'some-other-model', migrate_to_activation: 'not_opened' } })).toBeNull();
-    expect(getModelUnavailableReason({ ...video, lifecycle: undefined })).not.toBeNull();
+    expect(getModelUnavailableReason({ ...video, provider: 'local' })).toContain('仅支持云端');
+    expect(getModelUnavailableReason({ ...video, provider: undefined })).toContain('仅支持云端');
     expect(validateModelSelection(video, 'image')).toContain('生成类型');
+  });
+
+  it('blocks explicit false despite otherwise ready metadata and displays server reasons', () => {
+    expect(getModelUnavailableReason({ ...video, submittability: { submittable: false, reasons: ['MODEL_NOT_OPENED'] } })).toContain('尚未开通');
+    expect(getModelUnavailableReason({ ...video, lifecycle: { status: 'eos_expired' }, submittability: { submittable: false, reasons: ['MODEL_EOS'] } })).toContain('已下线');
+    expect(getModelUnavailableReason({ ...video, submittability: { submittable: false, reasons: [] } })).toContain('服务端暂不允许提交');
+  });
+
+  it('never promotes an unknown or malformed blocked reason into permission', () => {
+    for (const code of ['FUTURE_ACCOUNT_POLICY', 'toString', '__proto__']) {
+      expect(getModelUnavailableReason({ ...video, submittability: { submittable: false, reasons: [code] } })).toBe(`服务端暂不允许提交（${code}）`);
+    }
+    for (const reasons of [null, undefined, 'MODEL_EOS', [null, 42], []]) {
+      const submittability = { submittable: false, reasons } as unknown as Model['submittability'];
+      expect(getModelUnavailableReason({ ...video, submittability })).not.toBeNull();
+    }
+  });
+
+  it.each([undefined, null, {}, [], 'allowed', { submittable: null }, { submittable: 'true' }, { submittable: 1 }])(
+    'blocks missing or malformed submission permission: %j', permission => {
+      const submittability = permission as unknown as Model['submittability'];
+      expect(getModelUnavailableReason({ ...video, submittability })).toContain('许可缺失或无效');
+      expect(validateModelSelection({ ...video, submittability }, 'video')).not.toBeNull();
+    },
+  );
+
+  it('keeps local parameter safety checks even with a legal server permission', () => {
+    const noDuration = withPolicy({ kind: 'unavailable' });
+    expect(getModelUnavailableReason(noDuration)).toBeNull();
+    expect(validateModelSelection(noDuration, 'video')).toContain('时长能力未配置');
+    expect(validateVideoDuration(video, 5.5)).toContain('整数秒');
   });
 });

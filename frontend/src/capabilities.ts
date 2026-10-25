@@ -58,16 +58,33 @@ export function getDefaultImageSize(model: Model | undefined, ratio: string): st
   return size && getImageSizesForRatio(model, ratio).includes(size) ? size : undefined;
 }
 
-/** A scheduled EOS is a warning, not a reason to switch or disable a model. */
+const blockedReasonMessages: Record<string, string> = {
+  MODEL_NOT_OPENED: '此模型尚未开通，请在控制台开通后刷新模型列表',
+  MODEL_NOT_DOWNLOADED: '服务端模型尚未就绪，暂不可生成',
+  MODEL_EOS: '此模型已下线，请重新选择模型',
+  DURATION_POLICY_UNAVAILABLE: '时长能力未配置，请刷新模型列表',
+};
+
+/** Only the literal server permission grants submission; reason codes supply copy, not policy. */
+export function getSubmissionBlockedReason(submittable: unknown, reasons: unknown): string | null {
+  if (submittable === true) return null;
+  if (submittable !== false) return '服务端提交许可缺失或无效，请刷新后重试';
+  const codes = Array.isArray(reasons)
+    ? [...new Set(reasons.filter((reason): reason is string => typeof reason === 'string' && reason.trim().length > 0))]
+    : [];
+  return codes.length
+    ? codes.map(code => Object.hasOwn(blockedReasonMessages, code) ? blockedReasonMessages[code] : `服务端暂不允许提交（${code}）`).join('；')
+    : '服务端暂不允许提交，请刷新模型列表后重试';
+}
+
+/** Provider compatibility is local; submission permission is exclusively server-supplied. */
 export function getModelUnavailableReason(model: Model | undefined): string | null {
   if (!model) return '模型信息尚未加载，请刷新模型列表';
-  if (model.provider !== 'ark' || model.activation === 'local_history') return '此模型仅保留历史记录，不能用于云端生成';
-  if (model.activation === 'not_opened') return '此模型尚未开通，请选择已验证模型';
-  if (model.activation !== 'verified') return '此模型尚未验证开通状态，暂不可生成';
-  if (!model.downloaded) return '此模型尚未就绪';
-  if (model.lifecycle?.status === 'eos_expired') return '此模型已下线，请重新选择模型';
-  if (model.lifecycle?.status !== 'active' && model.lifecycle?.status !== 'eos_scheduled') return '模型生命周期状态未加载，请刷新模型列表';
-  return null;
+  if (model.provider !== 'ark') return '当前工作台仅支持云端模型，本地模型不可用于此入口';
+  const raw: unknown = model.submittability;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return getSubmissionBlockedReason(undefined, undefined);
+  const permission = raw as Record<string, unknown>;
+  return getSubmissionBlockedReason(permission.submittable, permission.reasons);
 }
 
 export function validateModelSelection(model: Model | undefined, kind: 'image' | 'video'): string | null {

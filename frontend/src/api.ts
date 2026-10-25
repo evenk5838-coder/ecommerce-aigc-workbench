@@ -1,4 +1,4 @@
-import type { Asset, Draft, Model, SystemStatus, Task, TaskInput } from './types';
+import type { Asset, Draft, Model, SystemStatus, Task, TaskEstimate, TaskInput } from './types';
 
 export class ApiError extends Error {
   constructor(public code: string, message: string, public status: number, public detail?: unknown) { super(message); }
@@ -16,7 +16,7 @@ export const api = {
   assets: () => request<{ items: Asset[] }>('/assets?limit=200'),
   tasks: () => request<{ items: Task[] }>('/tasks?limit=200'),
   task: (id: string) => request<Task>(`/tasks/${encodeURIComponent(id)}`),
-  estimateTask: (body: TaskInput) => request<{ estimated_cost_cny: number; effective: Record<string, unknown> }>('/tasks/estimate', json('POST', body)),
+  estimateTask: (body: TaskInput) => request<TaskEstimate>('/tasks/estimate', json('POST', body)),
   createTask: (body: TaskInput) => request<{ task_id: string }>('/tasks', json('POST', body)),
   createBatch: (name: string, items: TaskInput[]) => request<{ batch_id: string; task_ids: string[] }>('/batches', json('POST', { name, items })),
   cancelTask: (id: string) => request<{ result: string; message?: string; cloud_canceled?: boolean }>(`/tasks/${encodeURIComponent(id)}/cancel`, { method: 'POST' }),

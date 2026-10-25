@@ -21,10 +21,17 @@ export interface ModelLifecycle {
   migrate_to_activation?: string | null; announce_url?: string | null;
   seconds_remaining?: number; eom_passed?: boolean; action?: string | null;
 }
+/** Informational fields do not override the backend's explicit permission. */
+export interface ModelSubmittability {
+  submittable: boolean;
+  reasons: string[];
+  activation?: string; lifecycle_status?: string; duration_policy_kind?: string | null;
+}
 export interface Model {
   provider?: 'ark' | 'local';
   activation?: 'verified' | 'not_opened' | 'local_history' | 'unknown';
   capabilities?: ModelCapabilities; lifecycle?: ModelLifecycle;
+  submittability?: ModelSubmittability | null;
   id: string; name: string; kind: 'image' | 'video'; downloaded: boolean;
   loaded: boolean; weights_mb: number; note?: string;
 }
@@ -65,4 +72,13 @@ export interface Draft {
 export interface TaskInput {
   kind: 'image' | 'video'; model_id: string; params: Record<string, unknown>;
   input_asset_id?: string | null; client_request_id: string;
+}
+
+/** Estimate payloads may be incomplete at runtime; explicit permission is required before confirmation. */
+export interface TaskEstimate {
+  submittable?: boolean | null;
+  blocked_reasons?: string[] | null;
+  estimated_cost_cny?: number | null;
+  effective?: Record<string, unknown> | null;
+  kind?: 'image' | 'video'; model_id?: string;
 }
