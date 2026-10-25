@@ -2,8 +2,8 @@
   "date": "2026-10-23",
   "stage": "A",
   "paid_calls": 0,
-  "total": 12,
-  "passed": 12,
+  "total": 16,
+  "passed": 16,
   "conclusion": "契约可用（本机测试调用方）；不代表两产品已联通，也未实现鉴权",
   "checks": [
     {
@@ -152,8 +152,8 @@
       "detail": {
         "status": 200,
         "returned": "task_d6da966ec6164687aac0",
-        "before": 65,
-        "after": 65
+        "before": 70,
+        "after": 70
       }
     },
     {
@@ -192,8 +192,8 @@
       "check": "负向用例未创建任何任务",
       "ok": true,
       "detail": {
-        "before": 65,
-        "after": 65
+        "before": 70,
+        "after": 70
       }
     },
     {
@@ -202,6 +202,53 @@
       "detail": {
         "bytes": 159571,
         "content_type": "image/jpeg"
+      }
+    },
+    {
+      "check": "POST /api/tasks/estimate 无副作用（任务数不变 + side_effects 全 false）",
+      "ok": true,
+      "detail": {
+        "status": 200,
+        "before": 70,
+        "after": 70,
+        "cost": 0.9072
+      }
+    },
+    {
+      "check": "预估结果与模板字段一致（duration=10 / ratio=1:1）+ 费用稳定可重复",
+      "ok": true,
+      "detail": {
+        "effective": {
+          "duration": 10,
+          "ratio": "1:1",
+          "resolution": "720p",
+          "generate_audio": false
+        },
+        "cost": 0.9072
+      }
+    },
+    {
+      "check": "预估返回模型生命周期信息（下线时间/迁移目标）",
+      "ok": true,
+      "detail": {
+        "lifecycle": {
+          "status": "eos_scheduled",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 2634763,
+          "eom_passed": true
+        }
+      }
+    },
+    {
+      "check": "预估不写入用量/费用记录（tasks.cost_cny 未被新增）",
+      "ok": true,
+      "detail": {
+        "tasks": 70
       }
     },
     {

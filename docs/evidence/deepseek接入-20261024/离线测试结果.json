@@ -1,0 +1,169 @@
+{
+  "date": "2026-10-25 11:19:32",
+  "scope": "DeepSeek 官方通道接入 · 离线验证",
+  "network_calls": 0,
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "URL=api.deepseek.com/chat/completions，Key=DEEPSEEK_API_KEY",
+      "ok": true,
+      "detail": {
+        "url": "https://api.deepseek.com/chat/completions",
+        "model": "deepseek-flash",
+        "key_source": "DEEPSEEK_API_KEY",
+        "reply": "可用"
+      }
+    },
+    {
+      "case": "非思考模式（thinking=disabled）+ max_tokens 可控",
+      "ok": true,
+      "detail": {
+        "thinking": {
+          "type": "disabled"
+        },
+        "max_tokens": 32
+      }
+    },
+    {
+      "case": "内部 context 角色折叠为 system（DeepSeek 只认标准 role）",
+      "ok": true,
+      "detail": {
+        "roles": [
+          "system",
+          "system",
+          "user"
+        ]
+      }
+    },
+    {
+      "case": "工具调用解析（name/arguments/id）",
+      "ok": true,
+      "detail": {
+        "tool": "list_models",
+        "args": {
+          "kind": "image"
+        },
+        "id": "call_x1"
+      }
+    },
+    {
+      "case": "工具结果按 role=tool(tool_call_id) 回传并继续对话",
+      "ok": true,
+      "detail": {
+        "tool_call_id": "call_y1",
+        "reply": "共 4 个模板"
+      }
+    },
+    {
+      "case": "缺 Key → ASSISTANT_CONFIG_INCOMPLETE（而非 Key 无效）",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_CONFIG_INCOMPLETE",
+        "http": 400,
+        "message": "未配置 DEEPSEEK_API_KEY，请双击「配置DeepSeek.command」"
+      }
+    },
+    {
+      "case": "缺型号 → ASSISTANT_CONFIG_INCOMPLETE",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_CONFIG_INCOMPLETE",
+        "http": 400,
+        "message": "未配置 ASSISTANT_MODEL（默认应写 deepseek-flash）"
+      }
+    },
+    {
+      "case": "/status 在缺 Key 时报 misconfigured（附缺失项）",
+      "ok": true,
+      "detail": {
+        "state": "misconfigured",
+        "note": "DeepSeek 配置不完整，缺少：DEEPSEEK_API_KEY"
+      }
+    },
+    {
+      "case": "401 → ASSISTANT_KEY_INVALID（并提示 Key）",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_KEY_INVALID",
+        "http": 401,
+        "message": "DeepSeek Key 无效或已撤销（HTTP 401）：Authentication Fails, Your api key is in"
+      }
+    },
+    {
+      "case": "402 → ASSISTANT_INSUFFICIENT_BALANCE（余额，不是 Key）",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_INSUFFICIENT_BALANCE",
+        "http": 402,
+        "message": "DeepSeek 账户余额不足（HTTP 402）：Insufficient Balance"
+      }
+    },
+    {
+      "case": "404 → ASSISTANT_MODEL_UNAVAILABLE（模型名，不是 Key）",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_MODEL_UNAVAILABLE",
+        "http": 404,
+        "message": "DeepSeek 模型不可用（HTTP 404）：Model Not Exist"
+      }
+    },
+    {
+      "case": "超时 → ASSISTANT_TIMEOUT（不自动重试）",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_TIMEOUT",
+        "http": 504,
+        "message": "DeepSeek 请求超时（>30s）；不会自动重试"
+      }
+    },
+    {
+      "case": "网络不通 → ASSISTANT_NETWORK_ERROR",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_NETWORK_ERROR",
+        "http": 503,
+        "message": "无法连接 DeepSeek（ConnectionRefusedError）；请检查网络或代理"
+      }
+    },
+    {
+      "case": "Ark 仍走方舟路径、使用 ARK_API_KEY、无 DeepSeek 专有参数",
+      "ok": true,
+      "detail": {
+        "path": "/chat/completions",
+        "ark_key_present": true,
+        "thinking_param": "absent"
+      }
+    },
+    {
+      "case": "写入保留 Ark 配置、幂等、600 权限、返回值不含明文 Key",
+      "ok": true,
+      "detail": {
+        "preserved_ark": true,
+        "idempotent": true,
+        "mode": "0o600",
+        "masked": "sk-te***7890（长度 18）"
+      }
+    },
+    {
+      "case": "手动提交/取消/预估正常（助手通道不影响生成侧）",
+      "ok": true,
+      "detail": {
+        "manual_task": "queued→canceled",
+        "estimate_ok": true,
+        "estimate_cost": 0.4536
+      }
+    },
+    {
+      "case": "默认仍为未配置（不会自行切到 DeepSeek）",
+      "ok": true,
+      "detail": {
+        "default_state": "not_configured"
+      }
+    }
+  ],
+  "disclaimer": "本次全部为离线/模拟验证（网络函数被替换）。未调用 DeepSeek 真实接口，未被计费；真实连通性仍需一次独立验证。"
+}

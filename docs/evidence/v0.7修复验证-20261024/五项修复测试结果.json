@@ -1,0 +1,415 @@
+{
+  "date": "2026-10-25 02:31:21",
+  "scope": "v0.7 五项修复 · 免费验证（零付费、零真实模型调用）",
+  "isolation": {
+    "db": "临时副本",
+    "real_db_untouched": true,
+    "provider_guard": "providers_ark._request 被替换为断言守卫",
+    "clock": "main._now / resolve_task(now_ts=...) 可注入"
+  },
+  "paid_calls": 0,
+  "model_calls": 0,
+  "eos_reference": {
+    "model": "doubao-seedance-1-0-pro-fast-251015",
+    "eos_at": "2026-11-24T14:00:00+08:00",
+    "migrate_to": "doubao-seedance-2-0-mini-260615",
+    "source": "docs/82379/1350667（第十批模型下线说明）"
+  },
+  "total": 31,
+  "passed": 31,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "多次预估不产生任务、不调用模型、费用稳定",
+      "ok": true,
+      "detail": {
+        "task_count_before": 70,
+        "task_count_after": 70,
+        "estimated_cost_cny": 0.12
+      }
+    },
+    {
+      "case": "同一输入：预估与正式提交的有效参数/费用一致",
+      "ok": true,
+      "detail": {
+        "effective": {
+          "generation_mode": "image_to_image",
+          "size": "2048x2048"
+        },
+        "cost": 0.12
+      }
+    },
+    {
+      "case": "路由顺序：estimate 在动态路由之前",
+      "ok": true,
+      "detail": {
+        "estimate_index": 16,
+        "dynamic_index": 19,
+        "note": "/api/tasks/{task_id} 仅 GET，与 POST /api/tasks/estimate 无冲突"
+      }
+    },
+    {
+      "case": "场景模板：自定义值进入字段快照与提示词",
+      "ok": true,
+      "detail": {
+        "fields": {
+          "scene": "自定义",
+          "scene_custom": "浅灰水泥墙"
+        },
+        "prompt_contains": "浅灰水泥墙"
+      }
+    },
+    {
+      "case": "视频模板：自定义动态值进入提示词",
+      "ok": true,
+      "detail": {
+        "fields": {
+          "motion": "自定义",
+          "motion_custom": "缓慢横移",
+          "duration": 5
+        }
+      }
+    },
+    {
+      "case": "季节模板：自定义主题值进入提示词",
+      "ok": true,
+      "detail": {
+        "fields": {
+          "theme": "自定义",
+          "theme_custom": "深秋枫叶"
+        }
+      }
+    },
+    {
+      "case": "自定义但内容为空 → TEMPLATE_FIELD_REQUIRED(field=scene_custom)",
+      "ok": true,
+      "detail": {
+        "code": "TEMPLATE_FIELD_REQUIRED",
+        "http": 400,
+        "message": "目标场景选择「自定义」时必须填写具体内容",
+        "detail": {
+          "field": "scene_custom",
+          "parent": "scene"
+        }
+      }
+    },
+    {
+      "case": "未选择自定义：无关值不进入字段与提示词",
+      "ok": true,
+      "detail": {
+        "fields": {
+          "scene": "大理石台面"
+        }
+      }
+    },
+    {
+      "case": "视频模板默认：5s / 9:16",
+      "ok": true,
+      "detail": {
+        "effective": {
+          "duration": 5,
+          "ratio": "9:16",
+          "resolution": "720p",
+          "generate_audio": false
+        },
+        "cost": 0.4536
+      }
+    },
+    {
+      "case": "模板字段 10s/1:1 映射到最终参数、费用与任务记录一致",
+      "ok": true,
+      "detail": {
+        "estimate": {
+          "duration": 10,
+          "ratio": "1:1",
+          "resolution": "720p",
+          "generate_audio": false
+        },
+        "saved": {
+          "duration": 10,
+          "ratio": "1:1"
+        },
+        "cost_10s": 0.9072
+      }
+    },
+    {
+      "case": "优先级：显式 params > 模板字段 > 模板默认",
+      "ok": true,
+      "detail": {
+        "effective": {
+          "duration": 5,
+          "ratio": "1:1",
+          "resolution": "720p",
+          "generate_audio": false
+        },
+        "note": "显式 params 覆盖模板字段，未覆盖项沿用字段映射"
+      }
+    },
+    {
+      "case": "最终参数能力校验：2.0 mini 不支持 1080p → MODEL_CAPABILITY_MISMATCH",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_CAPABILITY_MISMATCH",
+        "http": 400,
+        "message": "模型 doubao-seedance-2-0-mini-260615 不支持所选参数：resolution=1080p",
+        "detail": {
+          "template_id": "tpl_product_motion_5s",
+          "problems": [
+            {
+              "field": "resolution",
+              "got": "1080p",
+              "allowed": [
+                "480p",
+                "720p"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "case": "已发布 v1 快照未被修改；修复以 v2 新增版本发布",
+      "ok": true,
+      "detail": {
+        "v1_has_field_params": false,
+        "v2_field_params": {
+          "duration": "duration",
+          "ratio": "ratio"
+        },
+        "latest_version": 2
+      }
+    },
+    {
+      "case": "无参考图：最终任务参数为 text_to_image + concept_mode=1",
+      "ok": true,
+      "detail": {
+        "generation_mode": "text_to_image",
+        "concept_mode": 1,
+        "task_id": "task_87acd8ec87304042a690",
+        "notice_in_prompt": true
+      }
+    },
+    {
+      "case": "有参考图：走 image_to_image，无概念图声明",
+      "ok": true,
+      "detail": {
+        "generation_mode": "image_to_image",
+        "concept_mode": false
+      }
+    },
+    {
+      "case": "概念图缺商品名 → 提交前明确报错",
+      "ok": true,
+      "detail": {
+        "code": "TEMPLATE_FIELD_REQUIRED",
+        "http": 400,
+        "message": "未提供商品参考图时，必须填写商品名称（将生成创意概念图）",
+        "detail": {
+          "field": "product_name",
+          "concept_mode": true
+        }
+      }
+    },
+    {
+      "case": "到期前：允许使用并返回下线时间与迁移目标",
+      "ok": true,
+      "detail": {
+        "status": "eos_scheduled",
+        "eos_at": "2026-11-24T14:00:00+08:00",
+        "migrate_to": "doubao-seedance-2-0-mini-260615",
+        "remaining_s": 60
+      }
+    },
+    {
+      "case": "到期时刻（== EOS）：拒绝提交",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_EOS",
+        "http": 409,
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 已于 2026-11-24T14:00:00+08:00 下线，不可新增生成任务；",
+        "detail": {
+          "status": "eos_expired",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 0,
+          "eom_passed": true
+        }
+      }
+    },
+    {
+      "case": "到期后：拒绝提交",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_EOS",
+        "http": 409,
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 已于 2026-11-24T14:00:00+08:00 下线，不可新增生成任务；",
+        "detail": {
+          "status": "eos_expired",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 0,
+          "eom_passed": true
+        }
+      }
+    },
+    {
+      "case": "EOS 拒绝发生在入队前（任务数不变）",
+      "ok": true,
+      "detail": {
+        "before": 73,
+        "after": 73
+      }
+    },
+    {
+      "case": "EOS 后预估同样被拒绝（不给出可提交的报价）",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_EOS",
+        "http": 409,
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 已于 2026-11-24T14:00:00+08:00 下线，不可新增生成任务；",
+        "detail": {
+          "status": "eos_expired",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 0,
+          "eom_passed": true
+        }
+      }
+    },
+    {
+      "case": "模板提交路径同样被 EOS 拦截",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_EOS",
+        "http": 409,
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 已于 2026-11-24T14:00:00+08:00 下线，不可新增生成任务；",
+        "detail": {
+          "status": "eos_expired",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 0,
+          "eom_passed": true
+        }
+      }
+    },
+    {
+      "case": "批量路径：命中 EOS 时整批拒绝、不产生任务与批次行",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_EOS",
+        "http": 409,
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 已于 2026-11-24T14:00:00+08:00 下线，不可新增生成任务；",
+        "detail": {
+          "status": "eos_expired",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 0,
+          "eom_passed": true
+        },
+        "tasks_unchanged": true,
+        "batch_rows_unchanged": true
+      }
+    },
+    {
+      "case": "重试路径：EOS 后拒绝，且不改写历史任务",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_EOS",
+        "http": 409,
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 已于 2026-11-24T14:00:00+08:00 下线，不可新增生成任务；",
+        "detail": {
+          "status": "eos_expired",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 0,
+          "eom_passed": true
+        },
+        "history_intact": true
+      }
+    },
+    {
+      "case": "EOS 后不自动替换模型（不静默迁移）",
+      "ok": true,
+      "detail": {
+        "auto_migrate_to_mini": false,
+        "note": "未自动替换为 2.0 mini"
+      }
+    },
+    {
+      "case": "列表：到期前为 eos_scheduled，且该时刻可提交",
+      "ok": true,
+      "detail": {
+        "status": "eos_scheduled",
+        "remaining_s": 60,
+        "submit_allowed": true
+      }
+    },
+    {
+      "case": "列表：到期时刻为 eos_expired，且该时刻提交被拒（两边一致）",
+      "ok": true,
+      "detail": {
+        "status": "eos_expired",
+        "submit_allowed": false
+      }
+    },
+    {
+      "case": "列表：到期后为 eos_expired，且提交被拒",
+      "ok": true,
+      "detail": {
+        "status": "eos_expired",
+        "submit_allowed": false
+      }
+    },
+    {
+      "case": "边界：eos-1s 仍调度中；eos 当秒即 expired；无计划模型恒 active",
+      "ok": true,
+      "detail": {
+        "boundary": "now>=eos_at → eos_expired",
+        "active_models_unchanged": true
+      }
+    },
+    {
+      "case": "migration_available 已删除；目标可用性改由 migrate_to_activation 转述",
+      "ok": true,
+      "detail": {
+        "migration_available": "removed",
+        "migrate_to": "doubao-seedance-2-0-mini-260615",
+        "migrate_to_activation": "not_opened",
+        "eom_passed": true
+      }
+    },
+    {
+      "case": "目标模型未开通时不被标为 verified（activation 不被生命周期改写）",
+      "ok": true,
+      "detail": {
+        "migrate_to_activation": "not_opened",
+        "mini_activation": "not_opened"
+      }
+    }
+  ],
+  "disclaimer": "本文件仅证明解析/校验/拦截逻辑正确，不代表任何真实模型端到端验收通过；未调用云端，未产生费用。"
+}

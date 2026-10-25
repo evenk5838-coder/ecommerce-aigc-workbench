@@ -1,0 +1,361 @@
+{
+  "date": "2026-10-25 00:31:43",
+  "scope": "助手阶段一：接口骨架 + 报价/确认门禁 + 限制与用量（隔离测试）",
+  "isolation": {
+    "db": "临时副本，真实库未改",
+    "llm": "FixedReplyProvider 固定脚本（不联网）",
+    "default_provider": "Unavailable（未配置时明确不可用）",
+    "cloud_guard": "providers_ark._request 断言守卫",
+    "worker": "未启动，不消费队列"
+  },
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 36,
+  "passed": 36,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "GET /api/assistant/status 默认不可用（vision/streaming=false）",
+      "ok": true,
+      "detail": {
+        "available": false,
+        "note": "助手未配置语言模型，暂不可用；可直接使用"
+      }
+    },
+    {
+      "case": "未配置 LLM 时 chat → ASSISTANT_UNAVAILABLE(503)",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_UNAVAILABLE",
+        "http": 503,
+        "message": "助手暂不可用（未配置语言模型）；可直接使用工作台手动生成"
+      }
+    },
+    {
+      "case": "intent=optimize_only：无工具调用、无报价、无任务",
+      "ok": true,
+      "detail": {
+        "tool_calls": 0,
+        "tasks_delta": 0,
+        "quotes_delta": 0,
+        "session_intent": "optimize_only"
+      }
+    },
+    {
+      "case": "仅优化会话内报价被拒（QUOTE_NOT_ALLOWED）",
+      "ok": true,
+      "detail": {
+        "code": "QUOTE_NOT_ALLOWED",
+        "http": 400,
+        "message": "本次会话为「仅优化提示词」，不报价、不生成；如需生成请先切换为生成意图"
+      }
+    },
+    {
+      "case": "替身尝试在仅优化会话内调 quote → 工具层拒绝",
+      "ok": true,
+      "detail": {
+        "tool_error": "QUOTE_NOT_ALLOWED"
+      }
+    },
+    {
+      "case": "工具白名单不含 confirm / submit",
+      "ok": true,
+      "detail": {
+        "tools": [
+          "list_models",
+          "list_templates",
+          "get_template",
+          "list_assets",
+          "get_brief",
+          "save_brief",
+          "quote",
+          "get_task",
+          "cancel_task"
+        ],
+        "forbidden": [
+          "approve",
+          "confirm",
+          "pay",
+          "set_quota",
+          "submit"
+        ]
+      }
+    },
+    {
+      "case": "模型调用 confirm 工具 → TOOL_FORBIDDEN",
+      "ok": true,
+      "detail": {
+        "code": "TOOL_FORBIDDEN",
+        "http": 400,
+        "message": "工具 confirm 不允许由助手调用"
+      }
+    },
+    {
+      "case": "伪造/不存在的 approval_id → APPROVAL_NOT_FOUND，不建任务",
+      "ok": true,
+      "detail": {
+        "code": "APPROVAL_NOT_FOUND",
+        "http": 404,
+        "message": "确认记录不存在，请先报价并确认"
+      }
+    },
+    {
+      "case": "助手报价：返回 quote_id/plan_hash/effective，不建任务",
+      "ok": true,
+      "detail": {
+        "cost": 0.4536,
+        "plan": "sha256:70658ed52f0d0…"
+      }
+    },
+    {
+      "case": "用户确认 → 一次性批准（绑定 plan_hash）",
+      "ok": true,
+      "detail": {
+        "approval_id": "ap_584766102…",
+        "max_uses": 1
+      }
+    },
+    {
+      "case": "改参数（5s→10s）后旧批准失效 → APPROVAL_PLAN_MISMATCH",
+      "ok": true,
+      "detail": {
+        "code": "APPROVAL_PLAN_MISMATCH",
+        "http": 409,
+        "message": "方案已变更（模板/模型/参数/素材），请重新报价并确认"
+      }
+    },
+    {
+      "case": "带批准提交：建立任务并强制 caller_id=assistant",
+      "ok": true,
+      "detail": {
+        "task_id": "task_b49a4da…",
+        "caller_id": "assistant"
+      }
+    },
+    {
+      "case": "同一批准重复提交：返回同一任务（不重复创建）",
+      "ok": true,
+      "detail": {
+        "same_task": true,
+        "tasks_delta": 0
+      }
+    },
+    {
+      "case": "批准消费一次后记录 task_id",
+      "ok": true,
+      "detail": {
+        "used_count": 1,
+        "max_uses": 1
+      }
+    },
+    {
+      "case": "请求体伪造 caller_id=assistant（手动路径）→ 归一为 local",
+      "ok": true,
+      "detail": {
+        "requested": "assistant",
+        "stored": "local"
+      }
+    },
+    {
+      "case": "带批准提交时请求体写 caller_id=local 无效 → 仍为 assistant",
+      "ok": true,
+      "detail": {
+        "requested": "local",
+        "stored": "assistant"
+      }
+    },
+    {
+      "case": "无报价无法确认（QUOTE_NOT_FOUND）",
+      "ok": true,
+      "detail": {
+        "code": "QUOTE_NOT_FOUND",
+        "http": 404,
+        "message": "报价不存在，请重新报价"
+      }
+    },
+    {
+      "case": "跨会话确认被拒（QUOTE_SESSION_MISMATCH）",
+      "ok": true,
+      "detail": {
+        "code": "QUOTE_SESSION_MISMATCH",
+        "http": 400,
+        "message": "报价不属于当前会话，请重新报价"
+      }
+    },
+    {
+      "case": "批准过期后提交被拒（APPROVAL_EXPIRED）",
+      "ok": true,
+      "detail": {
+        "code": "APPROVAL_EXPIRED",
+        "http": 409,
+        "message": "确认已过期，请重新报价并确认"
+      }
+    },
+    {
+      "case": "brief 保存/读取/合并（版本递增）",
+      "ok": true,
+      "detail": {
+        "version": 2,
+        "merged": [
+          "forbidden_elements",
+          "style",
+          "subject"
+        ]
+      }
+    },
+    {
+      "case": "brief 含未知字段被拒",
+      "ok": true,
+      "detail": {
+        "code": "VALIDATION_FAILED",
+        "http": 400,
+        "message": "brief 含未知字段：['made_up']"
+      }
+    },
+    {
+      "case": "提问达上限 → 停在待补充（不生成）",
+      "ok": true,
+      "detail": {
+        "questions_used": 5,
+        "status": "awaiting_facts"
+      }
+    },
+    {
+      "case": "轮次达上限 → ASSISTANT_TURN_LIMIT(429)",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_TURN_LIMIT",
+        "http": 429,
+        "message": "本次会话已达轮次上限（12），请新建会话"
+      }
+    },
+    {
+      "case": "助手用量与生成用量分开记录",
+      "ok": true,
+      "detail": {
+        "kinds": [
+          "confirm",
+          "quote"
+        ],
+        "assistant_tokens": 0,
+        "generation_tasks": 0
+      }
+    },
+    {
+      "case": "多轮对话：第二轮输入含上一轮问答，返回结构化 options",
+      "ok": true,
+      "detail": {
+        "turns": 2,
+        "roles_in_2nd_call": [
+          "system",
+          "context",
+          "user",
+          "assistant",
+          "user"
+        ],
+        "reply_types": [
+          "clarify",
+          "clarify"
+        ]
+      }
+    },
+    {
+      "case": "刷新恢复：按项目取回会话与历史（且上下文限长）",
+      "ok": true,
+      "detail": {
+        "session_recovered": true,
+        "history_len": 4,
+        "max_messages": 8
+      }
+    },
+    {
+      "case": "工具结果回传模型（有限轮 调用→观察→回复）",
+      "ok": true,
+      "detail": {
+        "model_rounds": 2,
+        "tools": [
+          "list_templates"
+        ]
+      }
+    },
+    {
+      "case": "仅优化会话：省略/伪造 intent 仍不能报价",
+      "ok": true,
+      "detail": {
+        "omitted_intent": "QUOTE_NOT_ALLOWED",
+        "forged_intent": "QUOTE_NOT_ALLOWED"
+      }
+    },
+    {
+      "case": "仅优化会话：不可确认、不可取消任务",
+      "ok": true,
+      "detail": {
+        "confirm": "CONFIRM_NOT_ALLOWED",
+        "cancel": "TOOL_FORBIDDEN"
+      }
+    },
+    {
+      "case": "明确切换为生成意图后才可报价",
+      "ok": true,
+      "detail": {
+        "intent_after": "generate",
+        "quote_ok": true
+      }
+    },
+    {
+      "case": "同一批准：改方案→APPROVAL_PLAN_MISMATCH；同方案→同一任务",
+      "ok": true,
+      "detail": {
+        "changed_plan": "APPROVAL_PLAN_MISMATCH",
+        "same_plan_same_task": true
+      }
+    },
+    {
+      "case": "报价后模板升到 v3，提交仍执行报价冻结的 v2",
+      "ok": true,
+      "detail": {
+        "quoted_version": 2,
+        "executed_version": 2,
+        "executed_duration": 5
+      }
+    },
+    {
+      "case": "提交显式指定不同模板版本 → APPROVAL_PLAN_MISMATCH",
+      "ok": true,
+      "detail": {
+        "code": "APPROVAL_PLAN_MISMATCH",
+        "http": 409,
+        "message": "方案已变更（模板/模型/参数/素材），请重新报价并确认"
+      }
+    },
+    {
+      "case": "重启后会话/报价/批准/用量仍在，且已用批准仍幂等",
+      "ok": true,
+      "detail": {
+        "approvals": 7,
+        "usage_rows": 30,
+        "sessions": 17,
+        "idempotent_after_restart": true
+      }
+    },
+    {
+      "case": "手动提交/取消/重试行为不变（无需 approval）",
+      "ok": true,
+      "detail": {
+        "manual_submit": "queued",
+        "manual_cancel": "canceled",
+        "manual_retry_of": true
+      }
+    },
+    {
+      "case": "助手任务未产生费用记录（未执行生成）",
+      "ok": true,
+      "detail": {
+        "assistant_tasks": 5,
+        "note": "任务费用仍为 0（未执行生成，测站不启动 worker）"
+      }
+    }
+  ],
+  "disclaimer": "本文件仅证明门禁/幂等/持久化逻辑正确，不代表真实 LLM 或真实生成验收通过。测试替身不算已接通。"
+}

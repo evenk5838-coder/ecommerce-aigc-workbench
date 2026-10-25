@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-25 02:31:16",
+  "kind": "真实连接验证（DeepSeek 官方 API）",
+  "requests_sent": 1,
+  "tools_called": 0,
+  "retries": 0,
+  "approval": "用户 2026-10-24 批准跑一次",
+  "budget_cap_cny": 0.01,
+  "result": {
+    "ok": true,
+    "category": "ok",
+    "http": 200,
+    "provider": "deepseek",
+    "model": "deepseek-flash",
+    "base_url": "https://api.deepseek.com",
+    "reply": "可用",
+    "input_tokens": 9,
+    "output_tokens": 1,
+    "elapsed_ms": 2935
+  },
+  "estimated_cost": {
+    "usd": 3.9e-06,
+    "cny_conservative": 2.8e-05,
+    "basis": "输入 0.30 美元/百万（峰值价上界）、输出 1.20 美元/百万；汇率 7.2",
+    "note": "应用侧估算，非 DeepSeek 账单"
+  },
+  "state_after": "connected_verified（连接级）",
+  "not_proven": [
+    "多轮对话质量（上下文承接、澄清策略）",
+    "模型自主选择工具与填参准确性",
+    "结构化字段（options/optimized_prompt）遵循度",
+    "违规内容拒答行为",
+    "报价→确认→提交全链路的真实模型参与"
+  ]
+}
