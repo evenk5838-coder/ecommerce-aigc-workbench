@@ -1,0 +1,181 @@
+{
+  "date": "2026-10-25 20:32:37",
+  "scope": "助手 v0.3 增量修复 · 免费回归",
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "generation_tasks_executed": 0,
+  "limits": {
+    "tool_executions_per_turn": 6,
+    "llm_rounds": 3
+  },
+  "total": 19,
+  "passed": 19,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "常量：工具执行 6 / LLM 轮数 3（未同时放大）",
+      "ok": true,
+      "detail": {
+        "tool_executions": 6,
+        "llm_rounds": 3,
+        "note": "两者语义不同：工具执行不产生 LLM 费用"
+      }
+    },
+    {
+      "case": "一轮内第 6 次工具允许、第 7 次被 ASSISTANT_TOOL_BUDGET 拦截",
+      "ok": true,
+      "detail": {
+        "allowed": 6,
+        "blocked": 1
+      }
+    },
+    {
+      "case": "事实来源区分：tool_query / quoted / user_selected 并存",
+      "ok": true,
+      "detail": {
+        "templates": 3,
+        "assets": 1,
+        "sources": [
+          "quoted",
+          "tool_query"
+        ]
+      }
+    },
+    {
+      "case": "事实摘要长度受控（不无限增长）",
+      "ok": true,
+      "detail": {
+        "templates_kept": 8,
+        "cap": 8
+      }
+    },
+    {
+      "case": "报价时重新校验：价格按当次参数重算、可用性现查",
+      "ok": true,
+      "detail": {
+        "cost": 0.9072,
+        "lifecycle": "eos_scheduled"
+      }
+    },
+    {
+      "case": "推荐来自真实工具结果，且逐个校验存在",
+      "ok": true,
+      "detail": {
+        "count": 3,
+        "first": "tpl_season_theme",
+        "source": "tool"
+      }
+    },
+    {
+      "case": "未调用工具时返回空数组（不从正文猜 template_id）",
+      "ok": true,
+      "detail": {
+        "recommended": [],
+        "note": "未调工具 → 不从自然语言猜模板"
+      }
+    },
+    {
+      "case": "混入说明文字 → optimized_prompt=null，reply/explanation 保留",
+      "ok": true,
+      "detail": {
+        "optimized_prompt": null,
+        "explanation_kept": true,
+        "degraded": true
+      }
+    },
+    {
+      "case": "纯提示词 → 正常返回（不误杀）",
+      "ok": true,
+      "detail": {
+        "optimized_prompt_len": 59
+      }
+    },
+    {
+      "case": "无结构化输出时绝不回退为整段 reply",
+      "ok": true,
+      "detail": {
+        "optimized_prompt": null,
+        "rule": "无结构化 → null（旧回退已废弃）"
+      }
+    },
+    {
+      "case": "会话恢复：structured 里同样带 optimized_prompt/explanation",
+      "ok": true,
+      "detail": {
+        "recovered_optimized_prompt": true,
+        "recovered_explanation": "仅调整背景"
+      }
+    },
+    {
+      "case": "正文拒答但模型自报 clarify → 纠正为 refusal 并标 degraded",
+      "ok": true,
+      "detail": {
+        "reply_type": "refusal",
+        "refusal": {
+          "detected": true,
+          "structured": false
+        },
+        "degraded": true
+      }
+    },
+    {
+      "case": "结构化 refusal → 直接采用，不标降级",
+      "ok": true,
+      "detail": {
+        "reply_type": "refusal",
+        "structured_refusal": true,
+        "degraded": false
+      }
+    },
+    {
+      "case": "解析失败 → 降级为 clarify（不伪造 optimize_result/quote_ready）",
+      "ok": true,
+      "detail": {
+        "reply_type": "clarify",
+        "structured_ok": false,
+        "degraded": true
+      }
+    },
+    {
+      "case": "context.selected_asset_id 进入上下文，且在工具前已记为 user_selected",
+      "ok": true,
+      "detail": {
+        "hint": "asset_d73231ab4055…",
+        "facts_source": "user_selected"
+      }
+    },
+    {
+      "case": "用户指定素材不会被后续 list_assets 降级",
+      "ok": true,
+      "detail": {
+        "source": "user_selected",
+        "assets": 8
+      }
+    },
+    {
+      "case": "仅优化会话：报价被拒，且不产生任务/报价记录",
+      "ok": true,
+      "detail": {
+        "code": "QUOTE_NOT_ALLOWED",
+        "http": 400
+      }
+    },
+    {
+      "case": "未创建任何生成任务（worker 未启动）",
+      "ok": true,
+      "detail": {
+        "tasks": 70,
+        "note": "全程未启动 worker，任务数为原副本数量"
+      }
+    },
+    {
+      "case": "改参数后旧批准失效（需重新报价+确认）",
+      "ok": true,
+      "detail": {
+        "code": "APPROVAL_PLAN_MISMATCH",
+        "http": 409
+      }
+    }
+  ],
+  "disclaimer": "全部为隔离/替身验证，不代表真实模型能力。"
+}

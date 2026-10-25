@@ -1,0 +1,212 @@
+{
+  "date": "2026-10-25 16:46:40",
+  "mode": "execute",
+  "in_progress": true,
+  "stop_reason": null,
+  "limits": {
+    "max_requests": 6,
+    "max_cny": 0.05,
+    "max_out_tokens": 300,
+    "reserve_in_tokens": 2500
+  },
+  "isolation": {
+    "temp_db": "/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/cap-eval-2aye9nh4/app.db",
+    "real_db_sha256_before": "cadfcfc0806b428f",
+    "temp_tasks_before": 70,
+    "worker_threads": [],
+    "worker_running": false,
+    "ark_guard_active": true,
+    "ref_asset": {
+      "id": "asset_d73231ab405540b68eb6",
+      "kind": "image",
+      "width": 1024,
+      "height": 1024
+    }
+  },
+  "usage": {
+    "requests": 6,
+    "requests_cap": 6,
+    "actual_cost_cny": 0.03869,
+    "reserved_cost_cny": 0.047952,
+    "cost_cap_cny": 0.05,
+    "unit_reserve_cny": 0.007992,
+    "max_out_tokens": 300,
+    "calls": [
+      {
+        "scenario": "V2-2",
+        "ok": true,
+        "in": 1334,
+        "out": 76,
+        "usd": 0.0004914,
+        "elapsed_ms": 3124,
+        "tool_calls": [
+          "list_templates",
+          "list_models"
+        ]
+      },
+      {
+        "scenario": "V2-2",
+        "ok": true,
+        "in": 3056,
+        "out": 104,
+        "usd": 0.0010416,
+        "elapsed_ms": 4445,
+        "tool_calls": [
+          "get_template",
+          "list_assets"
+        ]
+      },
+      {
+        "scenario": "V2-2",
+        "ok": true,
+        "in": 5141,
+        "out": 238,
+        "usd": 0.0018279,
+        "elapsed_ms": 4037,
+        "tool_calls": [
+          "quote"
+        ]
+      },
+      {
+        "scenario": "V5",
+        "ok": true,
+        "in": 1289,
+        "out": 164,
+        "usd": 0.0005835,
+        "elapsed_ms": 4111,
+        "tool_calls": []
+      },
+      {
+        "scenario": "V5",
+        "ok": true,
+        "in": 1473,
+        "out": 67,
+        "usd": 0.0005223,
+        "elapsed_ms": 3290,
+        "tool_calls": [
+          "list_templates",
+          "list_models"
+        ]
+      },
+      {
+        "scenario": "V5",
+        "ok": true,
+        "in": 2807,
+        "out": 54,
+        "usd": 0.0009069,
+        "elapsed_ms": 3966,
+        "tool_calls": [
+          "list_assets"
+        ]
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "V2-2",
+      "title": "工具调用+填参：模板→报价（指定参考图）",
+      "request_limit": 3,
+      "reply_type": "message",
+      "reply": "我先查一下这个模板的定义和可用模型。",
+      "options": [],
+      "optimized_prompt": null,
+      "missing_fields": [],
+      "tools_called": [
+        "list_templates",
+        "list_models",
+        "get_template",
+        "list_assets",
+        "quote"
+      ],
+      "tool_args": [
+        {
+          "tool": "list_templates",
+          "args": null
+        },
+        {
+          "tool": "list_models",
+          "args": null
+        },
+        {
+          "tool": "get_template",
+          "args": null
+        },
+        {
+          "tool": "list_assets",
+          "args": null
+        },
+        {
+          "tool": "quote",
+          "args": null
+        }
+      ],
+      "quote": null,
+      "submit_asset": null,
+      "submit_template": null,
+      "awaiting_facts": null,
+      "recommended_templates": [
+        {
+          "template_id": "tpl_season_theme",
+          "name": "季节上新主题",
+          "version": 1,
+          "kind": "image",
+          "category": "hot",
+          "reason": "listed",
+          "source": "tool",
+          "requires_asset": false
+        },
+        {
+          "template_id": "tpl_scene_bg",
+          "name": "商品场景换背景",
+          "version": 1,
+          "kind": "image",
+          "category": "work",
+          "reason": "listed",
+          "source": "tool",
+          "requires_asset": true
+        },
+        {
+          "template_id": "tpl_white_bg",
+          "name": "商品白底背景",
+          "version": 1,
+          "kind": "image",
+          "category": "work",
+          "reason": "listed",
+          "source": "tool",
+          "requires_asset": true
+        }
+      ],
+      "structured_ok": false,
+      "degraded": true,
+      "refusal": {
+        "detected": false,
+        "structured": false
+      },
+      "explanation": null,
+      "provider": {
+        "name": "deepseek",
+        "model": "deepseek-flash",
+        "stub": false
+      },
+      "checks": {
+        "quote_created": false,
+        "template_is_white_bg": false,
+        "ref_matches_specified": false,
+        "size_2048": false,
+        "no_budget_block": true
+      },
+      "pass": false
+    },
+    {
+      "id": "V5",
+      "title": "简单连续对话（2 轮，复用会话）",
+      "request_limit": 3,
+      "pass": false,
+      "stopped": "request_cap_reached",
+      "detail": {
+        "requests": 6,
+        "cap": 6
+      }
+    }
+  ]
+}

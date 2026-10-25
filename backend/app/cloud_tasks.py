@@ -122,7 +122,8 @@ def run_video(task_id: str, model_id: str, params: dict, token, on_progress=None
         content = build_content(params)
         created = ark.video_create(
             model_id, content,
-            duration=int(params.get("duration") or 5),
+            # B10：执行路径同样走严格解析，禁止 int()/默认值静默修正
+            duration=config.resolve_duration_s(model_id, params.get("duration"), strict=True),
             ratio=params.get("ratio") or "9:16",
             resolution=params.get("resolution") or "720p",
             generate_audio=bool(params.get("generate_audio", False)),

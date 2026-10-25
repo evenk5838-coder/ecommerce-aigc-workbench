@@ -119,6 +119,10 @@ def models():
                 "sizes": caps.get("sizes", []),
                 "duration_s": caps.get("duration_s", []),
                 "duration_range_s": caps.get("duration_range_s"),
+                "duration_step_s": caps.get("duration_step_s"),
+                # B10：前端只按 duration_policy 渲染（range 优先，其次 enum，否则不可用）
+                "duration_policy": (config.duration_policy(mid)
+                                    if meta["kind"] == "video" else None),
                 "max_reference_images": caps.get("max_reference_images"),
                 "supports": caps.get("supports", []),
                 "fps": caps.get("fps"),
@@ -333,6 +337,12 @@ def resolve_task(body: TaskIn, now_ts: float | None = None) -> dict:
             # 兼容旧行为：文生图即使带了参考图也不传给模型，仅回显提示
             params["ignored_reference"] = True
             params["input_asset_id"] = body.input_asset_id
+
+    # ---- B10：时长先解析为唯一有效整数，并**写回** params ----
+    # 之后落库、估价、供应商请求都读同一个值，避免"校验用 A、落库用 B"。
+    if body.kind == "video":
+        params["duration"] = config.resolve_duration_s(
+            body.model_id, params.get("duration"), strict=True)
 
     # ---- 最终生效参数的模型能力校验 ----
     problems = config.validate_params_for_model(body.model_id, body.kind, params)

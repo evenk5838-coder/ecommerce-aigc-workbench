@@ -20,8 +20,12 @@ from .provider import get_provider, provider_status
 
 MAX_QUESTIONS = int(os.getenv("ASSISTANT_MAX_QUESTIONS", "4"))
 MAX_TURNS = int(os.getenv("ASSISTANT_MAX_TURNS", "12"))
-MAX_TOOL_CALLS = int(os.getenv("ASSISTANT_MAX_TOOL_CALLS_PER_TURN", "3"))
+# 注意区分两个不同概念：
+#   MAX_TOOL_EXECUTIONS = 单轮可**执行**的工具次数（不产生 LLM 费用）
+#   MAX_TOOL_ROUNDS     = 单轮「模型→工具→模型」的**LLM 请求**轮数上限（产生费用）
+MAX_TOOL_EXECUTIONS = int(os.getenv("ASSISTANT_MAX_TOOL_CALLS_PER_TURN", "6"))
 MAX_TOOL_ROUNDS = int(os.getenv("ASSISTANT_MAX_TOOL_ROUNDS", "3"))
+MAX_TOOL_CALLS = MAX_TOOL_EXECUTIONS   # 兼容旧引用
 MAX_SESSION_COST = float(os.getenv("ASSISTANT_MAX_SESSION_COST_CNY", "0"))  # 0=不限
 HISTORY_MAX_MESSAGES = int(os.getenv("ASSISTANT_HISTORY_MAX_MESSAGES", "8"))
 HISTORY_MAX_CHARS = int(os.getenv("ASSISTANT_HISTORY_MAX_CHARS", "4000"))
@@ -97,7 +101,7 @@ def session_view(row: dict) -> dict:
             "turns_used": int(row.get("turns") or 0), "turns_max": MAX_TURNS,
             "questions_used": int(row.get("questions") or 0), "questions_max": MAX_QUESTIONS,
             "tool_calls_used": int(row.get("tool_calls") or 0),
-            "tool_calls_per_turn_max": MAX_TOOL_CALLS,
+            "tool_calls_per_turn_max": MAX_TOOL_EXECUTIONS,
             "tool_rounds_max": MAX_TOOL_ROUNDS,
         },
         "usage": {"input_tokens": int(row.get("input_tokens") or 0),
@@ -141,7 +145,9 @@ def role_map(role: str) -> str:
     return {"user": "user", "assistant": "assistant"}.get(role, "system")
 
 
-def messages_for_model(session: dict, project_id: str | None, message: str) -> list[dict]:
+def messages_for_model(session: dict, project_id: str | None, message: str,
+                       facts: dict | None = None,
+                       context: dict | None = None) -> list[dict]:
     stored = get_brief(project_id)["brief"] if project_id else {}
     return [
         {"role": "system", "content": _SYSTEM_PROMPT},
@@ -149,8 +155,18 @@ def messages_for_model(session: dict, project_id: str | None, message: str) -> l
             "intent": session.get("intent"),
             "project_id": project_id,
             "brief": stored,
+            "facts": _facts_context(facts or {"templates": {}, "assets": {}}),
+            # 用户在本轮明确指定的素材/类型：**报价必须使用**，不得自行改选
+            "context_hint": {
+                "selected_asset_id": (context or {}).get("selected_asset_id"),
+                "kind": (context or {}).get("kind"),
+                "rule": ("若 selected_asset_id 非空，报价 payload 的 input_asset_id 必须使用它，"
+                         "不得改用其它素材；未指定时才需要向用户询问或从素材库挑选并说明来源"),
+            },
             "limits": {"questions_max": MAX_QUESTIONS,
-                       "questions_used": int(session.get("questions") or 0)},
+                       "questions_used": int(session.get("questions") or 0),
+                       "tool_executions_max": MAX_TOOL_EXECUTIONS,
+                       "llm_rounds_max": MAX_TOOL_ROUNDS},
         }},
         *history(session["id"]),
         {"role": "user", "content": message},
@@ -337,20 +353,221 @@ def _is_question(text: str) -> bool:
     return ("？" in text) or ("?" in text)
 
 
-def _reply_type(intent: str, awaiting: dict | None, structured: dict,
-                quote_hit: dict | None, reply: str) -> str:
+PURE_PROMPT_MAX_CHARS = 900
+_PROMPT_FORBIDDEN = (
+    "改动说明", "说明：", "推荐模板", "下一步", "点击", "按钮", "报价",
+    "费用", "元/张", "如需", "可以帮你", "以下为", "以上为", "注意：",
+    "待补充", "需要我", "希望走", "请确认",
+)
+
+
+def pure_prompt(candidate: str | None) -> str | None:
+    """G5：只接受**可当提示词直接使用**的文本。
+
+    拒绝：整段回复、含说明/报价/交互引导、Markdown 列表、过长、空。
+    宁可返回 None，也不把散文冒充提示词（前端会降级为只展示 reply）。
+    """
+    t = (candidate or "").strip()
+    if not t or len(t) > PURE_PROMPT_MAX_CHARS:
+        return None
+    if any(bad in t for bad in _PROMPT_FORBIDDEN):
+        return None
+    if t.startswith(("#", "-", "*", "|", "```")) or "\n-" in t or "\n* " in t:
+        return None
+    if t.count("\n") > 6:
+        return None
+    return t
+
+
+_REFUSAL_MARKERS = ("我不能", "不能做", "无法生成", "不能生成", "不予", "拒绝",
+                    "不建议", "禁止", "违规", "不能帮你", "无法协助", "不能提供")
+
+
+def looks_like_refusal(text: str | None) -> bool:
+    t = text or ""
+    return any(m in t for m in _REFUSAL_MARKERS)
+
+
+ALLOWED_TYPES = {"optimize_result", "clarify", "template_recommendation",
+                 "quote_ready", "awaiting_facts", "refusal", "message"}
+
+
+# ---------- F2：会话级工具事实（区分来源，防止把推荐当确认） ----------
+FACTS_MAX_TEMPLATES = 8
+FACTS_MAX_ASSETS = 8
+
+
+def _load_facts(session_id: str) -> dict:
+    row = db.get("assistant_sessions", session_id) or {}
+    facts = db.loads(row.get("facts_json")) or {}
+    return {"templates": facts.get("templates") or {},
+            "assets": facts.get("assets") or {}}
+
+
+_FACT_SOURCE_RANK = {"tool_query": 1, "quoted": 2, "user_selected": 3}
+
+
+def _trim_by_priority(mapping: dict, cap: int) -> dict:
+    """超长时按来源优先级保留：user_selected > quoted > tool_query。
+
+    不能简单取"最近 N 条"——那会把最先记录、但最重要的"用户指定素材"挤掉。
+    """
+    def rank(v) -> int:  # noqa: ANN001
+        return _FACT_SOURCE_RANK.get((v or {}).get("source", ""), 0) if isinstance(v, dict) else 0
+
+    items = list(mapping.items())
+    high = [(k, v) for k, v in items if rank(v) >= 2]
+    low = [(k, v) for k, v in items if rank(v) < 2]
+    keep = high[-cap:] if len(high) > cap else high
+    remain = max(cap - len(keep), 0)
+    return dict(keep + (low[-remain:] if remain else []))
+
+
+def _save_facts(session_id: str, facts: dict) -> None:
+    tmpl = _trim_by_priority(facts["templates"], FACTS_MAX_TEMPLATES)
+    asst = _trim_by_priority(facts["assets"], FACTS_MAX_ASSETS)
+    db.update("assistant_sessions", session_id,
+              {"facts_json": db.dumps({"templates": tmpl, "assets": asst})})
+
+
+_ASSET_SOURCE_RANK = {"tool_query": 1, "quoted": 2, "user_selected": 3}
+
+
+def _set_asset_source(facts: dict, asset_id: str, source: str, **extra) -> None:
+    """素材来源按优先级合并，避免"用户已选"被后续工具结果降级。"""
+    cur = facts["assets"].setdefault(asset_id, {})
+    for k, v in extra.items():
+        if v is not None:
+            cur[k] = v
+    if _ASSET_SOURCE_RANK.get(source, 0) >= _ASSET_SOURCE_RANK.get(cur.get("source", ""), 0):
+        cur["source"] = source
+
+
+def _merge_facts(session_id: str, call_log: list[dict],
+                 selected_asset_id: str | None = None) -> dict:
+    """把本轮工具结果写入会话事实；**来源标签必须区分**。
+
+    - tool_query      ：工具查询到的（**不代表用户确认**）
+    - quoted          ：进入报价方案的（**仍未获用户确认**）
+    - user_selected   ：用户本轮明确选择/提供的
+    """
+    facts = _load_facts(session_id)
+    if selected_asset_id:
+        _set_asset_source(facts, selected_asset_id, "user_selected")
+
+    for entry in call_log:
+        if not entry.get("ok"):
+            continue
+        tool, res = entry.get("tool"), (entry.get("result") or {})
+        if tool == "list_templates":
+            for it in res.get("items") or []:
+                tid = it.get("template_id")
+                if tid:
+                    facts["templates"].setdefault(tid, {})
+                    facts["templates"][tid].update(
+                        {"name": it.get("name"), "version": it.get("latest_version"),
+                         "source": "tool_query"})
+        elif tool == "get_template":
+            tid = res.get("template_id")
+            snap = res.get("snapshot") or {}
+            if tid:
+                facts["templates"].setdefault(tid, {})
+                facts["templates"][tid].update(
+                    {"name": snap.get("name"), "version": res.get("version"),
+                     "source": "tool_query"})
+        elif tool == "list_assets":
+            for it in res.get("items") or []:
+                aid = it.get("id")
+                if aid:
+                    _set_asset_source(facts, aid, "tool_query", kind=it.get("kind"))
+        elif tool == "quote":
+            tid = res.get("template_id")
+            if tid:
+                facts["templates"].setdefault(tid, {})
+                facts["templates"][tid].update(
+                    {"name": res.get("template_name"),
+                     "version": res.get("template_version"), "source": "quoted"})
+            aid = (res.get("submit_payload") or {}).get("input_asset_id")
+            if aid:
+                _set_asset_source(facts, aid, "quoted")
+
+    _save_facts(session_id, facts)
+    return facts
+
+
+def _recommended_templates(call_log: list[dict], quote_hit: dict | None,
+                           limit: int = 3) -> list[dict]:
+    """G1：只从**真实工具结果**生成推荐，并回库校验存在；否则返回 []。"""
+    from .. import templates as tpl
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    def add(template_id: str | None, version, reason: str) -> None:
+        if not template_id or template_id in seen or len(out) >= limit:
+            return
+        snap = tpl.snapshot(template_id, version if isinstance(version, int) else None)
+        if not snap:                     # 不存在/版本不存在 → 丢弃，绝不编造
+            return
+        seen.add(template_id)
+        out.append({"template_id": template_id, "name": snap.get("name"),
+                    "version": int(snap.get("version") or 0),
+                    "kind": snap.get("kind"), "category": snap.get("category"),
+                    "reason": reason, "source": "tool",
+                    "requires_asset": any(a.get("required") for a in snap.get("required_assets") or [])})
+
     if quote_hit:
-        return "quote_ready"
-    if awaiting:
-        return "awaiting_facts"
+        add(quote_hit.get("template_id"), quote_hit.get("template_version"), "quoted")
+
+    for entry in call_log:
+        if entry.get("tool") not in ("list_templates", "get_template") or not entry.get("ok"):
+            continue
+        res = entry.get("result") or {}
+        if entry["tool"] == "get_template":
+            add(res.get("template_id"), res.get("version"), "inspected")
+        else:
+            for it in res.get("items") or []:
+                add(it.get("template_id"), it.get("latest_version"), "listed")
+    return out
+
+
+def _facts_context(facts: dict) -> dict:
+    return {
+        "templates": [{"template_id": k, **v} for k, v in facts["templates"].items()],
+        "assets": [{"asset_id": k, **v} for k, v in facts["assets"].items()],
+        "note": ("source=tool_query 表示工具查询结果，**不代表用户确认**；"
+                 "quoted 表示已进入报价方案（仍未获用户确认）；"
+                 "user_selected 表示用户明确选择。价格/可用性以报价时重新校验为准。"),
+    }
+
+
+def _reply_type(intent: str, awaiting: dict | None, structured: dict,
+                quote_hit: dict | None, reply: str,
+                prompt_pure: str | None) -> tuple[str, bool, bool]:
+    """返回 (reply_type, structured_ok, degraded)。
+
+    优先级：报价 > 模型结构化类型 > 正文拒答纠正 > 待补充 > 追问 > 仅优化 > message。
+    结构化缺失或与行为矛盾时**明确降级**（degraded=True），不伪造成功类型。
+    """
     explicit = structured.get("reply_type")
-    if explicit:
-        return str(explicit)
+    structured_ok = explicit in ALLOWED_TYPES
+    refusal_text = looks_like_refusal(reply)
+
+    if quote_hit:
+        return "quote_ready", structured_ok, not structured_ok
+    if structured_ok:
+        if refusal_text and explicit != "refusal":
+            # 模型自报 clarify/message 但正文是拒答 → 以拒答为准并标记降级
+            return "refusal", True, True
+        return explicit, True, False
+    if awaiting:
+        return "awaiting_facts", False, True
+    if refusal_text:
+        return "refusal", False, True
     if _is_question(reply):
-        return "clarify"
-    if intent == "optimize_only":
-        return "optimize_result"
-    return "message"
+        return "clarify", False, True
+    if intent == "optimize_only" and prompt_pure:
+        return "optimize_result", False, True
+    return "message", False, True
 
 
 def chat(*, session_id: str | None, project_id: str | None, message: str,
@@ -375,7 +592,14 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
     sess = get_session(sid)
 
     # 先按历史构建消息（不含本轮），再落库，避免本轮 user 消息在上下文里出现两次
-    messages = messages_for_model(sess, project, message)
+    facts = _load_facts(sid)
+    ctx_in = dict(context or {})
+    selected = str(ctx_in.get("selected_asset_id") or "").strip() or None
+    if selected:
+        _set_asset_source(facts, selected, "user_selected")
+        _save_facts(sid, facts)          # 先落库：模型本轮就能在上下文里看到
+        ctx_in["selected_asset_id"] = selected
+    messages = messages_for_model(sess, project, message, facts, context=ctx_in)
     append_message(sid, "user", message)
     ctx = {"session_id": sid, "project_id": project, "intent": sess.get("intent")}
 
@@ -396,11 +620,11 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
         calls = result.tool_calls or []
         if not calls:
             break
-        remaining = MAX_TOOL_CALLS - len(call_log)
+        remaining = MAX_TOOL_EXECUTIONS - len(call_log)
         if remaining <= 0:
             call_log.append({"tool": "-", "ok": False,
                              "error": {"code": "ASSISTANT_TOOL_BUDGET",
-                                       "message": f"单轮工具调用已达上限（{MAX_TOOL_CALLS}）"}})
+                                       "message": f"单轮工具执行已达上限（{MAX_TOOL_EXECUTIONS}）"}})
             break
         round_entries = []
         for tc in calls[:remaining]:
@@ -416,6 +640,13 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
             call_log.append(entry)
             tool_results.append(entry)
             round_entries.append((tc, entry))
+
+        if len(calls) > remaining:
+            dropped = len(calls) - remaining
+            call_log.append({"tool": "-", "ok": False,
+                             "error": {"code": "ASSISTANT_TOOL_BUDGET",
+                                       "message": (f"单轮工具执行上限 {MAX_TOOL_EXECUTIONS} 已用尽，"
+                                                   f"本轮另有 {dropped} 个工具调用被拒绝")}})
 
         # 按 OpenAI/Ark 兼容格式把工具结果回传模型（真实模型据此继续或停止）
         import json as _json
@@ -451,7 +682,16 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
                     "missing_fields": structured.get("missing_fields") or [],
                     "hint": "请补充缺失的商品事实或素材；助手不会用假设补齐后生成"}
 
-    rtype = _reply_type(str(sess.get("intent") or "auto"), awaiting, structured, quote_hit, reply)
+    prompt_pure = pure_prompt(structured.get("optimized_prompt"))
+    explanation = (structured.get("explanation") or None)
+    rtype, structured_ok, degraded = _reply_type(
+        str(sess.get("intent") or "auto"), awaiting, structured, quote_hit, reply, prompt_pure)
+    # G5：模型声称给了提示词但未通过纯度校验 → 明确降级
+    if structured.get("optimized_prompt") and prompt_pure is None:
+        degraded = True
+
+    facts = _merge_facts(sid, call_log, selected_asset_id=selected)
+    recommended = _recommended_templates(call_log, quote_hit)
 
     _bump(sid, turns=int(sess.get("turns") or 0) + 1, questions=questions,
           tool_calls=int(sess.get("tool_calls") or 0) + len(call_log),
@@ -467,8 +707,9 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
         "reply": reply,
         "reply_type": rtype,
         "options": structured.get("options") or [],
-        "optimized_prompt": (structured.get("optimized_prompt")
-                             or (reply if rtype == "optimize_result" else None)),
+        # G5：只有通过纯度校验的提示词才给；否则 null（前端只展示 reply）
+        "optimized_prompt": prompt_pure,
+        "explanation": explanation,
         "missing_fields": structured.get("missing_fields") or [],
         "brief": get_brief(project)["brief"] if project else {},
         "quote": ({"quote_id": quote_hit["quote_id"],
@@ -480,6 +721,11 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
                    "plan_hash": quote_hit["plan_hash"]} if quote_hit else None),
         "manual_params": quote_hit.get("manual_params") if quote_hit else None,
         "submit_payload": quote_hit.get("submit_payload") if quote_hit else None,
+        "recommended_templates": recommended,
+        "structured_ok": structured_ok,
+        "degraded": degraded,
+        "refusal": {"detected": looks_like_refusal(reply),
+                    "structured": structured.get("reply_type") == "refusal"},
         "tool_calls": call_log,
         "awaiting_facts": awaiting,
         "intent": get_session(sid).get("intent"),
@@ -489,8 +735,9 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
     }
     append_message(sid, "assistant", reply, reply_type=rtype,
                    structured={k: payload_out[k] for k in
-                               ("reply_type", "options", "optimized_prompt",
-                                "missing_fields", "quote")})
+                               ("reply_type", "options", "optimized_prompt", "explanation",
+                                "missing_fields", "quote", "recommended_templates",
+                                "structured_ok", "degraded", "refusal")})
     return payload_out
 
 
@@ -506,6 +753,13 @@ _SYSTEM_PROMPT = """你是「物料间」电商创作工作台的创作助手。
 - 参数（模板/模型/比例/时长/主体）改变后必须重新报价。
 - 不自动重试；拒绝涉黄/涉暴/涉政与违规电商宣传。
 - 简短中文输出；复述结论而非原始 JSON。
+- 若 context_hint.selected_asset_id 非空，说明**用户已明确指定素材**：
+  报价 payload 的 input_asset_id 必须用它，不要另选素材，也不要再向用户确认素材。
+- 上下文里的 facts 带 source：tool_query 只是工具查到的东西，**不等于用户确认**；
+  quoted 是已报价方案（仍未经用户确认）；user_selected 才是用户明确选择。
+  不得把助手推荐当成用户已确认的事实；价格与可用性以报价时重新校验的结果为准。
+- optimized_prompt 只放**可直接使用的纯提示词**，不要夹带说明、报价或交互引导；
+  说明性内容放 explanation。
 
 输出结构化字段（供界面渲染，勿省略）：
 reply_type（optimize_result|clarify|template_recommendation|quote_ready|awaiting_facts|refusal|message）、
