@@ -225,15 +225,27 @@ def main_run() -> int:
     case("优先级：显式 params > 模板字段 > 模板默认", video_explicit_override)
 
     def video_unsupported():
+        # 用**已开通**模型验证能力校验（V10 支持比例仅 9:16/16:9/1:1，传 3:4 应被拒）
+        body = main.TaskIn(kind="video", model_id=V10, input_asset_id=FIRST_FRAME,
+                           template_id="tpl_product_motion_5s", template_version=2,
+                           template_fields={"motion": "缓慢旋转", "duration": 5},
+                           params={"ratio": "3:4"})
+        d = expect_error("MODEL_CAPABILITY_MISMATCH", lambda: main.resolve_task(body), 400)
+        fields = {p["field"] for p in d["detail"]["problems"]}
+        assert "ratio" in fields, d["detail"]
+        return d
+    case("最终参数能力校验：已开通模型传不支持比例 → MODEL_CAPABILITY_MISMATCH",
+         video_unsupported)
+
+    def unopened_gate_precedes_capability():
+        # 未开通模型先撞开通闸门（新规则），而不是参数错误
         body = main.TaskIn(kind="video", model_id=MINI, input_asset_id=FIRST_FRAME,
                            template_id="tpl_product_motion_5s", template_version=2,
                            template_fields={"motion": "缓慢旋转", "duration": 5},
                            params={"resolution": "1080p"})
-        d = expect_error("MODEL_CAPABILITY_MISMATCH", lambda: main.resolve_task(body), 400)
-        fields = {p["field"] for p in d["detail"]["problems"]}
-        assert "resolution" in fields, d["detail"]
+        d = expect_error("MODEL_NOT_OPENED", lambda: main.resolve_task(body), 502)
         return d
-    case("最终参数能力校验：2.0 mini 不支持 1080p → MODEL_CAPABILITY_MISMATCH", video_unsupported)
+    case("未开通闸门先于参数能力校验（MODEL_NOT_OPENED）", unopened_gate_precedes_capability)
 
     def video_v1_immutable():
         v1 = templates.snapshot("tpl_product_motion_5s", 1)

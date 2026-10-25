@@ -354,7 +354,32 @@ def _duration_error(model_id: str, got, reason: str, policy: dict) -> "AppError"
                        "got": got, "got_type": type(got).__name__})
 
 
-def resolve_duration_s(model_id: str, value=None, *, strict: bool = True):
+_LEGACY_INT_RE = None
+
+
+def _legacy_to_int(value):
+    """**仅用于历史记录**：把旧版本曾接受的 10.0 / "10" 归一为 10。
+
+    绝不用于新请求；也不做四舍五入（10.5 仍视为非法）。
+    """
+    import re as _re
+    global _LEGACY_INT_RE
+    if _LEGACY_INT_RE is None:
+        _LEGACY_INT_RE = _re.compile(r"^[+-]?\d+$")
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, float):
+        return int(value) if value.is_integer() else None
+    if isinstance(value, str):
+        t = value.strip()
+        if _LEGACY_INT_RE.match(t):
+            return int(t)
+        return None
+    return None
+
+
+def resolve_duration_s(model_id: str, value=None, *, strict: bool = True,
+                       legacy: bool = False):
     """把时长解析为**唯一有效整数**（校验/估价/落库/供应商请求共用）。
 
     严格模式（默认）：拒绝 float（含 5.0）、bool、str、越界、不满足步长——
@@ -374,11 +399,19 @@ def resolve_duration_s(model_id: str, value=None, *, strict: bool = True):
                 raise _duration_error(model_id, value, "missing", policy)
             return None
 
-    # 类型：只接受真正的 int（bool 是 int 子类，必须排除；float 一律拒绝）
+    # 类型：只接受真正的 int（bool 是 int 子类，必须排除）
+    # legacy=True 时额外接受"旧版本曾接受"的 10.0 / "10"（仅限历史回放/执行/重试）
     if isinstance(value, bool) or not isinstance(value, int):
-        if strict:
-            raise _duration_error(model_id, value, "not_integer", policy)
-        return None
+        if legacy:
+            value = _legacy_to_int(value)
+            if value is None:
+                if strict:
+                    raise _duration_error(model_id, value, "not_integer", policy)
+                return None
+        else:
+            if strict:
+                raise _duration_error(model_id, value, "not_integer", policy)
+            return None
 
     if policy["kind"] == "range":
         if value < policy["min"] or value > policy["max"]:
@@ -407,11 +440,19 @@ def video_token_estimate(duration_s: float, resolution: str, ratio: str) -> int:
     return int(float(duration_s) * w * h * VIDEO_OUTPUT_FPS / 1024)
 
 
-def video_cost_cny(model_id: str, params: dict) -> float:
-    """视频估算价：token 公式 × 单价。实际成本以云端 usage.completion_tokens 重算。"""
-    resolved = resolve_duration_s(model_id, params.get("duration"), strict=False)
+def video_cost_cny(model_id: str, params: dict, *, legacy: bool = False) -> float:
+    """视频估算价：token 公式 × 单价。
+
+    **不再在解析失败时按 5 秒兜底**（那会把历史 10 秒错算成 5 秒）。
+    无法解析 → 直接报错，由调用方决定如何处理。
+    """
+    resolved = resolve_duration_s(model_id, params.get("duration"),
+                                  strict=False, legacy=legacy)
+    if resolved is None:
+        raise _duration_error(model_id, params.get("duration"), "not_integer",
+                              duration_policy(model_id))
     tokens = video_token_estimate(
-        resolved if resolved is not None else DEFAULT_VIDEO_DURATION_S,
+        resolved,
         params.get("resolution") or "720p",
         params.get("ratio") or "9:16",
     )
@@ -463,6 +504,33 @@ def model_lifecycle_state(model_id: str, now_ts: float | None = None) -> dict:
         "announce_url": life.get("announce_url"),
         "seconds_remaining": (int(eos_ts - now) if (eos_ts is not None and not expired) else 0),
         "eom_passed": (eom_ts is not None and now >= eom_ts),
+    }
+
+
+def model_submittability(model_id: str, now_ts: float | None = None) -> dict:
+    """模型当前是否**允许新提交**（与前端是否可选一致）。
+
+    同时检查：activation（账号开通）与 lifecycle（EOS）；再叠加时长策略是否可用。
+    """
+    activation = MODEL_ACTIVATION.get(model_id, "unknown")
+    life = model_lifecycle_state(model_id, now_ts)
+    policy = duration_policy(model_id)
+    kind = (MODEL_REGISTRY.get(model_id) or {}).get("kind")
+    reasons = []
+    if activation == "not_opened":
+        reasons.append("MODEL_NOT_OPENED")
+    elif activation in ("local_not_downloaded",):
+        reasons.append("MODEL_NOT_DOWNLOADED")
+    if life.get("status") == "eos_expired":
+        reasons.append("MODEL_EOS")
+    if kind == "video" and policy["kind"] == "unavailable":
+        reasons.append("DURATION_POLICY_UNAVAILABLE")
+    return {
+        "submittable": not reasons,
+        "reasons": reasons,
+        "activation": activation,
+        "lifecycle_status": life.get("status"),
+        "duration_policy_kind": policy["kind"] if kind == "video" else None,
     }
 
 

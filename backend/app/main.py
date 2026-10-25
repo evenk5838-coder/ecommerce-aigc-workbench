@@ -131,6 +131,7 @@ def models():
             "pricing": caps.get("pricing"),
             # 生命周期由 config.model_lifecycle_state() 计算（服务端时间比较，到期即 expired）
             "lifecycle": config.model_lifecycle_state(mid, now),
+            "submittability": config.model_submittability(mid, now),
         })
     return {"items": out}
 
@@ -262,7 +263,8 @@ def _effective(params: dict, kind: str) -> dict:
             "resolution": params.get("resolution"), "generate_audio": params.get("generate_audio")}
 
 
-def resolve_task(body: TaskIn, now_ts: float | None = None) -> dict:
+def resolve_task(body: TaskIn, now_ts: float | None = None, *,
+                 preview: bool = False, legacy: bool = False) -> dict:
     """**纯函数：不建任务、不入队、不调模型、不扣预算**。
 
     提交（create_task）与费用预估（estimate_task）共用本函数，保证两者参数完全一致。
@@ -275,6 +277,16 @@ def resolve_task(body: TaskIn, now_ts: float | None = None) -> dict:
     meta = config.MODEL_REGISTRY[body.model_id]
     if meta["kind"] != body.kind:
         raise err("VALIDATION_FAILED", f"模型 {body.model_id} 不是 {body.kind} 模型")
+
+    # ---- 模型可提交性：账号未开通 / 已 EOS 一律拒绝新提交 ----
+    # preview=True（仅费用预估）时允许返回报价，但必须标记 submittable=false。
+    submittability = config.model_submittability(body.model_id, now)
+    not_opened = "MODEL_NOT_OPENED" in submittability["reasons"]
+    if not_opened and not preview:
+        raise err("MODEL_NOT_OPENED",
+                  f"模型 {body.model_id} 尚未在账号中开通，不可提交",
+                  detail={"activation": submittability["activation"],
+                          "reasons": submittability["reasons"]})
 
     # ---- 模型生命周期：到期后禁止新增任务（不自动替换模型）----
     lifecycle = config.model_lifecycle_state(body.model_id, now)
@@ -342,7 +354,7 @@ def resolve_task(body: TaskIn, now_ts: float | None = None) -> dict:
     # 之后落库、估价、供应商请求都读同一个值，避免"校验用 A、落库用 B"。
     if body.kind == "video":
         params["duration"] = config.resolve_duration_s(
-            body.model_id, params.get("duration"), strict=True)
+            body.model_id, params.get("duration"), strict=True, legacy=legacy)
 
     # ---- 最终生效参数的模型能力校验 ----
     problems = config.validate_params_for_model(body.model_id, body.kind, params)
@@ -368,6 +380,8 @@ def resolve_task(body: TaskIn, now_ts: float | None = None) -> dict:
         "estimated_cost_cny": estimated,
         "effective": _effective(params, body.kind),
         "lifecycle": lifecycle,
+        "submittable": submittability["submittable"],
+        "blocked_reasons": submittability["reasons"],
         "warnings": warnings,
         "external_request_id": body.external_request_id,
         "caller_id": _normalize_caller(body.caller_id),
@@ -381,9 +395,11 @@ def estimate_task(body: TaskIn):
     注意：本路由必须在任何 `/api/tasks/{task_id}` 形态的 POST 路由之前注册；
     当前 `/api/tasks/{task_id}` 仅支持 GET，因此无冲突（已由测试断言路由顺序）。
     """
-    resolved = resolve_task(body)
+    resolved = resolve_task(body, preview=True)
     return {
         "kind": resolved["kind"],
+        "submittable": resolved["submittable"],
+        "blocked_reasons": resolved["blocked_reasons"],
         "model_id": resolved["model_id"],
         "template_id": resolved["template_id"],
         "template_version": resolved["template_version"],
@@ -422,7 +438,7 @@ def _insert_resolved(resolved: dict, body: TaskIn) -> dict:
     return {**task, "queue_position": q, "estimated_cost_cny": resolved["estimated_cost_cny"]}
 
 
-def create_task(body: TaskIn) -> dict:
+def create_task(body: TaskIn, *, legacy: bool = False) -> dict:
     # ---- 助手路径：必须带批准，且来源/幂等键均由后端确定 ----
     if body.approval_id:
         # 助手路径：以报价时冻结的方案为准，不重新解析模板（防模板升版漂移）。
@@ -437,13 +453,15 @@ def create_task(body: TaskIn) -> dict:
             row = hit[0]
             try:
                 from . import cloud_tasks
+                # 历史记录回放：允许旧类型（10.0 / "10"），费用按当时参数计算
                 row["estimated_cost_cny"] = cloud_tasks.estimate_cost(
-                    row["kind"], row["model_id"], db.loads(row.get("params_json")) or {})
+                    row["kind"], row["model_id"], db.loads(row.get("params_json")) or {},
+                    legacy=True)
             except Exception:  # noqa: BLE001
                 row["estimated_cost_cny"] = None
             row["idempotent_replay"] = True
             return row
-    resolved = resolve_task(body)
+    resolved = resolve_task(body, legacy=legacy)
     return _insert_resolved(resolved, body)
 
 
@@ -517,7 +535,7 @@ def retry_task(task_id: str, body: RetryIn | None = None):
                              template_version=t.get("template_version"),
                              template_fields=tfields,
                              external_request_id=t.get("external_request_id"),
-                             caller_id=t.get("caller_id")))
+                             caller_id=t.get("caller_id")), legacy=True)
     db.update("tasks", new["id"], {"retry_of": task_id})
     return {"task_id": new["id"], "retry_of": task_id, "status": "queued",
             "template_id": new.get("template_id"),

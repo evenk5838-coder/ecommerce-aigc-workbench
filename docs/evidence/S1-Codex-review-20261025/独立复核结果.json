@@ -1,0 +1,75 @@
+{
+  "commit": "20cd882",
+  "supplied_suite": {
+    "passed": 10,
+    "total": 10,
+    "rc": 0
+  },
+  "independent_checks": {
+    "http_body_duration_consistency": {
+      "passed": true,
+      "observations": [
+        {
+          "duration": 3,
+          "method": "POST",
+          "path": "/contents/generations/tasks"
+        },
+        {
+          "duration": 6,
+          "method": "POST",
+          "path": "/contents/generations/tasks"
+        },
+        {
+          "duration": 12,
+          "method": "POST",
+          "path": "/contents/generations/tasks"
+        }
+      ]
+    },
+    "unopened_model_gate": {
+      "activation": "not_opened",
+      "estimate_accepted": true,
+      "submission": {
+        "status": "queued",
+        "accepted": true
+      },
+      "new_tasks": 1,
+      "contract_satisfied": false
+    },
+    "synthetic_legacy_compatibility": [
+      {
+        "stored_duration": 10.0,
+        "stored_type": "float",
+        "original_estimate": 0.9072,
+        "replayed_estimate": 0.4536,
+        "pending_execution": {
+          "error": "MODEL_CAPABILITY_MISMATCH",
+          "reason": "not_integer"
+        }
+      },
+      {
+        "stored_duration": "10",
+        "stored_type": "str",
+        "original_estimate": 0.9072,
+        "replayed_estimate": 0.4536,
+        "pending_execution": {
+          "error": "MODEL_CAPABILITY_MISMATCH",
+          "reason": "not_integer"
+        }
+      }
+    ],
+    "omitted_duration_default": {
+      "duration": 5,
+      "passed": true
+    }
+  },
+  "isolation": {
+    "fresh_database": true,
+    "synthetic_reference_image": true,
+    "production_database_opened": false,
+    "worker_started": false,
+    "network_blocked": true,
+    "paid_calls": 0
+  },
+  "scratch": "/private/tmp/codex-s1-review-20261025-9zc06ehb"
+}
