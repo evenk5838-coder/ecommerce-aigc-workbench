@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25 20:32:40",
+  "date": "2026-10-25 22:12:17",
   "scope": "v0.7 五项修复 · 免费验证（零付费、零真实模型调用）",
   "isolation": {
     "db": "临时副本",
@@ -15,8 +15,8 @@
     "migrate_to": "doubao-seedance-2-0-mini-260615",
     "source": "docs/82379/1350667（第十批模型下线说明）"
   },
-  "total": 31,
-  "passed": 31,
+  "total": 32,
+  "passed": 32,
   "failed": 0,
   "cases": [
     {
@@ -146,23 +146,39 @@
       }
     },
     {
-      "case": "最终参数能力校验：2.0 mini 不支持 1080p → MODEL_CAPABILITY_MISMATCH",
+      "case": "最终参数能力校验：已开通模型传不支持比例 → MODEL_CAPABILITY_MISMATCH",
       "ok": true,
       "detail": {
         "code": "MODEL_CAPABILITY_MISMATCH",
         "http": 400,
-        "message": "模型 doubao-seedance-2-0-mini-260615 不支持所选参数：resolution=1080p",
+        "message": "模型 doubao-seedance-1-0-pro-fast-251015 不支持所选参数：ratio=3:4",
         "detail": {
           "template_id": "tpl_product_motion_5s",
           "problems": [
             {
-              "field": "resolution",
-              "got": "1080p",
+              "field": "ratio",
+              "got": "3:4",
               "allowed": [
-                "480p",
-                "720p"
+                "9:16",
+                "16:9",
+                "1:1"
               ]
             }
+          ]
+        }
+      }
+    },
+    {
+      "case": "未开通闸门先于参数能力校验（MODEL_NOT_OPENED）",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_NOT_OPENED",
+        "http": 502,
+        "message": "模型 doubao-seedance-2-0-mini-260615 尚未在账号中开通，不可提交",
+        "detail": {
+          "activation": "not_opened",
+          "reasons": [
+            "MODEL_NOT_OPENED"
           ]
         }
       }
@@ -185,7 +201,7 @@
       "detail": {
         "generation_mode": "text_to_image",
         "concept_mode": 1,
-        "task_id": "task_2753838b2bd24e3c831f",
+        "task_id": "task_91da77077fd84294bc13",
         "notice_in_prompt": true
       }
     },

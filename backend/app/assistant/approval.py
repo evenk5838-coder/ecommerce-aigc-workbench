@@ -232,8 +232,14 @@ def submit_with_approval(body, now_ts: float | None = None) -> dict:  # noqa: AN
         task["approval_id"] = approval_id
         return task
 
-    # ---- 3) 执行前仍校验模型可用性（不让已下线模型执行冻结方案）----
+    # ---- 3) 执行前仍校验模型可用性（不让未开通/已下线模型执行冻结方案）----
     model_id = frozen["submit_payload"]["model_id"]
+    submittability = config.model_submittability(model_id, now)
+    if "MODEL_NOT_OPENED" in submittability["reasons"]:
+        raise err("MODEL_NOT_OPENED",
+                  f"模型 {model_id} 尚未在账号中开通，不可提交",
+                  detail={"activation": submittability["activation"],
+                          "reasons": submittability["reasons"]})
     life = config.model_lifecycle_state(model_id, now)
     if life.get("status") == "eos_expired":
         raise err("MODEL_EOS",

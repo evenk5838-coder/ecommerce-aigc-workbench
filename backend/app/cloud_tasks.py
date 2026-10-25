@@ -10,7 +10,7 @@ from .errors import err
 
 
 # ---------- 预算 ----------
-def estimate_cost(kind: str, model_id: str, params: dict) -> float:
+def estimate_cost(kind: str, model_id: str, params: dict, *, legacy: bool = False) -> float:
     """单次调用估算成本。
 
     图片：像素档/单一价（官方价格页 2026-10-23 核对）。
@@ -21,7 +21,7 @@ def estimate_cost(kind: str, model_id: str, params: dict) -> float:
         mode = (params.get("generation_mode") or "text_to_image").strip()
         refs = 1 if (mode == "image_to_image" and params.get("input_asset_id")) else 0
         return config.image_cost_cny(model_id, params.get("size"), reference_images=refs)
-    return config.video_cost_cny(model_id, params)
+    return config.video_cost_cny(model_id, params, legacy=legacy)
 
 
 def spent_today() -> float:
@@ -112,7 +112,8 @@ def build_content(params: dict) -> list[dict]:
 
 
 def run_video(task_id: str, model_id: str, params: dict, token, on_progress=None) -> dict:
-    cost = estimate_cost("video", model_id, params)
+    # 读的是**已落库参数** → 允许历史类型（10.0 / "10"），避免待执行任务被误判
+    cost = estimate_cost("video", model_id, params, legacy=True)
     budget_gate(cost)
 
     task = db.get("tasks", task_id) or {}
@@ -122,8 +123,10 @@ def run_video(task_id: str, model_id: str, params: dict, token, on_progress=None
         content = build_content(params)
         created = ark.video_create(
             model_id, content,
-            # B10：执行路径同样走严格解析，禁止 int()/默认值静默修正
-            duration=config.resolve_duration_s(model_id, params.get("duration"), strict=True),
+            # B10：执行路径读取的是**已落库参数** → 允许历史类型（10.0 / "10"），
+            # 但解析失败仍直接报错，绝不按 5 秒兜底
+            duration=config.resolve_duration_s(model_id, params.get("duration"),
+                                               strict=True, legacy=True),
             ratio=params.get("ratio") or "9:16",
             resolution=params.get("resolution") or "720p",
             generate_audio=bool(params.get("generate_audio", False)),
