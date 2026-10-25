@@ -215,7 +215,8 @@ def _parse_chat_response(data: dict, provider_name: str, model: str) -> ChatResu
         try:
             parsed = json.loads(content)
             if isinstance(parsed, dict):
-                for k in ("reply_type", "options", "optimized_prompt", "missing_fields"):
+                for k in ("reply_type", "options", "optimized_prompt", "missing_fields",
+                  "explanation"):
                     if k in parsed:
                         structured[k] = parsed[k]
                 if not calls and parsed.get("reply"):

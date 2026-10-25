@@ -162,6 +162,8 @@ MIGRATIONS = [
     ("assistant_approvals", "frozen_json", "TEXT"),
     ("assistant_messages", "reply_type", "TEXT"),
     ("assistant_messages", "structured_json", "TEXT"),
+    # v0.3 助手：会话内工具事实摘要（区分 tool_query / quoted / user_selected）
+    ("assistant_sessions", "facts_json", "TEXT"),
 ]
 
 
