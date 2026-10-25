@@ -33,34 +33,38 @@ function parseStatus(value: unknown): AssistantStatus {
   return value as unknown as AssistantStatus;
 }
 function validateStructured(value: Record<string, unknown>): void {
-  for (const key of ['reply_type', 'optimized_prompt']) {
-    if (value[key] != null && typeof value[key] !== 'string') invalid();
-  }
+  if (value.reply_type != null && typeof value.reply_type !== 'string') invalid();
   if (value.options != null && (!Array.isArray(value.options) || !value.options.every(option => isRecord(option) && nonEmpty(option.id) && nonEmpty(option.label)))) invalid();
   if (value.missing_fields != null && (!Array.isArray(value.missing_fields) || !value.missing_fields.every(field => typeof field === 'string'))) invalid();
   for (const key of ['quote', 'manual_params', 'submit_payload', 'awaiting_facts']) {
     if (value[key] != null && !isRecord(value[key])) invalid();
   }
 }
+function normalizeStructured(value: Record<string, unknown>): Record<string, unknown> {
+  validateStructured(value);
+  // A malformed optional pure prompt must not discard the readable reply or
+  // recovery history. It is never coerced into an adoptable prompt.
+  return { ...value, optimized_prompt: typeof value.optimized_prompt === 'string' ? value.optimized_prompt : null };
+}
 function parseRecovery(value: unknown): SessionRecovery {
   if (!isRecord(value) || !nonEmpty(value.project_id) || !Array.isArray(value.history) || !isRecord(value.brief)) return invalid();
   if (value.session !== null) parseSession(value.session);
-  for (const entry of value.history) {
+  const history = value.history.map(entry => {
     if (!isRecord(entry) || typeof entry.role !== 'string' || typeof entry.content !== 'string') return invalid();
     if (entry.structured != null) {
       if (!isRecord(entry.structured)) return invalid();
-      validateStructured(entry.structured);
+      return { ...entry, structured: normalizeStructured(entry.structured) };
     }
-  }
-  return value as unknown as SessionRecovery;
+    return entry;
+  });
+  return { ...value, history } as unknown as SessionRecovery;
 }
 function parseChat(value: unknown): ChatResponse {
   if (!isRecord(value) || !nonEmpty(value.session_id) || typeof value.reply !== 'string' || typeof value.intent !== 'string') return invalid();
   parseSession(value.session);
   if (!isRecord(value.provider) || !nonEmpty(value.provider.name)) return invalid();
   if (isStubProvider(value.provider)) throw new ApiError('ASSISTANT_TEST_PROVIDER', '收到测试替身回复，不能作为正式助手结果。', 0);
-  validateStructured(value);
-  return value as unknown as ChatResponse;
+  return normalizeStructured(value) as unknown as ChatResponse;
 }
 function parseQuote(value: unknown): AssistantQuote {
   // Incomplete quotes are returned for display with inspectQuote(), never silently repaired.

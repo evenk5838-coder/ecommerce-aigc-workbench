@@ -198,6 +198,57 @@ describe('assistant same-origin transport (all fetch calls mocked)', () => {
     await expect(createAssistantApi(fetcher).recoverSession('draft_test')).rejects.toMatchObject({ code: 'ASSISTANT_RESPONSE_INVALID' });
   });
 
+  it.each([42, true, ['prompt'], { text: 'prompt' }, null, undefined])('preserves the chat reply and degrades a non-string pure prompt to null: %j', async optimized_prompt => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({
+      session_id: session.session_id, session, intent: 'optimize_only', reply: '请补充商品描述。',
+      provider: { name: 'deepseek' }, reply_type: 'clarify', optimized_prompt,
+    }));
+    const result = await createAssistantApi(fetcher).chat(input);
+    expect(result.reply).toBe('请补充商品描述。');
+    expect(result.reply_type).toBe('clarify');
+    expect(result.optimized_prompt).toBeNull();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves a valid pure prompt exactly rather than trimming or replacing the reply', async () => {
+    const optimized_prompt = '  保留商品形状，柔和白色背景。  ';
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({
+      session_id: session.session_id, session, intent: 'optimize_only', reply: '已优化，请核对。',
+      provider: { name: 'deepseek' }, optimized_prompt,
+    }));
+    const result = await createAssistantApi(fetcher).chat(input);
+    expect(result.optimized_prompt).toBe(optimized_prompt);
+    expect(result.reply).toBe('已优化，请核对。');
+  });
+
+  it('keeps recovery history readable when its optional pure prompt has the wrong type', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({ project_id: 'draft_test', session, brief: {}, history: [
+      { role: 'user', content: '原始描述' },
+      { role: 'assistant', content: '需要补充商品信息。', structured: { reply_type: 'clarify', optimized_prompt: { text: '不可采用' }, missing_fields: ['商品名称'] } },
+    ] }));
+    const restored = await createAssistantApi(fetcher).recoverSession('draft_test');
+    expect(restored.history).toEqual([
+      { role: 'user', content: '原始描述' },
+      { role: 'assistant', content: '需要补充商品信息。', structured: { reply_type: 'clarify', optimized_prompt: null, missing_fields: ['商品名称'] } },
+    ]);
+  });
+
+  it.each([
+    { reply_type: 1 }, { options: [{ id: 'a', label: 1 }] }, { missing_fields: [1] },
+    { quote: 'quote' }, { manual_params: [] }, { submit_payload: 'payload' }, { awaiting_facts: true },
+  ])('does not relax other structured reply validation: %j', async malformed => {
+    const body = { session_id: session.session_id, session, intent: 'optimize_only', reply: '可读正文',
+      provider: { name: 'deepseek' }, optimized_prompt: { invalid: true }, ...malformed };
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response(body))
+      .mockResolvedValueOnce(response({ project_id: 'draft_test', session, brief: {}, history: [
+        { role: 'assistant', content: '可读正文', structured: { ...malformed, optimized_prompt: false } },
+      ] }));
+    const api = createAssistantApi(fetcher);
+    await expect(api.chat(input)).rejects.toMatchObject({ code: 'ASSISTANT_RESPONSE_INVALID' });
+    await expect(api.recoverSession('draft_test')).rejects.toMatchObject({ code: 'ASSISTANT_RESPONSE_INVALID' });
+  });
+
   it('rejects a provider.stub reply instead of exposing it as a successful assistant response', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({
       session_id: session.session_id, session, intent: 'optimize_only', reply: '测试文本',

@@ -1,4 +1,4 @@
-/** Assistant v0.2 wire types. Missing quote fields remain missing; they are never synthesized. */
+/** Assistant v0.3 wire types (optional additions). Missing quote fields remain missing; they are never synthesized. */
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 export type JsonObject = { [key: string]: JsonValue };
 export type AssistantIntent = 'optimize_only' | 'generate' | 'auto';
@@ -105,6 +105,11 @@ export interface AssistantQuote {
   model_lifecycle?: ModelLifecycle | null;
 }
 export interface StructuredReply {
+  explanation?: string | null;
+  recommended_templates?: Array<{ template_id: string; name: string; version: number; reason?: string }>;
+  structured_ok?: boolean;
+  degraded?: boolean;
+  refusal?: { detected?: boolean; structured?: boolean } | null;
   reply_type?: string; // Render unknown values as informational text, never an action.
   options?: AssistantOption[];
   optimized_prompt?: string | null;

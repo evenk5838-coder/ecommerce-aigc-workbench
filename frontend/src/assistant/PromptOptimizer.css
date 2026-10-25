@@ -1,0 +1,37 @@
+.prompt-optimizer { margin: 10px 0 4px; border: 1px solid #e4dcf1; border-radius: 11px; background: #fbf9ff; color: #51465f; font-size: 13px; line-height: 1.65; min-width: 0; }
+.prompt-optimizer .prompt-optimizer-header { display: flex; align-items: center; justify-content: space-between; gap: 7px; padding: 6px 8px; }
+.prompt-optimizer button { min-height: 36px; font-size: 12px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; line-height: 1.4; }
+.prompt-optimizer .prompt-optimizer-toggle { padding: 5px 3px; justify-content: flex-start; color: #60507d; }
+.prompt-optimizer-toggle small { font-size: 10px; color: #847195; font-weight: 400; }
+.prompt-optimizer-toggle svg:last-child { transition: transform .15s; }
+.prompt-optimizer-toggle svg.is-open { transform: rotate(180deg); }
+.prompt-optimizer .prompt-optimizer-run { background: #eee7fb; color: #6846aa; font-weight: 600; padding: 7px 10px; flex-shrink: 0; }
+.prompt-optimizer .prompt-optimizer-run:disabled { opacity: .65; }
+.prompt-optimizer .prompt-optimizer-body { padding: 0 12px 12px; border-top: 1px solid #eee8f5; }
+.prompt-optimizer-body[hidden] { display: none; }
+.prompt-optimizer .prompt-optimizer-body > p { margin: 10px 0; }
+.prompt-optimizer .prompt-optimizer-help { font-size: 12px; line-height: 1.7; color: #756882; }
+.prompt-optimizer .prompt-optimizer-notice,.prompt-optimizer .prompt-optimizer-context { color: #70502b; background: #fff5e8; border: 1px solid #f1dfc8; border-radius: 7px; padding: 8px 10px; overflow-wrap: anywhere; }
+.prompt-optimizer .prompt-optimizer-error { color: #9c3d51; background: #fff0f3; border-radius: 7px; padding: 8px 10px; overflow-wrap: anywhere; }
+.prompt-optimizer .prompt-optimizer-collapsed-note { width: 100%; justify-content: space-between; padding: 6px 12px; text-align: left; color: #806245; border-top: 1px solid #eee8f5; font-size: 12px; }
+.prompt-optimizer .prompt-optimizer-utility { display: flex; justify-content: flex-end; gap: 8px; margin: 4px 0; }
+.prompt-optimizer-utility button { color: #755d98; padding: 4px 0; text-align: right; }
+.prompt-optimizer .prompt-optimizer-result { border-top: 1px solid #e8e0f0; margin-top: 8px; padding-top: 12px; min-width: 0; }
+.prompt-optimizer .prompt-optimizer-editor-label { display: flex; justify-content: space-between; gap: 10px; margin: 10px 0 8px; font-size: 13px; font-weight: 600; }
+.prompt-optimizer-editor-label span { font-size: 11px; font-weight: 400; color: #7e708d; }
+.prompt-optimizer .prompt-optimizer-body textarea { width: 100%; min-height: 140px; padding: 10px; font-size: 13px; line-height: 1.8; border: 1px solid #ddd2ee; background: #fff; color: #4a4058; border-radius: 8px; resize: vertical; }
+.prompt-optimizer summary { cursor: pointer; min-height: 36px; padding: 7px 0; color: #766087; font-size: 12px; }
+.prompt-optimizer summary:focus-visible { outline: 2px solid #9e86e5; outline-offset: 2px; border-radius: 4px; }
+.prompt-optimizer .prompt-optimizer-full-reply p,.prompt-optimizer .prompt-optimizer-context details p,.prompt-optimizer .prompt-optimizer-reply,.prompt-optimizer .prompt-optimizer-explanation { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.85; margin: 8px 0; }
+.prompt-optimizer .prompt-optimizer-ack { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; font-size: 12px; line-height: 1.7; cursor: pointer; }
+.prompt-optimizer .prompt-optimizer-ack input[type=checkbox] { width: 16px; height: 16px; min-height: 16px; margin: 3px 0 0; flex-shrink: 0; accent-color: #7961cc; padding: 0; }
+.prompt-optimizer .prompt-optimizer-apply { width: 100%; min-height: 40px; margin-top: 6px; color: #fff; background: #7961cc; padding: 9px 12px; font-weight: 600; }
+@media(max-width:700px) {
+  .prompt-optimizer button,.prompt-optimizer summary { min-height: 44px; }
+  .prompt-optimizer .prompt-optimizer-header { flex-wrap: wrap; }
+  .prompt-optimizer .prompt-optimizer-run { margin-left: auto; }
+  .prompt-optimizer .prompt-optimizer-body textarea { font-size: 16px; }
+  .prompt-optimizer .prompt-optimizer-apply { min-height: 44px; }
+  .prompt-optimizer .prompt-optimizer-ack { padding: 12px 0; }
+}
+@media(prefers-reduced-motion:reduce) { .prompt-optimizer-toggle svg:last-child { transition: none; } }
