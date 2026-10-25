@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25 16:49:19",
+  "date": "2026-10-25 20:32:40",
   "scope": "v0.7 五项修复 · 免费验证（零付费、零真实模型调用）",
   "isolation": {
     "db": "临时副本",
@@ -185,7 +185,7 @@
       "detail": {
         "generation_mode": "text_to_image",
         "concept_mode": 1,
-        "task_id": "task_c819f0a3ad7d445a80d6",
+        "task_id": "task_2753838b2bd24e3c831f",
         "notice_in_prompt": true
       }
     },

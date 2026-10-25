@@ -1,0 +1,191 @@
+{
+  "date": "2026-10-25 20:32:36",
+  "scope": "S1 后端 B10：时长严格校验与四处一致",
+  "isolation": {
+    "db": "临时副本",
+    "real_db_untouched": true,
+    "provider_guard": "providers_ark.video_create 替换为记录器",
+    "worker": "未启动"
+  },
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 10,
+  "passed": 10,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "range+step 优先；缺 step 不猜测 → unavailable",
+      "ok": true,
+      "detail": {
+        "pro": {
+          "kind": "range",
+          "min": 2,
+          "max": 12,
+          "step": 1,
+          "allowed": null
+        },
+        "mini": {
+          "kind": "range",
+          "min": 4,
+          "max": 15,
+          "step": 1,
+          "allowed": null
+        },
+        "enum_fallback": "ok",
+        "broken": "unavailable"
+      }
+    },
+    {
+      "case": "GET /api/models 暴露 duration_policy / range / step",
+      "ok": true,
+      "detail": {
+        "policy": {
+          "kind": "range",
+          "min": 2,
+          "max": 12,
+          "step": 1,
+          "allowed": null
+        },
+        "step": 1
+      }
+    },
+    {
+      "case": "3/6/12 秒：校验=落库=估价=供应商请求",
+      "ok": true,
+      "detail": {
+        "rows": [
+          {
+            "requested": 3,
+            "stored": 3,
+            "provider": 3,
+            "estimate": 0.2722
+          },
+          {
+            "requested": 6,
+            "stored": 6,
+            "provider": 6,
+            "estimate": 0.5443
+          },
+          {
+            "requested": 12,
+            "stored": 12,
+            "provider": 12,
+            "estimate": 1.0886
+          }
+        ]
+      }
+    },
+    {
+      "case": "1/13/5.5/5.0/'5'/true 全部拒绝，且 reason 正确",
+      "ok": true,
+      "detail": {
+        "rejected": {
+          "1": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "out_of_range",
+            "got_type": "int"
+          },
+          "13": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "out_of_range",
+            "got_type": "int"
+          },
+          "5.5": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "not_integer",
+            "got_type": "float"
+          },
+          "5.0": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "not_integer",
+            "got_type": "float"
+          },
+          "'5'": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "not_integer",
+            "got_type": "str"
+          },
+          "True": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "not_integer",
+            "got_type": "bool"
+          },
+          "[5]": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "not_integer",
+            "got_type": "list"
+          },
+          "{'d': 5}": {
+            "code": "MODEL_CAPABILITY_MISMATCH",
+            "reason": "not_integer",
+            "got_type": "dict"
+          }
+        }
+      }
+    },
+    {
+      "case": "禁止 int()/round()/夹取：5.9 与 13 直接拒绝",
+      "ok": true,
+      "detail": {
+        "5.9": "rejected",
+        "13": "rejected",
+        "coercion": "none"
+      }
+    },
+    {
+      "case": "旧任务接口兼容：5/10 秒仍可提交",
+      "ok": true,
+      "detail": {
+        "5s": "ok",
+        "10s": "ok",
+        "note": "旧值仍合法，兼容不破坏"
+      }
+    },
+    {
+      "case": "estimate 与提交的有效时长/费用一致",
+      "ok": true,
+      "detail": {
+        "estimate": 0.5443,
+        "effective": {
+          "duration": 6,
+          "ratio": "9:16",
+          "resolution": "720p",
+          "generate_audio": null
+        }
+      }
+    },
+    {
+      "case": "estimate 同样拒绝非法时长（不静默修正）",
+      "ok": true,
+      "detail": {
+        "1": "rejected",
+        "5.5": "rejected"
+      }
+    },
+    {
+      "case": "非法时长不产生任务记录",
+      "ok": true,
+      "detail": {
+        "tasks_before": 76,
+        "tasks_after": 76
+      }
+    },
+    {
+      "case": "2.0 mini 策略为 4–15（未开通仍不可提交由 activation 处理）",
+      "ok": true,
+      "detail": {
+        "mini_policy": {
+          "kind": "range",
+          "min": 4,
+          "max": 15,
+          "step": 1,
+          "allowed": null
+        },
+        "4s": "ok",
+        "3s": "rejected"
+      }
+    }
+  ],
+  "disclaimer": "仅验证校验/估价/落库/请求参数一致性，未执行真实生成。"
+}

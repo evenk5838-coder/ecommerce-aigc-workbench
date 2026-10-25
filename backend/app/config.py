@@ -227,6 +227,9 @@ MODEL_CAPABILITIES = {
         "resolutions": ["480p", "720p", "1080p"],
         "sizes": [],
         "duration_s": [5, 10],
+        # B10：原生能力 2–12 整数秒（range+step 优先于 duration_s 枚举）
+        "duration_range_s": [2, 12],
+        "duration_step_s": 1,
         "supports": ["首帧生视频", "文生视频"],
         "fps": 24,
         "pricing": {"kind": "per_mtoken", "cny_per_mtoken": 4.20, "billing": "仅成功生成计费"},
@@ -239,6 +242,7 @@ MODEL_CAPABILITIES = {
         "sizes": [],
         "duration_s": [5, 10],
         "duration_range_s": [4, 15],
+        "duration_step_s": 1,
         "supports": ["全模态参考生视频", "参考生视频", "编辑视频", "延长视频",
                      "首尾帧生视频", "首帧生视频", "文生视频"],
         "fps": 24,
@@ -312,6 +316,89 @@ def image_cost_cny(model_id: str, size: str | None, reference_images: int = 0) -
     return round(cost, 4)
 
 
+# ---------- B10：时长策略（range+step 优先，其次枚举，否则不可用） ----------
+DEFAULT_VIDEO_DURATION_S = 5
+
+
+def duration_policy(model_id: str) -> dict:
+    """解析某视频模型的时长策略。
+
+    优先级：
+      1) `duration_range_s` + `duration_step_s` **同时完整有效** → kind="range"
+      2) 否则退回 `duration_s` 枚举                             → kind="enum"
+      3) 两者都缺/非法                                         → kind="unavailable"
+    """
+    caps = MODEL_CAPABILITIES.get(model_id) or {}
+    rng = caps.get("duration_range_s")
+    step = caps.get("duration_step_s")
+    if (isinstance(rng, (list, tuple)) and len(rng) == 2
+            and all(isinstance(x, int) and not isinstance(x, bool) for x in rng)
+            and isinstance(step, int) and not isinstance(step, bool) and step > 0
+            and rng[0] <= rng[1] and (rng[1] - rng[0]) % step == 0):
+        return {"kind": "range", "min": rng[0], "max": rng[1], "step": step,
+                "allowed": None}
+    enum = caps.get("duration_s") or []
+    enum = [d for d in enum if isinstance(d, int) and not isinstance(d, bool)]
+    if enum:
+        return {"kind": "enum", "min": None, "max": None, "step": None,
+                "allowed": sorted(enum)}
+    return {"kind": "unavailable", "min": None, "max": None, "step": None,
+            "allowed": None}
+
+
+def _duration_error(model_id: str, got, reason: str, policy: dict) -> "AppError":  # noqa: F821
+    from .errors import err
+    return err("MODEL_CAPABILITY_MISMATCH",
+               f"模型 {model_id} 的时长不合法：got={got!r}（{reason}）",
+               detail={"field": "duration", "policy": policy, "reason": reason,
+                       "got": got, "got_type": type(got).__name__})
+
+
+def resolve_duration_s(model_id: str, value=None, *, strict: bool = True):
+    """把时长解析为**唯一有效整数**（校验/估价/落库/供应商请求共用）。
+
+    严格模式（默认）：拒绝 float（含 5.0）、bool、str、越界、不满足步长——
+    **绝不 int()/round() 截断或静默修正**。
+    `value is None` 时按模型默认值（5）处理，并校验默认值是否合法。
+    """
+    policy = duration_policy(model_id)
+    if policy["kind"] == "unavailable":
+        if strict:
+            raise _duration_error(model_id, value, "policy_unavailable", policy)
+        return None
+
+    if value is None:
+        value = DEFAULT_VIDEO_DURATION_S
+        if policy["kind"] == "enum" and value not in policy["allowed"]:
+            if strict:
+                raise _duration_error(model_id, value, "missing", policy)
+            return None
+
+    # 类型：只接受真正的 int（bool 是 int 子类，必须排除；float 一律拒绝）
+    if isinstance(value, bool) or not isinstance(value, int):
+        if strict:
+            raise _duration_error(model_id, value, "not_integer", policy)
+        return None
+
+    if policy["kind"] == "range":
+        if value < policy["min"] or value > policy["max"]:
+            if strict:
+                raise _duration_error(model_id, value, "out_of_range", policy)
+            return None
+        if (value - policy["min"]) % policy["step"] != 0:
+            if strict:
+                raise _duration_error(model_id, value, "step_mismatch", policy)
+            return None
+        return int(value)
+
+    # enum
+    if value not in policy["allowed"]:
+        if strict:
+            raise _duration_error(model_id, value, "out_of_range", policy)
+        return None
+    return int(value)
+
+
 def video_token_estimate(duration_s: float, resolution: str, ratio: str) -> int:
     """按官方公式估算 token：(输出时长) × 宽 × 高 × 帧率 / 1024。"""
     w, h = RESOLUTION_WH.get(str(resolution or "720p"), (1280, 720))
@@ -322,8 +409,9 @@ def video_token_estimate(duration_s: float, resolution: str, ratio: str) -> int:
 
 def video_cost_cny(model_id: str, params: dict) -> float:
     """视频估算价：token 公式 × 单价。实际成本以云端 usage.completion_tokens 重算。"""
+    resolved = resolve_duration_s(model_id, params.get("duration"), strict=False)
     tokens = video_token_estimate(
-        float(params.get("duration") or 5),
+        resolved if resolved is not None else DEFAULT_VIDEO_DURATION_S,
         params.get("resolution") or "720p",
         params.get("ratio") or "9:16",
     )
@@ -394,10 +482,14 @@ def validate_params_for_model(model_id: str, kind: str, params: dict) -> list[di
         if size and allowed_sizes and size not in allowed_sizes:
             problems.append({"field": "size", "got": size, "allowed": allowed_sizes})
     else:
-        duration = params.get("duration")
-        allowed_duration = caps.get("duration_s") or []
-        if duration is not None and allowed_duration and int(duration) not in allowed_duration:
-            problems.append({"field": "duration", "got": duration, "allowed": allowed_duration})
+        # B10：时长走严格策略校验（拒绝小数/bool/字符串/越界/步长不符）
+        try:
+            resolve_duration_s(model_id, params.get("duration"), strict=True)
+        except Exception as e:  # noqa: BLE001  AppError 转成 problems 结构
+            problems.append({"field": "duration",
+                             "got": params.get("duration"),
+                             "reason": (getattr(e, "detail", {}) or {}).get("reason"),
+                             "policy": (getattr(e, "detail", {}) or {}).get("policy")})
         ratio = params.get("ratio")
         allowed_ratios = caps.get("ratios") or []
         if ratio and allowed_ratios and ratio not in allowed_ratios:
