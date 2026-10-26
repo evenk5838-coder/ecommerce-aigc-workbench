@@ -21,12 +21,22 @@ describe('四种输入方式与运行能力', () => {
     expect(supportedGenerationModes(undefined)).toEqual([]);
     expect(validateGenerationMode(model, 'image_to_image')).toContain('不支持');
   });
-  it('文生视频在服务提交契约补齐前独立拦截，不把声明能力当服务已接通', () => {
+  it('四模式服务已接入，文生视频由当前模型 input_modes 决定，不再静态禁用', () => {
     expect(validateGenerationMode(model, 'text_to_video')).toBeNull();
-    expect(workbenchModeIntegrationError('text_to_video')).toContain('接入待完成');
+    expect(workbenchModeIntegrationError('text_to_video')).toBeNull();
     expect(workbenchModeIntegrationError('image_to_video')).toBeNull();
     expect(workbenchModeIntegrationError('text_to_image')).toBeNull();
     expect(workbenchModeIntegrationError('image_to_image')).toBeNull();
+    const firstFrameOnly = { ...model, capabilities: { input_modes: ['image_to_video'] } };
+    expect(validateGenerationMode(firstFrameOnly, 'text_to_video')).toContain('不支持');
+    expect(validateGenerationMode(firstFrameOnly, 'image_to_video')).toBeNull();
+    expect(validateGenerationMode({ ...model, capabilities: {} }, 'text_to_video')).toContain('不支持');
+    expect(validateGenerationMode(undefined, 'text_to_video')).toContain('不支持');
+  });
+  it('未知模式仍在服务兼容入口和模型能力校验中拒绝', () => {
+    const unknownMode = 'future_video' as GenerationMode;
+    expect(workbenchModeIntegrationError(unknownMode)).toContain('有效的生成方式');
+    expect(validateGenerationMode(model, unknownMode)).toContain('有效的生成方式');
   });
   it('文生视频预设要求描述主体，图生视频预设保留商品形态', () => {
     expect(getVideoPrompt('text_to_video')).toContain('描述商品的外观');

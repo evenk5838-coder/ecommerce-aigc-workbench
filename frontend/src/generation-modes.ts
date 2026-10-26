@@ -33,12 +33,9 @@ export function templateGenerationMode(selection: SingleTemplateSelection, refer
   return typeof mode === 'string' && modesForKind(template.kind).includes(mode as GenerationMode) ? mode as GenerationMode : null;
 }
 
-/** Remove only after task estimate/create/batch/retry accept and preserve text_to_video without a reference. */
-export const TEXT_TO_VIDEO_SERVICE_READY = false;
+/** B0 accepts all four modes. Model availability is checked separately against live input_modes. */
 export function workbenchModeIntegrationError(mode: GenerationMode): string | null {
-  return mode === 'text_to_video' && !TEXT_TO_VIDEO_SERVICE_READY
-    ? '文生视频服务接入待完成：后端提交入口仍要求首帧图，暂不能提交。可以先保存描述，或切换图生视频。'
-    : null;
+  return Object.hasOwn(GENERATION_MODES, mode) ? null : '请选择有效的生成方式';
 }
 
 export function getVideoPrompt(mode: VideoMode): string {

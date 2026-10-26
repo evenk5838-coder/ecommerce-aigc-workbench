@@ -1,10 +1,13 @@
-import { getModelUnavailableReason, validateVideoDuration } from '../capabilities';
+import { getModelUnavailableReason, getSupportedImageSizes, validateVideoDuration } from '../capabilities';
+import { validateGenerationMode } from '../generation-modes';
 import type { Model, Task } from '../types';
-import type { Film, ProductionStatus, ScopeInput, Shot, ShotInput, ShotTake } from './production-types';
+import type { Film, ProductionStatus, ScopeInput, Shot, ShotInput, ShotTake, StoryboardInput } from './production-types';
 
 export interface ShotDraft {
   key: string; shot_id?: string; revision?: number;
   description: string; motion: string; prompt: string; input_asset_id: string; duration: string;
+  /** Browser-persisted node overrides; these are not shot API fields. */
+  storyboardModelId?: string; storyboardSize?: string;
 }
 export interface ProductionEditorState {
   version: 1; rows: ShotDraft[]; videoModelId: string; ratio: string; resolution: string;
@@ -15,9 +18,31 @@ export const isActiveStatus = (value: string | undefined): boolean => !!value &&
 export function draftFromShot(shot: Shot): ShotDraft {
   return { key: shot.shot_id, shot_id: shot.shot_id, revision: shot.revision, description: shot.description, motion: shot.motion ?? '', prompt: shot.prompt ?? '', input_asset_id: shot.input_asset_id ?? '', duration: String(shot.duration_s) };
 }
-/** Prompt and reference are local storyboard inputs, not fields persisted by the shot API. */
+/** Preserve local node inputs when refreshing the fields persisted by the shot API. */
 export function restoreShotDraft(shot: Shot, local?: ShotDraft): ShotDraft {
-  return { ...draftFromShot(shot), prompt: local?.prompt ?? shot.prompt ?? '', input_asset_id: local?.input_asset_id ?? shot.input_asset_id ?? '' };
+  return {
+    ...draftFromShot(shot), prompt: local?.prompt ?? shot.prompt ?? '', input_asset_id: local?.input_asset_id ?? shot.input_asset_id ?? '',
+    ...(local?.storyboardModelId !== undefined ? { storyboardModelId: local.storyboardModelId } : {}),
+    ...(local?.storyboardSize !== undefined ? { storyboardSize: local.storyboardSize } : {}),
+  };
+}
+export interface StoryboardDefaults { imageModelId: string; imageSize: string }
+/** Missing overrides inherit defaults; an explicit empty selection stays empty. */
+export function storyboardSettings(draft: ShotDraft | undefined, defaults: StoryboardDefaults): { modelId: string; size: string } {
+  return { modelId: draft?.storyboardModelId ?? defaults.imageModelId, size: draft?.storyboardSize ?? defaults.imageSize };
+}
+export function inspectStoryboardDraft(draft: ShotDraft, defaults: StoryboardDefaults, models: Model[]): { input: StoryboardInput | null; error: string | null } {
+  const settings = storyboardSettings(draft, defaults);
+  const model = models.find(item => item.id === settings.modelId);
+  const fail = (error: string) => ({ input: null, error });
+  const unavailable = getModelUnavailableReason(model);
+  if (unavailable) return fail(unavailable);
+  if (model?.kind !== 'image') return fail('请选择分镜图片模型。');
+  const modeError = validateGenerationMode(model, draft.input_asset_id ? 'image_to_image' : 'text_to_image');
+  if (modeError) return fail(modeError);
+  if (!getSupportedImageSizes(model).includes(settings.size)) return fail('请选择这个图片模型支持的比例和清晰度。');
+  if (!draft.prompt.trim()) return fail('请填写这条分镜的生成提示词。');
+  return { input: { model_id: settings.modelId, size: settings.size, prompt: draft.prompt, input_asset_id: draft.input_asset_id || null }, error: null };
 }
 export function shotDraftChanged(draft: ShotDraft, shot?: Shot): boolean {
   if (!shot) return true;
@@ -72,6 +97,7 @@ export function parseProductionEditor(value: string | null): ProductionEditorSta
     if (!['videoModelId','ratio','resolution','imageModelId','imageSize'].every(key => typeof data[key] === 'string')) return null;
     for (const row of data.rows) {
       if (!row || typeof row !== 'object' || !['key','description','motion','prompt','input_asset_id','duration'].every(key => typeof row[key] === 'string') || (row.shot_id !== undefined && typeof row.shot_id !== 'string') || (row.revision !== undefined && (!Number.isSafeInteger(row.revision) || row.revision < 1))) return null;
+      if (['storyboardModelId', 'storyboardSize'].some(key => row[key] !== undefined && typeof row[key] !== 'string')) return null;
     }
     return { version:1, rows:data.rows as ShotDraft[], videoModelId:data.videoModelId as string, ratio:data.ratio as string, resolution:data.resolution as string, imageModelId:data.imageModelId as string, imageSize:data.imageSize as string, mode:data.mode, selectedIds:data.selectedIds as string[] };
   } catch { return null; }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Model, Task } from '../types';
 import type { ProductionStatus, ScopeInput, Shot } from './production-types';
-import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, shotDraftChanged, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
+import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, shotDraftChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
 const model: Model = { id:'video', name:'video', kind:'video', provider:'ark', downloaded:true, loaded:false, weights_mb:0, submittability:{submittable:true,reasons:[]}, capabilities:{duration_policy:{kind:'range',min:2,max:12,step:1}} };
 const shot: Shot = {shot_id:'s1',project_id:'p',revision:2,seq:1,duration_s:6,description:'保留产品',input_asset_id:'a1'};
 const status: ProductionStatus = {project_id:'p',mode:'clips',shots:[],batch:null,film:null};
@@ -51,5 +51,65 @@ describe('scope confirmation races', () => {
     const result = await submitAfterScopeConfirmation(frozen, async () => approval, current, submit);
     expect(submit).toHaveBeenCalledTimes(1);
     expect(result.received).toBe(approval);
+  });
+});
+
+
+describe('independent storyboard node settings', () => {
+  const defaults = { imageModelId: 'image-a', imageSize: '1024x1024' };
+  const imageA: Model = { id: 'image-a', name: 'Image A', provider: 'ark', kind: 'image', downloaded: true, loaded: false, weights_mb: 0, submittability: { submittable: true, reasons: [] }, capabilities: { input_modes: ['text_to_image', 'image_to_image'], sizes: ['1024x1024', '2048x2048'], ratios: ['1:1'] } };
+  const imageB: Model = { ...imageA, id: 'image-b', name: 'Image B', capabilities: { ...imageA.capabilities, sizes: ['2048x2048', '1536x2688'], ratios: ['1:1', '9:16'] } };
+  const models = [imageA, imageB];
+  const draft = { ...draftFromShot(shot), prompt: '保留真实包装', input_asset_id: 'ref-a' };
+
+  it('keeps old version-1 drafts valid and resolves their existing defaults', () => {
+    const cache = { version: 1, rows: [draft], videoModelId: 'video', ratio: '9:16', resolution: '720p', ...defaults, mode: 'clips', selectedIds: ['s1'] };
+    const restored = parseProductionEditor(JSON.stringify(cache));
+    expect(restored).toEqual(cache);
+    expect(storyboardSettings(restored?.rows[0], defaults)).toEqual({ modelId: 'image-a', size: '1024x1024' });
+  });
+
+  it('quotes each node with its own model, size, prompt and reference', () => {
+    const rows = [draft, { ...draft, key: 's2', shot_id: 's2', prompt: '第二镜提示词', input_asset_id: 'ref-b' }];
+    const configured = rows.map(row => row.shot_id === 's1' ? { ...row, storyboardModelId: 'image-b', storyboardSize: '1536x2688' } : row);
+    expect(inspectStoryboardDraft(configured[0], defaults, models).input).toEqual({ model_id: 'image-b', size: '1536x2688', prompt: '保留真实包装', input_asset_id: 'ref-a' });
+    expect(inspectStoryboardDraft(configured[1], defaults, models).input).toEqual({ model_id: 'image-a', size: '1024x1024', prompt: '第二镜提示词', input_asset_id: 'ref-b' });
+    expect(configured[1]).toBe(rows[1]);
+    expect(rows[0]).not.toHaveProperty('storyboardModelId');
+  });
+
+  it('preserves node overrides when default settings change or a server shot refresh arrives', () => {
+    const local = { ...draft, storyboardModelId: 'image-b', storyboardSize: '1536x2688' };
+    const refreshed = restoreShotDraft({ ...shot, revision: 4, description: '服务端描述' }, local);
+    expect(refreshed).toMatchObject({ storyboardModelId: 'image-b', storyboardSize: '1536x2688', prompt: draft.prompt, input_asset_id: 'ref-a' });
+    expect(storyboardSettings(refreshed, { imageModelId: 'other-default', imageSize: '4096x4096' })).toEqual({ modelId: 'image-b', size: '1536x2688' });
+    expect(shotDraftChanged(refreshed, { ...shot, revision: 4, description: '服务端描述' })).toBe(false);
+  });
+
+  it('round-trips independent settings and rejects invalid override types without coercing', () => {
+    const rows = [{ ...draft, storyboardModelId: 'image-b', storyboardSize: '1536x2688' }];
+    const cache = { version: 1, rows, videoModelId: 'video', ratio: '9:16', resolution: '720p', ...defaults, mode: 'clips', selectedIds: ['s1'] };
+    expect(parseProductionEditor(JSON.stringify(cache))?.rows).toEqual(rows);
+    for (const patch of [{ storyboardModelId: null }, { storyboardSize: 2048 }]) {
+      expect(parseProductionEditor(JSON.stringify({ ...cache, rows: [{ ...rows[0], ...patch }] }))).toBeNull();
+    }
+  });
+
+  it('keeps an explicitly cleared size empty and blocks mismatched or unavailable node capability', () => {
+    expect(storyboardSettings({ ...draft, storyboardModelId: 'image-b', storyboardSize: '' }, defaults).size).toBe('');
+    expect(inspectStoryboardDraft({ ...draft, storyboardModelId: 'image-b', storyboardSize: '1024x1024' }, defaults, models).input).toBeNull();
+    expect(inspectStoryboardDraft({ ...draft, storyboardModelId: 'image-b', storyboardSize: '2048x2048' }, defaults, [imageA, { ...imageB, submittability: { submittable: false, reasons: ['MODEL_NOT_OPENED'] } }]).input).toBeNull();
+    expect(inspectStoryboardDraft({ ...draft, storyboardModelId: 'image-b', storyboardSize: '2048x2048' }, defaults, [imageA, { ...imageB, capabilities: { ...imageB.capabilities, input_modes: ['text_to_image'] } }]).input).toBeNull();
+    expect(inspectStoryboardDraft({ ...draft, storyboardModelId: 'image-b', storyboardSize: '2048x2048' }, { imageModelId: 'missing', imageSize: '' }, models).input?.model_id).toBe('image-b');
+  });
+
+  it('makes model or size edits distinguishable from the frozen quote without mutating it', () => {
+    const row = { ...draft, storyboardModelId: 'image-b', storyboardSize: '2048x2048' };
+    const quoted = inspectStoryboardDraft(row, defaults, models).input;
+    const edited = inspectStoryboardDraft({ ...row, storyboardSize: '1536x2688' }, defaults, models).input;
+    expect(quoted?.size).toBe('2048x2048');
+    expect(edited?.size).toBe('1536x2688');
+    expect(edited).not.toEqual(quoted);
+    expect(productionFingerprint('p', 'scr', {}, [row], [shot], input)).not.toBe(productionFingerprint('p', 'scr', {}, [{ ...row, storyboardSize: '1536x2688' }], [shot], input));
   });
 });

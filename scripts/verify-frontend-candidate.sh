@@ -29,6 +29,6 @@ for path in files:
         raise SystemExit('FAIL: possible secret pattern; filename only: '+str(path.relative_to(root)))
 print('PASS: no runtime env tracked; no selected credential patterns in frontend source/build. Pattern scan is not a complete security audit.')
 PY_SCAN
-echo "PENDING: backend S3-S6 integration, real model generation, persistence recovery, final human review."
+echo "PENDING: conversational director orchestration, server node configuration persistence, real end-to-end generation, final human review."
 echo "This check does not declare internal-test readiness."
 exit "$result"

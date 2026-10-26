@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, FileText, FolderOpen, History, LoaderCircle, Plus, RefreshCw, Save, Sparkles, Trash2 } from 'lucide-react';
-import { ApiError } from './api';
+import { ArrowLeft, Check, FileText, FolderOpen, LoaderCircle, Plus, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
+import { ApiError, mediaUrl } from './api';
 import { creativeApi } from './creative/api';
 import type { CreativeProjectDetail, CreativeProjectListItem, CreativeScript, ProjectBrief, ScriptContent } from './creative/types';
 import {
@@ -9,12 +9,15 @@ import {
 } from './creative/state';
 import type { BriefEditor, ProjectEditSnapshot, UncertainOperation } from './creative/state';
 import ProductionFlow from './creative/ProductionFlow';
-import WorkflowCanvas from './creative/WorkflowCanvas';
+import FreeCreationCanvas from './creative/FreeCreationCanvas';
+import type { FreeCreationNode } from './creative/FreeCreationCanvas';
+import DirectorChat from './creative/DirectorChat';
+import { confirmScriptDraft } from './creative/confirmScriptDraft';
 import StructureTemplates from './creative/StructureTemplates';
-import type { Shot, ProductionStatus } from './creative/production-types';
+import type { Shot, ProductionStatus, Film } from './creative/production-types';
 import './CreativeSpace.css';
 import './DirectorStudio.css';
-import { readDirector, type DirectorReadiness, type DirectorStageKey } from './creative/director';
+import { readDirector, type DirectorReadiness } from './creative/director';
 
 export interface CreativeSpaceProps {
   onWorkbench: () => void;
@@ -91,7 +94,7 @@ export default function CreativeSpace({ onWorkbench, onDirtyChange, initialProje
     finally { createLock.current = false; if (mounted.current) setCreating(false); }
   };
   return <div className="creative-space"><div className="cs-shell">
-    <header className="cs-heading"><div><span className="cs-eyebrow"><Sparkles size={15} aria-hidden="true" />导演台</span><h1>把想法，一步步做成画面。</h1><p>每次只确认眼前这一步，完成后随时回看。</p></div><div className="cs-actions"><button className="cs-button" aria-expanded={projectsOpen} onClick={()=>setProjectsOpen(value=>!value)}><FolderOpen size={16}/>项目</button><button className="cs-button" onClick={() => { if (mayLeave()) onWorkbench(); }}><ArrowLeft size={16} />快捷工作台</button></div></header>
+    <header className="cs-heading"><span className="cs-eyebrow"><Sparkles size={15} />导演台 · 自由画布</span><div className="cs-actions"><button className="cs-button" aria-expanded={projectsOpen} onClick={()=>setProjectsOpen(value=>!value)}><FolderOpen size={16}/>项目</button><button className="cs-button" onClick={() => { if (mayLeave()) onWorkbench(); }}><ArrowLeft size={16} />快捷工作台</button></div></header>
     <div className="cs-layout"><aside className="cs-projects" hidden={!projectsOpen} aria-label="创作项目">
       <div className="cs-section-title"><h2><FolderOpen size={17} />我的项目</h2><button className="cs-icon" aria-label="刷新项目列表" disabled={loading} onClick={() => void reloadList()}><RefreshCw size={16} /></button></div>
       <button className="cs-button cs-new" aria-expanded={showCreate} onClick={() => setShowCreate(!showCreate)}><Plus size={16} />新建项目</button>
@@ -100,11 +103,11 @@ export default function CreativeSpace({ onWorkbench, onDirtyChange, initialProje
       {createUnknown && !creating && <div className="cs-notice">新建结果暂不明确。先刷新列表核对是否已创建。<button className="cs-link" disabled={loading} onClick={() => { if (window.confirm('请确认已核对项目列表。继续后可主动重新创建，可能产生重复项目。')) setCreateUnknown(false); }}>已核对列表</button></div>}
       {loading && <p className="cs-muted" role="status"><Spinner />正在读取项目…</p>}
       {!loading && !error && !projects.length && <p className="cs-muted">还没有项目。先为这次创作取个名字。</p>}
-      <nav className="cs-project-list" aria-label="切换项目">{projects.map(project => <button key={project.project_id} className={selectedId === project.project_id ? 'selected' : ''} aria-current={selectedId === project.project_id ? 'page' : undefined} disabled={creating} onClick={() => { selectProject(project.project_id); if(!dirty) setProjectsOpen(false); }}><strong>{project.name}</strong><span>{project.script_count ?? 0} 个脚本版本</span><small>{displayDate(project.updated_at)}</small></button>)}</nav>
-      <p className="cs-local-note">项目与已保存版本保留在本机服务；尚未保存的编辑仅保留在当前浏览器。</p>
+      <nav className="cs-project-list" aria-label="切换项目">{projects.map(project => <button key={project.project_id} className={selectedId === project.project_id ? 'selected' : ''} aria-current={selectedId === project.project_id ? 'page' : undefined} disabled={creating} onClick={() => { selectProject(project.project_id); if(!dirty) setProjectsOpen(false); }}><strong>{project.name}</strong><small>{displayDate(project.updated_at)}</small></button>)}</nav>
+
     </aside>
-    <main className="cs-main">{selectedId ? <ProjectEditor key={selectedId} projectId={selectedId} onDirtyChange={setEditorDirty} onChanged={reloadList} /> : <section className="cs-empty"><FileText size={34} strokeWidth={1.4} /><h2>从一个商品、一支短片开始</h2><p>新建项目后，填写商品资料和目标片长。你可以请 AI 写脚本，也可以直接手工编写。</p><button className="cs-button cs-primary" onClick={() => { setShowCreate(true); setProjectsOpen(true); }}><Plus size={16} />新建第一个项目</button></section>}</main></div>
-    <footer className="cs-footer">同一套素材和任务贯穿需求、脚本、分镜与成片。未开通模型与未就绪接口会明确提示。</footer>
+    <main className="cs-main">{selectedId ? <ProjectEditor key={selectedId} projectId={selectedId} onDirtyChange={setEditorDirty} onChanged={reloadList} /> : <section className="cs-empty"><FileText size={34} strokeWidth={1.4} /><h2>从一个商品、一支短片开始</h2><p>和 AI 导演聊聊你的商品与想法，在画布上逐步整理脚本、分镜和视频。</p><button className="cs-button cs-primary" onClick={() => { setShowCreate(true); setProjectsOpen(true); }}><Plus size={16} />新建第一个项目</button></section>}</main></div>
+
   </div></div>;
 }
 
@@ -115,17 +118,13 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   const [productionPending,setProductionPending]=useState(false);
   const [director, setDirector] = useState<DirectorReadiness | null>(null);
   const [directorError, setDirectorError] = useState('');
-  const [currentStage, setCurrentStage] = useState<DirectorStageKey>('brief');
   const directorRead = useRef<AbortController | null>(null);
-  const serverStage = useRef<DirectorStageKey | null>(null);
   const [productionRefresh,setProductionRefresh]=useState(0);
-  const canvasActions=useRef<{add:()=>void;edit:(id:string)=>void;remove:(id:string)=>void;move:(id:string,direction:'up'|'down')=>void}|null>(null);
-  const receiveActions=useCallback((actions:NonNullable<typeof canvasActions.current>)=>{canvasActions.current=actions;},[]);
-  const [workspaceMode,setWorkspaceMode]=useState<'form'|'canvas'>('form');
-  const [canvasStage,setCanvasStage]=useState('brief');
-  const [productionSnapshot,setProductionSnapshot]=useState<{shots:Shot[];status:ProductionStatus|null;loaded?:boolean;error?:string}>({shots:[],status:null});
-  const receiveSnapshot=useCallback((data:{shots:Shot[];status:ProductionStatus|null;loaded?:boolean;error?:string})=>setProductionSnapshot(data),[]);
-  const selectStage=(stage:string)=>{const map:Record<string,DirectorStageKey>={brief:'brief',script:'script',plan:'storyboard',storyboard:'storyboard',review:'storyboard',generation:'generation',results:'delivery',export:'delivery'};const target=map[stage]??'brief';if(!director?.stages.some(item=>item.key===target&&item.visible))return;setCanvasStage(stage);setCurrentStage(target);setWorkspaceMode('form');};
+  const [chatPending,setChatPending]=useState(false);
+  const [selectedNodeId,setSelectedNodeId]=useState<string|null>(null);
+  const [manualScript,setManualScript]=useState(false);
+  const [productionSnapshot,setProductionSnapshot]=useState<{shots:Shot[];status:ProductionStatus|null;films?:Film[];loaded?:boolean;error?:string}>({shots:[],status:null});
+  const receiveSnapshot=useCallback((data:{shots:Shot[];status:ProductionStatus|null;films?:Film[];loaded?:boolean;error?:string})=>setProductionSnapshot(data),[]);
 
   const [project, setProject] = useState<CreativeProjectDetail | null>(null);
   const [scripts, setScripts] = useState<CreativeScript[]>([]);
@@ -157,10 +156,10 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   const briefDirty = initialized && !!project && JSON.stringify(brief) !== JSON.stringify(briefEditor(project.name, project.brief));
   const scriptDirty = initialized && scriptText !== savedScriptText;
   const productionReady=!!director?.current.confirmation.valid && director.current.script?.script_id===selectedScript?.script_id && director.current.script?.version===selectedScript?.version;
-  const dirty = briefDirty || scriptDirty || !!instruction.trim() || !!busy || productionDirty || templateDirty;
+  const dirty = briefDirty || scriptDirty || !!instruction.trim() || !!busy || productionDirty || templateDirty || chatPending;
   const parsed = parseScriptText(scriptText);
   const content = parsed.content;
-  const blocked = loading || !!busy || !!uncertain || templatePending || productionPending;
+  const blocked = loading || !!busy || !!uncertain || templatePending || productionPending || chatPending;
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
   const refreshDirector = useCallback(async () => {
     directorRead.current?.abort(); const controller = new AbortController(); directorRead.current = controller;
@@ -168,10 +167,8 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
       const next = await readDirector(projectId, { signal: controller.signal });
       if(controller.signal.aborted || !mounted.current) return;
       setDirector(next); setDirectorError('');
-      const previousStage=serverStage.current;
-      setCurrentStage(current => !previousStage || !next.stages.some(item=>item.key===current&&item.visible) || current===previousStage ? next.current.stage : current);
-      serverStage.current=next.current.stage;
-    } catch(caught) { if(!controller.signal.aborted&&mounted.current){setDirector(null);setDirectorError(errorMessage(caught));setCurrentStage('brief');} }
+
+    } catch(caught) { if(!controller.signal.aborted&&mounted.current){setDirector(null);setDirectorError(errorMessage(caught));} }
   }, [projectId]);
   useEffect(()=>{void refreshDirector();return()=>directorRead.current?.abort();},[refreshDirector, productionSnapshot, productionRefresh]);
   const persist = useCallback((pending: UncertainOperation | undefined, staleFlag: boolean, keepEdit = true) => {
@@ -202,7 +199,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
     const edit = local.edit; setBrief(edit.brief); setScriptId(edit.scriptId); setScriptText(edit.scriptText); setBaseVersion(edit.baseVersion); setInstruction(edit.instruction);
     const saved = versions.find(script => script.script_id === edit.scriptId);
     setSavedScriptText(saved ? prettyContent(saved.content) : EMPTY_SCRIPT);
-    setNotice('已恢复此浏览器中的未保存编辑，请核对后显式保存。');
+    setNotice('已恢复上次的编辑。');
   };
   useEffect(() => {
     mounted.current = true; let cancelled = false;
@@ -223,7 +220,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
       if (!loaded) return;
       if (!initialized) { restoreEditing(loaded.scripts); setInitialized(true); }
       if (conflictPending) setConflict(loaded.latest);
-      await refreshDirector(); setNotice('已重新读取服务端项目与版本列表；你的未保存内容仍保留。');
+      await refreshDirector(); setProductionRefresh(value=>value+1); setNotice('项目已更新，你的编辑仍保留。');
     } catch (caught) { if (mounted.current) setError(errorMessage(caught)); }
   };
   const mutate = async <T,>(label: string, action: (signal: AbortSignal) => Promise<T>, success: (result: T) => Promise<void> | void) => {
@@ -267,98 +264,98 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   };
   const generate = async () => {
     if (!project || briefDirty || scriptDirty || blocked) return;
-    if (!brief.subject.trim()) { setError('请先填写并保存商品名称，再让 AI 写脚本。'); return; }
+    if (!brief.subject.trim()) { setError('请先在创作资料中补充商品名称。'); return; }
     const duration = brief.target_duration_s.trim() ? Number(brief.target_duration_s) : undefined;
     await mutate('AI 正在写脚本', signal => creativeApi.generateScript(projectId, { instruction: instruction.trim() || undefined, target_duration_s: duration }, { signal }), async result => {
       if (result.assistant_unavailable) { setNotice(result.hint || 'AI 暂不可用，可以直接手工编写脚本。'); return; }
       await fetchProject(false, result.script_id); setInstruction('');
-      const usage = result.llm_usage;
-      setNotice(`已保存脚本 v${result.version}。${usage ? `LLM 用量：输入 ${usage.input_tokens}、输出 ${usage.output_tokens} tokens。` : '本次响应未提供 LLM 用量。'}请核对商品事实后再确认。`); void onChanged();
+      setSelectedNodeId('script'); setNotice('脚本已准备好，看看是否符合你的想法。'); void onChanged();
     });
   };
-  const saveScript = async (newBase?: number) => {
-    if (!content || !scriptHasContent(content)) { setError(parsed.error || '请先填写脚本概述或镜头建议。'); return; }
-    if (briefDirty) { setError('请先保存需求，再保存脚本版本。'); return; }
-    const base = newBase ?? baseVersion;
-    await mutate('保存脚本新版本', signal => scriptId ? creativeApi.editScript(scriptId, { content, base_version: base }, { signal }) : creativeApi.addManualScript(projectId, { content }, { signal }), async result => {
-      await fetchProject(false, result.script_id); setNotice(`已保存为 v${result.version}，原版本保持不变。`); void onChanged();
-    });
-  };
-  const chooseVersion = async (id: string) => {
-    if (loading || busy || id === scriptId) return;
-    if (scriptDirty && !window.confirm('切换版本将替换当前脚本编辑区。放弃这份未保存的脚本编辑吗？')) return;
-    const controller = new AbortController(); readController.current?.abort(); readController.current = controller; setLoading(true); setError('');
-    try { const script = await creativeApi.getScript(id, { signal: controller.signal }); if (mounted.current && !controller.signal.aborted) { if (script.project_id !== projectId) throw new Error('脚本不属于当前项目，已停止切换。'); adoptScript(script, newest?.version ?? script.version); } }
-    catch (caught) { if (mounted.current && !controller.signal.aborted) setError(errorMessage(caught)); }
-    finally { if (mounted.current && !controller.signal.aborted) setLoading(false); }
-  };
-  const confirmVersion = async () => {
-    if (!selectedScript || scriptDirty || briefDirty || blocked) return;
-    const target = selectedScript;
-    await mutate(`确认脚本 v${target.version}`, signal => creativeApi.confirmScript(target.script_id, { signal }), async result => {
-      if (result.script_id !== target.script_id || result.version !== target.version) throw new Error('确认回执与所选版本不匹配，请重新读取核对。');
-      const refreshed=await fetchProject(false, target.script_id);
-      const confirmed=refreshed?.scripts.find(item=>item.script_id===target.script_id);
-      if(!refreshed||!confirmed)throw new Error('确认后无法读取当前版本，请重新核对。');
-      await refreshDirector();
-      setStale(false);persist(undefined,false);setNotice(`已确认脚本 v${result.version}，可继续镜头制作。`); void onChanged();
+  const confirmVersion = async (newBase?: number) => {
+    if (!content || !scriptHasContent(content) || briefDirty || blocked || (conflictPending && newBase === undefined)) return;
+    await mutate('确认脚本', signal => confirmScriptDraft({
+      savedScript: selectedScript, dirty: scriptDirty,
+      save: () => scriptId
+        ? creativeApi.editScript(scriptId, { content, base_version: newBase ?? baseVersion }, { signal })
+        : creativeApi.addManualScript(projectId, { content }, { signal }),
+      onSaved: result => {
+        const text = prettyContent(result.content);
+        setScriptId(result.script_id); setScriptText(text); setSavedScriptText(text); setBaseVersion(result.version);
+        editing.current = { ...editing.current, scriptId: result.script_id, scriptText: text, baseVersion: result.version };
+        setScripts(current => [...current.filter(item => item.script_id !== result.script_id), { ...result, project_id: projectId, confirmed_at: null }]);
+        // Retain the successful save even if the following confirmation has an unknown result.
+        persist({ label: '脚本已保存，确认结果待核对', startedAt: new Date().toISOString(), beforeVersion: result.version }, true);
+      },
+      confirm: id => creativeApi.confirmScript(id, { signal }),
+    }), async result => {
+      const refreshed=await fetchProject(false, result.script_id);
+      if(!refreshed?.scripts.some(item=>item.script_id===result.script_id)) throw new Error('确认结果暂未读取到，请刷新核对。');
+      setStale(false); persist(undefined,false); setManualScript(false); setSelectedNodeId('plan');
+      setNotice('脚本已确认，接下来准备分镜。'); void onChanged();
     });
   };
   const changeContent = (patch: Partial<ScriptContent>) => { if (content) setScriptText(prettyContent({ ...content, ...patch })); };
   const setField = (field: keyof BriefEditor, value: string) => setBrief(current => ({ ...current, [field]: value }));
   if (!project) return <section className="cs-card cs-loading">{loading ? <><Spinner /><p>正在恢复项目与脚本版本…</p></> : <><h2>项目暂时无法读取</h2><p role="alert">{error}</p><button className="cs-button" onClick={() => void recover()}><RefreshCw size={16} />重新读取</button></>}</section>;
-  const canvasBoards=productionSnapshot.shots.flatMap(shot=>shot.storyboards??[]);
-  const approvedBoards=canvasBoards.filter(board=>board.status==='approved');
   const statuses=productionSnapshot.status?.shots??[];
-  const batch=productionSnapshot.status?.batch;
-  const film=productionSnapshot.status?.film;
-  const canvasStages={
-    brief:{status:project.brief.subject?'saved':'draft',summary:String(project.brief.subject??'待填写商品资料')},
-    script:{status:productionReady?'approved':selectedScript?'saved':'draft',summary:selectedScript?`v${selectedScript.version} · ${productionReady?'本次制作已确认':'待核对本次制作版本'}`:'待编写脚本'},
-    plan:{status:productionSnapshot.loaded?'saved':productionSnapshot.error?'unavailable':'unknown',summary:productionSnapshot.loaded?`${productionSnapshot.shots.length} 个镜头`:productionSnapshot.error??'等待读取真实镜头数据'},
-    storyboard:{status:canvasBoards.some(board=>['queued','running'].includes(board.status))?'running':canvasBoards.length?'saved':'not_started',summary:`已读取 ${canvasBoards.length} 个分镜版本`},
-    review:{status:approvedBoards.length?'saved':'not_started',summary:`已有 ${approvedBoards.length} 个分镜版本通过审核，生成前仍会校验当前版本`},
-    generation:{status:batch?.running?'running':batch?.queued?'queued':statuses.some(item=>item.status==='failed')?'failed':statuses.length&&statuses.every(item=>item.status==='succeeded')?'succeeded':'not_started',summary:productionSnapshot.status?`${statuses.length} 个镜头状态 · ${productionSnapshot.status.mode==='full'?'完整视频':productionSnapshot.status.mode==='clips'?'独立片段':'尚未选模式'}`:'等待读取运行状态'},
-    results:{status:film?.status??'unknown',summary:film?`${film.version?`成片 v${film.version}`:'成片'} · ${film.partial===true?'部分成片':film.partial===false?'完整成片':'完整性待核对'}`:'进入查看成功片段与成片历史'},
-    export:{status:'unknown',summary:'进入下载项目包或管理结构模板'},
-  };
+  const film=productionSnapshot.films?.[0]??productionSnapshot.status?.film??productionSnapshot.status?.films?.[0];
+  const nodes:FreeCreationNode[]=[];
+  if(selectedScript || manualScript || scriptDirty) nodes.push({id:'script',type:'脚本',title:'创作脚本',summary:typeof content?.summary==='string'?content.summary:'点击查看并调整脚本',status:productionReady&&!scriptDirty?'approved':'draft',x:60,y:80});
+  if(productionReady || productionSnapshot.shots.length) nodes.push({id:'plan',type:'分镜设置',title:'镜头计划',summary:`${productionSnapshot.shots.length} 个镜头 · 点击调整画面与生成设置`,status:productionReady?'ready':'stale',x:450,y:80});
+  for(const [index,shot] of productionSnapshot.shots.entries()) {
+    const status=statuses.find(item=>item.shot_id===shot.shot_id);
+    const board=[...(shot.storyboards??status?.storyboards??[])].sort((a,b)=>b.version-a.version)[0];
+    nodes.push({id:`image:${shot.shot_id}`,type:'分镜图',title:`镜头 ${shot.seq} · 画面`,summary:shot.description,image:board?.asset_id?mediaUrl(board.asset_id):undefined,status:board?.status??'draft',x:840,y:80+index*380});
+    const take=status ? status.takes?.[0] : shot.takes?.[0];
+    const asset=status ? status.asset_id??take?.asset_id : take?.asset_id;
+    if(status?.task_id || asset || take) nodes.push({id:`video:${shot.shot_id}`,type:'镜头视频',title:`镜头 ${shot.seq} · 视频`,summary:shot.description,video:asset?mediaUrl(asset):undefined,status:status?.status??take?.status??'queued',x:1230,y:80+index*380});
+  }
+  const allApproved=productionSnapshot.shots.length>0 && productionSnapshot.shots.every(shot=>{
+    const status=statuses.find(item=>item.shot_id===shot.shot_id);
+    const latest=[...(shot.storyboards??status?.storyboards??[])].sort((a,b)=>b.version-a.version)[0];
+    return latest?.status==='approved';
+  });
+  if(allApproved || productionSnapshot.status?.batch) nodes.push({id:'generation',type:'视频生成',title:'生成全部镜头',summary:'选择直接合成一支视频，或分别生成镜头。',status:productionSnapshot.status?.batch?.running?'running':'ready',x:1230,y:-210});
+  if(film || statuses.some(item=>item.asset_id || item.takes?.some(take=>take.asset_id))) nodes.push({id:'delivery',type:'作品',title:film?'成片视频':'镜头与成片',video:film?.asset_id?mediaUrl(film.asset_id):undefined,summary:film?.partial?'部分成片':'预览、合成与下载',status:film?.status??'ready',x:1620,y:80});
+  const selected=nodes.find(node=>node.id===selectedNodeId);
+  const panel=selectedNodeId==='generation'||selectedNodeId?.startsWith('video:')?'generation':selectedNodeId==='delivery'?'delivery':'storyboard';
+  const focusShotId=selectedNodeId?.startsWith('image:')||selectedNodeId?.startsWith('video:')?selectedNodeId.slice(6):null;
   return <>
-    <div className="cs-project-heading"><div><span className="cs-eyebrow">当前项目</span><h2>{project.name}</h2><span className="cs-muted">{scripts.length} 个脚本版本 · {briefDirty || scriptDirty ? '有未保存编辑' : '当前编辑已保存'}</span></div><button className="cs-button" disabled={blocked} onClick={() => void recover()}>{loading ? <Spinner /> : <RefreshCw size={15} />}重新读取</button></div>
-    {storageFailed && <div className="cs-notice cs-warning" role="alert">浏览器暂不能保存编辑备份。请先显式保存到本机服务，再离开页面。</div>}
-    {error && <div className="cs-notice cs-error" role="alert">{error}</div>}
-    {notice && <div className="cs-notice" role="status">{notice}</div>}
-    {uncertain && !busy && <div className="cs-notice cs-warning" role="alert"><strong>“{uncertain.label}”结果需要核对</strong><p>{displayDate(uncertain.startedAt)} 发起；发起前最新为 v{uncertain.beforeVersion}。服务端可能仍在处理，停止等待不会取消请求。不会自动重试。</p><div className="cs-actions"><button className="cs-button" disabled={loading} onClick={() => void recover()}>读取项目与历史核对</button><button className="cs-button" disabled={!recovered || loading} onClick={() => { if (window.confirm('请确认已查看最新脚本与项目内容。原请求仍可能完成；继续不会自动重发，后续操作需要你主动点击。')) { setUncertain(undefined); persist(undefined, stale); setError(''); setNotice('已解除本地等待保护。继续操作前请核对最新版本，避免重复请求。'); } }}>已核对，继续编辑</button></div></div>}
-    {directorError&&<div className="cs-notice cs-warning" role="alert">{directorError}<button className="cs-link" onClick={()=>void refreshDirector()}>重新读取流程</button></div>}
-    <nav className="ds-progress" aria-label="已到达的创作步骤">{(director?.stages.filter(item=>item.visible)??[{key:'brief' as const,label:'需求',status:'current',visible:true,actions:[]}]).map((item,index)=><button key={item.key} className={currentStage===item.key?'active':''} aria-current={currentStage===item.key?'step':undefined} disabled={!!busy||productionPending} onClick={()=>{setCurrentStage(item.key);setWorkspaceMode('form');}}><span>{item.status==='done'?<Check size={13}/>:String(index+1).padStart(2,'0')}</span>{item.label}</button>)}{director?.stages.find(item=>item.key==='delivery')?.status==='done'&&<button className="ds-overview" onClick={()=>setWorkspaceMode(workspaceMode==='canvas'?'form':'canvas')}><History size={15}/>{workspaceMode==='canvas'?'返回当前步骤':'回看制作总览'}</button>}</nav>
-    {workspaceMode==='canvas'&&<><WorkflowCanvas projectId={projectId} stage={canvasStage} onSelectStage={selectStage} shots={productionSnapshot.shots.map(shot=>({shot_id:shot.shot_id,seq:shot.seq,description:shot.description,status:productionSnapshot.status?.shots.find(item=>item.shot_id===shot.shot_id)?.status??shot.status,asset_id:productionSnapshot.status?.shots.find(item=>item.shot_id===shot.shot_id)?.asset_id}))} stages={canvasStages} onEditShot={id=>{selectStage('plan');requestAnimationFrame(()=>id?canvasActions.current?.edit(id):canvasActions.current?.add());}} onDeleteShot={productionReady&&!blocked?id=>canvasActions.current?.remove(id):undefined} onReorderShot={productionReady&&!blocked?(id,direction)=>canvasActions.current?.move(id,direction):undefined}/>{productionSnapshot.error&&<p className="cs-notice">制作接口尚未就绪：{productionSnapshot.error}</p>}</>}
-    <div className="ds-workspace" hidden={workspaceMode==='canvas'}>
-    <aside className="ds-assistant" aria-label="导演助手"><header><span className="ds-assistant-icon"><Sparkles size={20}/></span><strong>AI 导演</strong><small>创作引导</small></header><div className="ds-assistant-copy"><small>当前项目</small><h3>{project.name}</h3><p>{String(project.brief.subject||'先说说你想拍的商品。')}</p><div className="ds-guidance"><h4>{{brief:'先把商品和方向说清楚。',script:'先确认脚本，再把想法变成镜头。',storyboard:'先看画面，逐镜核对商品。',generation:'分镜确认后，一次生成全部镜头。',delivery:'看看成片，也保留每个镜头。'}[currentStage]}</h4><p>{{brief:'填写真实商品信息、想突出的特点与视频风格。保存后进入脚本。',script:'可以请 AI 起草，也可以直接写。确认脚本后才进入分镜，不会自动生成图片。',storyboard:'调整镜头计划，选择商品参考图。生成前查看报价，逐张审核商品外观与数量。',generation:'完整视频与独立片段平级可选。先看整组报价，确认后才创建视频任务。',delivery:'预览实际产物与时长，下载成片或项目包。合成和重新生成分别由你确认。'}[currentStage]}</p></div></div>
-    {currentStage==='script'&&<div className="cs-ai"><div><h3><Sparkles size={17} />让 AI 起草</h3><p>点击后会调用文本模型并记录 LLM 用量，与图片、视频生成费用分开；不会自动生成图片或视频。</p></div><label>本次写作要求<span className="cs-optional">选填</span><textarea rows={2} value={instruction} disabled={blocked} onChange={event => setInstruction(event.target.value)} placeholder="如：以产品细节开场，节奏简洁，不虚构商品信息" /></label><div className="cs-actions"><button className="cs-button cs-primary" disabled={blocked || briefDirty || scriptDirty || !brief.subject.trim()} onClick={() => void generate()}>{busy === 'AI 正在写脚本' ? <Spinner /> : <Sparkles size={16} />}{scripts.length ? 'AI 生成新脚本版本' : 'AI 生成脚本'}</button>{busy && <button className="cs-button" onClick={() => controllerRef.current?.abort()}>停止等待</button>}<span className="cs-muted">{briefDirty ? '请先保存需求' : scriptDirty ? '先保存当前脚本，避免覆盖编辑' : '也可直接在下方手工编写'}</span></div></div>}
-    <p className="ds-assistant-foot">助手帮助整理想法，生成始终由你确认。</p></aside>
-    <div className="ds-current-content">
-    <div className="ds-stage-caption"><span/><strong>{{brief:'创作需求',script:'脚本与镜头',storyboard:'分镜画面',generation:'视频生成',delivery:'成片交付'}[currentStage]}</strong><small>当前步骤</small></div>
-    <section className="cs-card" hidden={currentStage!=='brief'} aria-labelledby="cs-brief-title"><div className="cs-section-title"><h2 id="cs-brief-title"><span className="cs-step">01</span>商品与创作需求</h2><span className="cs-muted">显式保存后用于 AI 脚本</span></div>
-      <fieldset disabled={blocked} className="cs-fields"><div className="cs-field-grid"><label>项目名称<input value={brief.name} onChange={event => setField('name', event.target.value)} /></label><label>商品名称<input value={brief.subject} onChange={event => setField('subject', event.target.value)} placeholder="明确商品是什么，不添加未经证实的功效" /></label><label>商品数量<input type="text" inputMode="numeric" value={brief.quantity} onChange={event => setField('quantity', event.target.value)} placeholder="选填，正整数" /></label><label>目标总片长（秒）<input type="text" inputMode="numeric" value={brief.target_duration_s} onChange={event => setField('target_duration_s', event.target.value)} placeholder="如 20 或 30，是整支视频时长" /></label><label>发布平台<input value={brief.target_platform} onChange={event => setField('target_platform', event.target.value)} placeholder="如：抖音商品详情、天猫" /></label><label>视觉与表达风格<input value={brief.style} onChange={event => setField('style', event.target.value)} placeholder="如：简洁棚拍、自然生活感" /></label><label>真实卖点<textarea rows={3} value={brief.selling_points} onChange={event => setField('selling_points', event.target.value)} placeholder="只填写已确认的商品事实" /></label><label>禁止出现的内容<textarea rows={3} value={brief.forbidden_elements} onChange={event => setField('forbidden_elements', event.target.value)} placeholder="如：夸张功效、错误包装、无关品牌" /></label><label className="cs-full">补充说明<textarea rows={2} value={brief.notes} onChange={event => setField('notes', event.target.value)} placeholder="受众、叙事方向及其他要求" /></label></div></fieldset>
-      <div className="cs-card-footer"><p>总片长用于脚本规划，不受单镜头生成时长限制。</p><button className="cs-button cs-primary" disabled={blocked || !brief.subject.trim() || (!briefDirty&&!director?.facts.ready)} onClick={() => {if(briefDirty)void saveBrief();else if(director?.stages.some(item=>item.key==='script'&&item.visible))setCurrentStage('script');}}><ArrowRight size={16} />保存需求并继续</button></div>
-      {stale && <p className="cs-stale">需求曾发生变更，脚本与后续确认需要重新核对。以下时间仅是该版本的历史确认记录；此本地提示不代表服务端已验证当前需求。</p>}
-    </section>
-    <section className="cs-card" hidden={currentStage!=='script'} aria-labelledby="cs-script-title"><div className="cs-section-title"><h2 id="cs-script-title"><span className="cs-step">02</span>脚本创作</h2><span className="cs-muted">先看清内容，再确认版本</span></div>
-      <div className="cs-editor-heading"><h3><FileText size={17} />{selectedScript ? `脚本 v${selectedScript.version}` : '手工编写脚本'}</h3><span className="cs-muted">{selectedScript ? `${selectedScript.source === 'assistant' ? 'AI 起草' : selectedScript.source === 'manual' ? '手工保存' : '来源未说明'} · ${displayDate(selectedScript.created_at)}` : '保存后将创建一个脚本版本'}</span></div>
-      {selectedScript?.confirmed_at && <p className="cs-confirmed"><Check size={15} />本版历史确认记录：{displayDate(selectedScript.confirmed_at)}</p>}
-      {content?.parse_ok === false && <div className="cs-notice cs-warning">AI 返回了非结构化内容，下面保留原文；没有补造镜头建议。请手工检查、整理后保存新版本。</div>}
-      <fieldset className="cs-fields cs-script-fields" disabled={blocked}>
-        {content && <><label>脚本概述<textarea className="cs-summary" rows={6} value={typeof content.summary === 'string' ? content.summary : ''} onChange={event => changeContent({ summary: event.target.value })} placeholder="描述开场、商品卖点与收尾。你也可以完全手工创作。" /></label><div className="cs-shot-heading"><span>镜头建议<span className="cs-optional">脚本文字，尚非分镜画面</span></span><button type="button" className="cs-link" onClick={() => changeContent({ shots: [...(content.shots ?? []), { seq: (content.shots?.length ?? 0) + 1, hint: '' }] })}><Plus size={14} />添加一条</button></div>
-        <div className="cs-shots">{(content.shots ?? []).map((shot, index) => <div className="cs-shot" key={index}><span className="cs-shot-number">{index + 1}</span>{record(shot) && typeof shot.hint === 'string' ? <label className="cs-shot-label"><span className="cs-sr-only">镜头建议 {index + 1}</span><textarea rows={2} value={shot.hint} onChange={event => changeContent({ shots: content.shots?.map((item, itemIndex) => itemIndex === index ? { ...shot, hint: event.target.value } : item) })} /></label> : <pre>{JSON.stringify(shot, null, 2)}</pre>}<button className="cs-icon" aria-label={`删除镜头建议 ${index + 1}`} onClick={() => changeContent({ shots: content.shots?.filter((_, itemIndex) => itemIndex !== index) })}><Trash2 size={15} /></button></div>)}</div></>}
-        <details className="cs-raw" open={!content || undefined}><summary>查看或编辑完整脚本数据</summary><p>完整保留额外字段；直接修改时需保持 JSON 格式。</p><textarea rows={10} value={scriptText} onChange={event => setScriptText(event.target.value)} aria-label="完整脚本 JSON" spellCheck={false} /></details>
-      </fieldset>
-      {parsed.error && <p className="cs-field-error" role="alert">{parsed.error}</p>}
-      <div className="cs-card-footer"><p>每次保存会新增版本，旧内容保持不变。</p><div className="cs-actions"><button className="cs-button" disabled={blocked || briefDirty || !content || !scriptHasContent(content) || (!scriptDirty && !!scriptId) || conflictPending} onClick={() => void saveScript()}><Save size={16} />{scriptId ? '保存为新版本' : '保存手工脚本'}</button><button className="cs-button cs-primary" disabled={blocked || briefDirty || scriptDirty || !selectedScript || conflictPending} onClick={() => void confirmVersion()}><Check size={16} />{selectedScript ? `确认脚本（v${selectedScript.version}）` : '保存后确认版本'}</button></div></div>
-      {conflictPending && <section className="cs-conflict" role="alert"><h3>已有更新版本，你的编辑已保留</h3><p>请比较后再决定是否以最新版本为基线保存你的内容。这个操作仍会新增版本。</p>{conflict ? <><div className="cs-comparison"><div><strong>你的未保存内容</strong><pre>{scriptText}</pre></div><div><strong>服务端最新 v{conflict.version}</strong><pre>{prettyContent(conflict.content)}</pre></div></div><button className="cs-button" disabled={blocked || briefDirty || !content} onClick={() => void saveScript(conflict.version)}>已比较，以 v{conflict.version} 为基线另存我的编辑</button></> : <button className="cs-button" onClick={() => void recover()}>重新读取最新版本</button>}</section>}
-    </section>
-    <section className="cs-card cs-history" hidden={currentStage!=='script'} aria-labelledby="cs-history-title"><div className="cs-section-title"><h2 id="cs-history-title"><History size={17} />版本历史</h2><span className="cs-muted">点击查看具体版本</span></div>{scripts.length ? <div className="cs-history-list">{scripts.map(script => <button className={script.script_id === scriptId ? 'selected' : ''} key={script.script_id} disabled={blocked} onClick={() => void chooseVersion(script.script_id)}><span><strong>v{script.version}</strong><span>{script.source === 'assistant' ? 'AI 起草' : script.source === 'manual' ? '手工保存' : '脚本版本'}</span></span><small>{displayDate(script.created_at)}</small><span>{script.confirmed_at ? '有本版确认记录' : '未记录确认'}<ArrowRight size={14} /></span></button>)}</div> : <p className="cs-muted">尚未保存脚本。AI 不可用时，可手工编写并保存第一版。</p>}</section>
-    {currentStage==='script'&&!productionReady&&<p className="cs-notice">请先确认当前需求下的脚本版本，再继续镜头制作。历史确认时间仅供查阅，执行前以当前服务端确认状态为准。</p>}
-    <div hidden={!['storyboard','generation','delivery'].includes(currentStage)}><ProductionFlow panel={currentStage} project={project} script={selectedScript} blocked={loading||!!busy||briefDirty||scriptDirty||!!uncertain||templatePending||!productionReady} onDirtyChange={setProductionDirty} onPendingChange={setProductionPending} onSnapshot={receiveSnapshot} onPlanActions={receiveActions} refreshKey={productionRefresh}/></div>
-    <details className="ds-template-tools" hidden={currentStage!=='brief'&&currentStage!=='delivery'}><summary>{currentStage==='brief'?'套用已有结构模板':'保存与复用镜头结构'}</summary><div id="creative-structure-templates"><StructureTemplates projectId={projectId} disabled={loading||!!busy||briefDirty||scriptDirty||productionDirty||productionPending||!!uncertain} snapshot={productionSnapshot.shots.length?productionSnapshot.shots.map(shot=>({seq:shot.seq,role:`镜头 ${shot.seq}`,duration_s:shot.duration_s,motion:shot.motion??'',rhythm:''})):undefined} onDirtyChange={setTemplateDirty} onPendingChange={setTemplatePending} onApplied={async()=>{setDirector(null);setStale(true);persist(undefined,true);await fetchProject(false);setProductionRefresh(value=>value+1);setNotice('结构已套用。请重新填写商品事实、绑定素材并核对模型规格。');}}/></div>
-    </details></div></div>
+    <div className="cs-project-heading"><h2>{project.name}</h2><div className="cs-actions"><span className="cs-muted">{briefDirty || scriptDirty ? '编辑中' : '创作项目'}</span><button className="cs-icon" aria-label="刷新当前项目" disabled={blocked} onClick={() => void recover()}>{loading ? <Spinner /> : <RefreshCw size={15} />}</button></div></div>
+    <div className="ds-alerts">
+      {productionSnapshot.error&&<div className="cs-notice cs-warning" role="alert">制作内容暂未完整读取。<button className="cs-link" disabled={!!busy||productionPending} onClick={()=>setProductionRefresh(value=>value+1)}>重新读取制作内容</button></div>}
+      {storageFailed && <div className="cs-notice cs-warning" role="alert">编辑备份暂时无法保存，请保持页面开启。</div>}
+      {error && <div className="cs-notice cs-error" role="alert">{error}</div>}
+      {notice && <div className="cs-notice" role="status">{notice}<button className="cs-link" onClick={()=>setNotice('')}>收起</button></div>}
+      {uncertain && !busy && <div className="cs-notice cs-warning" role="alert"><strong>{uncertain.label}</strong><p>结果暂不明确，请先刷新核对，避免重复提交。</p><div className="cs-actions"><button className="cs-button" disabled={loading} onClick={() => void recover()}>刷新核对</button><button className="cs-button" disabled={!recovered || loading} onClick={() => { if (window.confirm('已核对最新内容？原请求仍可能完成，继续编辑不会自动重发。')) { setUncertain(undefined); persist(undefined, stale); setError(''); } }}>已核对，继续</button></div></div>}
+      {directorError&&<div className="cs-notice cs-warning" role="alert">暂时无法核对制作进度。<button className="cs-link" onClick={()=>void refreshDirector()}>重试</button></div>}
+    </div>
+    <div className="director-workspace">
+      <aside className="director-conversation"><DirectorChat projectId={projectId} disabled={loading||!!busy||!!uncertain||productionPending||templatePending} onBusyChange={setChatPending}>
+        <div className="director-project-tools">
+          <fieldset disabled={blocked} className="cs-fields"><label>商品名称<input value={brief.subject} onChange={event=>setField('subject',event.target.value)} placeholder="这次想拍什么商品？"/></label><label>真实卖点<textarea rows={2} value={brief.selling_points} onChange={event=>setField('selling_points',event.target.value)} placeholder="希望重点展示哪些特点"/></label><div className="director-pair"><label>目标总时长<input type="number" min="1" value={brief.target_duration_s} onChange={event=>setField('target_duration_s',event.target.value)} placeholder="秒"/></label><label>商品数量<input inputMode="numeric" value={brief.quantity} onChange={event=>setField('quantity',event.target.value)} placeholder="选填"/></label></div><label>视频风格<input value={brief.style} onChange={event=>setField('style',event.target.value)} placeholder="例如：简洁棚拍"/></label><details><summary>补充创作要求</summary><label>发布平台<input value={brief.target_platform} onChange={event=>setField('target_platform',event.target.value)}/></label><label>避免出现<textarea rows={2} value={brief.forbidden_elements} onChange={event=>setField('forbidden_elements',event.target.value)}/></label><label>其他要求<textarea rows={2} value={brief.notes} onChange={event=>setField('notes',event.target.value)}/></label></details></fieldset>
+          {briefDirty&&<button className="cs-button" disabled={blocked||!brief.subject.trim()} onClick={()=>void saveBrief()}>保存创作资料</button>}
+          <label>脚本要求<textarea rows={2} value={instruction} disabled={blocked} onChange={event=>setInstruction(event.target.value)} placeholder="补充节奏、开场方式或修改意见"/></label>
+          <button className="cs-button cs-primary" disabled={blocked||briefDirty||scriptDirty||!brief.subject.trim()} onClick={()=>void generate()}>{busy==='AI 正在写脚本'?<Spinner/>:<Sparkles size={16}/>} {scripts.length?'重新起草脚本':'生成脚本'}</button>
+          {briefDirty&&<small>先保存商品资料，再起草脚本。</small>}
+          {!selectedScript&&<button className="cs-link" disabled={blocked} onClick={()=>{setManualScript(true);setSelectedNodeId('script');}}>直接写脚本</button>}
+          {busy&&<button className="cs-link" onClick={()=>controllerRef.current?.abort()}>停止等待</button>}
+          <details className="ds-template-tools"><summary>结构模板</summary><StructureTemplates projectId={projectId} disabled={blocked||briefDirty||scriptDirty||productionDirty} snapshot={productionSnapshot.shots.length?productionSnapshot.shots.map(shot=>({seq:shot.seq,role:`镜头 ${shot.seq}`,duration_s:shot.duration_s,motion:shot.motion??'',rhythm:''})):undefined} onDirtyChange={setTemplateDirty} onPendingChange={setTemplatePending} onApplied={async()=>{setDirector(null);setStale(true);persist(undefined,true);await fetchProject(false);setProductionRefresh(value=>value+1);setNotice('结构已套用，请补充商品资料与参考图。');}}/></details>
+        </div>
+      </DirectorChat></aside>
+      <FreeCreationCanvas projectId={projectId} nodes={nodes} selectedNodeId={selectedNodeId} onSelect={setSelectedNodeId}>
+        <section className="director-script-settings" hidden={selected?.id!=='script'} aria-label="脚本设置">
+          <fieldset className="cs-fields" disabled={blocked}>
+            {content&&<><label>脚本内容<textarea aria-label="脚本内容" rows={6} value={typeof content.summary==='string'?content.summary:''} onChange={event=>changeContent({summary:event.target.value})} placeholder="描述开场、卖点与收尾"/></label><div className="cs-shot-heading"><strong>镜头安排</strong><button type="button" className="cs-link" onClick={()=>changeContent({shots:[...(content.shots??[]),{seq:(content.shots?.length??0)+1,hint:''}]})}><Plus size={14}/>添加镜头</button></div><div className="cs-shots">{(content.shots??[]).map((shot,index)=><div className="cs-shot" key={index}><span className="cs-shot-number">{index+1}</span><label className="cs-shot-label"><span className="cs-sr-only">镜头建议 {index+1}</span><textarea rows={2} value={record(shot)&&typeof shot.hint==='string'?shot.hint:record(shot)&&typeof shot.description==='string'?shot.description:''} onChange={event=>changeContent({shots:content.shots?.map((item,i)=>i===index?{...(record(item)?item:{}),hint:event.target.value}:item)})}/></label><button className="cs-icon" aria-label={`删除镜头建议 ${index+1}`} onClick={()=>changeContent({shots:content.shots?.filter((_,i)=>i!==index)})}><Trash2 size={15}/></button></div>)}</div></>}
+          </fieldset>
+          {!content&&<p role="alert">脚本暂时无法编辑，请重新读取或重新起草；原内容仍保留。</p>}
+          {stale&&<p className="cs-muted">需求已调整，请重新确认脚本。</p>}
+          {conflictPending&&<div className="cs-notice cs-warning" role="alert"><strong>脚本已有更新，你的修改仍保留。</strong>{conflict?<><p>最新内容：{typeof conflict.content.summary==='string'?conflict.content.summary:'请刷新查看镜头内容'}</p><button className="cs-button" disabled={blocked||briefDirty} onClick={()=>void confirmVersion(conflict.version)}>保留我的修改并确认</button></>:<button className="cs-button" onClick={()=>void recover()}>读取最新内容</button>}</div>}
+          <button className="cs-button cs-primary" disabled={blocked||briefDirty||!content||!scriptHasContent(content)||conflictPending||(productionReady&&!scriptDirty)} onClick={()=>void confirmVersion()}><Check size={16}/>{productionReady&&!scriptDirty?'脚本已确认':'确认脚本并继续'}</button>
+        </section>
+        <div hidden={!selected||selected.id==='script'} className="director-node-settings"><ProductionFlow panel={panel} focusShotId={focusShotId} project={project} script={selectedScript} blocked={loading||!!busy||briefDirty||scriptDirty||!!uncertain||templatePending||chatPending||!productionReady} onDirtyChange={setProductionDirty} onPendingChange={setProductionPending} onSnapshot={receiveSnapshot} refreshKey={productionRefresh}/></div>
+      </FreeCreationCanvas>
+    </div>
   </>;
 }
