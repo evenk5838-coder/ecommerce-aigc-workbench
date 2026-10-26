@@ -239,7 +239,7 @@
           "migrate_to_activation": "not_opened",
           "action": "关停",
           "announce_url": "https://www.volcengine.com/docs/82379/1350667",
-          "seconds_remaining": 2562541,
+          "seconds_remaining": 2519188,
           "eom_passed": true
         }
       }

@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 
-from app import cloud_tasks, config, db, main, providers_ark, storage  # noqa: E402
+from app import cloud_tasks, config, db, main, providers_ark, storage, templates  # noqa: E402
 from app.errors import AppError  # noqa: E402
 
 RESULTS: list[dict] = []
@@ -55,6 +55,7 @@ def setup() -> dict:
     config.ASSETS = tmp / "assets"
     config.ASSETS.mkdir(parents=True, exist_ok=True)
     db.init_db()
+    templates.seed()          # 幂等播种：模板字段映射用例需要 tpl_product_motion_5s
 
     from PIL import Image
     buf = io.BytesIO()
@@ -302,6 +303,98 @@ def run() -> int:
                 assert e.code == "MODEL_CAPABILITY_MISMATCH", e.code
         return {"10.0": "rejected", "'10'": "rejected", "True": "rejected", "5.5": "rejected"}
     case("新请求仍严格拒绝 10.0 / \"10\" / true / 5.5", new_requests_still_strict)
+
+    print("\n=== R3：重试时「新覆盖」用严格、未覆盖的历史时长用兼容 ===")
+
+    def _make_legacy_failed(duration_raw, *, template=False):
+        if template:
+            t = main.create_task(main.TaskIn(
+                kind="video", model_id=V10, input_asset_id=REF,
+                template_id="tpl_product_motion_5s", template_version=2,
+                template_fields={"motion": "推近特写", "duration": 5, "ratio": "9:16"}))
+            params = db.loads(db.get("tasks", t["id"])["params_json"])
+            params["template_fields"] = {"motion": "推近特写", "duration": duration_raw,
+                                         "ratio": "9:16"}
+            params["duration"] = duration_raw
+        else:
+            t = main.create_task(main.TaskIn(
+                kind="video", model_id=V10, input_asset_id=REF,
+                params={"prompt": "推近", "duration": 5, "ratio": "9:16",
+                        "resolution": "720p"}))
+            params = {"prompt": "推近", "duration": duration_raw,
+                      "ratio": "9:16", "resolution": "720p"}
+        db.update("tasks", t["id"], {"status": "failed", "error_code": "TEST",
+                                     "params_json": db.dumps(params)})
+        return t["id"], db.get("tasks", t["id"])["params_json"]
+
+    def r3_historical_not_overridden():
+        rows = []
+        for raw in (10.0, "10"):
+            tid, before_json = _make_legacy_failed(raw)
+            r = main.retry_task(tid)          # 不带覆盖
+            new = db.loads(db.get("tasks", r["task_id"])["params_json"])
+            assert new["duration"] == 10 and isinstance(new["duration"], int), new["duration"]
+            assert db.get("tasks", tid)["params_json"] == before_json, "历史原始参数被改写"
+            rows.append({"raw": repr(raw), "new_duration": new["duration"]})
+        return {"rows": rows}
+    case("R3-1 历史 10.0 / \"10\" 无覆盖重试 → 仍为 10 秒，历史不变",
+         r3_historical_not_overridden)
+
+    def r3_override_int_ok():
+        tid, _ = _make_legacy_failed(10.0)
+        r = main.retry_task(tid, main.RetryIn(params={"duration": 10}))
+        new = db.loads(db.get("tasks", r["task_id"])["params_json"])
+        assert new["duration"] == 10 and isinstance(new["duration"], int)
+        return {"new_duration": new["duration"]}
+    case("R3-2 新覆盖整数 10 → 通过", r3_override_int_ok)
+
+    def r3_override_invalid_rejected():
+        rejected = {}
+        for bad in (10.0, "10", 5.5, True):
+            tid, _ = _make_legacy_failed(10.0)
+            before = n_tasks()
+            try:
+                main.retry_task(tid, main.RetryIn(params={"duration": bad}))
+                raise AssertionError(f"新覆盖 {bad!r} 未被拒绝")
+            except AppError as e:
+                assert e.code == "MODEL_CAPABILITY_MISMATCH", e.code
+                rejected[repr(bad)] = (e.detail or {}).get("reason")
+            assert n_tasks() == before, f"非法重试新增了任务：{before}→{n_tasks()}"
+        assert rejected["10.0"] == "not_integer" and rejected["'10'"] == "not_integer"
+        assert rejected["5.5"] == "not_integer" and rejected["True"] == "not_integer"
+        return {"rejected": rejected, "no_new_tasks": True}
+    case("R3-3 新覆盖 10.0 / \"10\" / 5.5 / true → 拒绝且不新增任务",
+         r3_override_invalid_rejected)
+
+    def r3_prompt_only_keeps_compat():
+        tid, _ = _make_legacy_failed("10")
+        r = main.retry_task(tid, main.RetryIn(params={"prompt": "换个运镜"}))
+        new = db.loads(db.get("tasks", r["task_id"])["params_json"])
+        assert new["duration"] == 10 and isinstance(new["duration"], int), new["duration"]
+        assert new["prompt"] == "换个运镜"
+        return {"duration": new["duration"], "prompt": "已更新"}
+    case("R3-4 只改 prompt → 旧时长仍兼容为 10 秒", r3_prompt_only_keeps_compat)
+
+    def r3_template_field_duration_strict():
+        # 通过模板字段映射进入的时长，同样视为"本次新输入" → 严格
+        tid, _ = _make_legacy_failed(10.0, template=True)
+        before = n_tasks()
+        try:
+            main.retry_task(tid, main.RetryIn(params={
+                "template_fields": {"motion": "推近特写", "duration": 10.0, "ratio": "9:16"}}))
+            raise AssertionError("模板字段映射的 10.0 未被拒绝")
+        except AppError as e:
+            # 模板字段层可先以 TEMPLATE_FIELD_INVALID 拒绝；两种都属于"拒绝，不静默改值"
+            assert e.code in ("MODEL_CAPABILITY_MISMATCH", "TEMPLATE_FIELD_INVALID"), e.code
+            rejected_code = e.code
+        assert n_tasks() == before, "非法模板覆盖新增了任务"
+        # 整数 10 通过
+        r = main.retry_task(tid, main.RetryIn(params={
+            "template_fields": {"motion": "推近特写", "duration": 10, "ratio": "9:16"}}))
+        new = db.loads(db.get("tasks", r["task_id"])["params_json"])
+        assert new["duration"] == 10
+        return {"float_rejected": True, "reject_code": rejected_code, "int_ok": True}
+    case("R3-5 模板字段映射的时长也按新输入严格校验", r3_template_field_duration_strict)
 
     passed = sum(1 for r in RESULTS if r["ok"])
     summary = {

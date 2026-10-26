@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25 22:10:55",
+  "date": "2026-10-26 10:13:28",
   "scope": "助手阶段一：接口骨架 + 报价/确认门禁 + 限制与用量（隔离测试）",
   "isolation": {
     "db": "临时副本，真实库未改",
@@ -112,7 +112,7 @@
       "case": "用户确认 → 一次性批准（绑定 plan_hash）",
       "ok": true,
       "detail": {
-        "approval_id": "ap_8c1336090…",
+        "approval_id": "ap_a1edf8662…",
         "max_uses": 1
       }
     },
@@ -129,7 +129,7 @@
       "case": "带批准提交：建立任务并强制 caller_id=assistant",
       "ok": true,
       "detail": {
-        "task_id": "task_9922433…",
+        "task_id": "task_a865575…",
         "caller_id": "assistant"
       }
     },

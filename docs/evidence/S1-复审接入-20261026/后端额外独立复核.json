@@ -1,0 +1,177 @@
+{
+  "revision": "6eeda7e75210429ac2be93bfe912993a96f48637",
+  "captured_at": "2026-10-25T16:01:13.064499+00:00",
+  "scope": "Additional independent offline review; handler calls, provider HTTP-body capture, no HTTP transport/server",
+  "source_snapshot_root": "/private/tmp/s1-review-6eeda7e-mkw_oc2r",
+  "source_sha256": {
+    "backend/app/config.py": "88fb159406eca04d748c2e3d3f3f587a119fee0f3675f9eb542c96f9c24e9da0",
+    "backend/app/main.py": "0fb53c5d6e921a44d5350189f85e548390540547487212b1fbc4aac50ec0fc4e",
+    "backend/app/cloud_tasks.py": "4549b2e217fbd5a65d61dfa83e2103bbd1c083091b1dcc533b64cb243c196513",
+    "backend/app/providers_ark.py": "54985ad7efe3547b8b2c14ce1b7104538fc521330b01a706a8d9072a2c1c2e0e",
+    "backend/app/assistant/approval.py": "587c67888e850746c259e401653cf3323157cdaea474446f893431ee05ce5b4f",
+    "backend/tools_s1_fix_tests.py": "c126e9bcb60809fdb422f1f33895d15c4b6030a5b5bde004e209b14e5054e3ed"
+  },
+  "isolation": {
+    "fresh_db": "/private/tmp/s1-review-6eeda7e-mkw_oc2r/s1-fix-25iynkbb/app.db",
+    "business_db_opened": false,
+    "env_read": false,
+    "worker_started": false,
+    "network_requests_sent": 0,
+    "paid_calls": 0,
+    "synthetic_image": "32x32 PNG",
+    "guards_attempted_violation_count": {
+      "network": 0,
+      "thread_start": 0,
+      "outside_db": 0
+    }
+  },
+  "recorded_cases": 12,
+  "reproduction_assertions_passed": true,
+  "findings": [
+    {
+      "severity": "boundary_bug",
+      "summary": "RetryIn.params duration overrides 10.0 and string 10 are accepted via legacy=True although ordinary new requests reject them.",
+      "code": "backend/app/main.py:527-538",
+      "recommended_fix": "Normalize only untouched historical duration; validate a supplied override using strict new-input rules."
+    }
+  ],
+  "cases": [
+    {
+      "case": "new_create_strict_control",
+      "input": 10.0,
+      "input_python_type": "float",
+      "outcome": "rejected",
+      "error_code": "MODEL_CAPABILITY_MISMATCH",
+      "new_tasks": 0
+    },
+    {
+      "case": "new_create_strict_control",
+      "input": "10",
+      "input_python_type": "str",
+      "outcome": "rejected",
+      "error_code": "MODEL_CAPABILITY_MISMATCH",
+      "new_tasks": 0
+    },
+    {
+      "case": "new_create_strict_control",
+      "input": 5.5,
+      "input_python_type": "float",
+      "outcome": "rejected",
+      "error_code": "MODEL_CAPABILITY_MISMATCH",
+      "new_tasks": 0
+    },
+    {
+      "case": "new_create_strict_control",
+      "input": true,
+      "input_python_type": "bool",
+      "outcome": "rejected",
+      "error_code": "MODEL_CAPABILITY_MISMATCH",
+      "new_tasks": 0
+    },
+    {
+      "case": "retry_new_duration_override",
+      "input": 10.0,
+      "input_python_type": "float",
+      "outcome": "accepted",
+      "error_code": null,
+      "stored_new_duration": 10,
+      "stored_new_duration_python_type": "int",
+      "new_tasks": 1,
+      "violates_strict_new_input_boundary": true
+    },
+    {
+      "case": "retry_new_duration_override",
+      "input": "10",
+      "input_python_type": "str",
+      "outcome": "accepted",
+      "error_code": null,
+      "stored_new_duration": 10,
+      "stored_new_duration_python_type": "int",
+      "new_tasks": 1,
+      "violates_strict_new_input_boundary": true
+    },
+    {
+      "case": "retry_new_duration_override",
+      "input": 5.5,
+      "input_python_type": "float",
+      "outcome": "rejected",
+      "error_code": "MODEL_CAPABILITY_MISMATCH",
+      "stored_new_duration": null,
+      "stored_new_duration_python_type": null,
+      "new_tasks": 0,
+      "violates_strict_new_input_boundary": false
+    },
+    {
+      "case": "retry_new_duration_override",
+      "input": true,
+      "input_python_type": "bool",
+      "outcome": "rejected",
+      "error_code": "MODEL_CAPABILITY_MISMATCH",
+      "stored_new_duration": null,
+      "stored_new_duration_python_type": null,
+      "new_tasks": 0,
+      "violates_strict_new_input_boundary": false
+    },
+    {
+      "case": "legacy_duration_provider_http_body",
+      "input": 10.0,
+      "input_python_type": "float",
+      "intercepted_request_count": 1,
+      "method": "POST",
+      "path": "/contents/generations/tasks",
+      "body": {
+        "model": "doubao-seedance-1-0-pro-fast-251015",
+        "duration": 10,
+        "ratio": "9:16",
+        "resolution": "720p",
+        "generate_audio": false,
+        "watermark": false,
+        "output_format": "mp4"
+      },
+      "content_types": [
+        "text",
+        "image_url"
+      ],
+      "actual_http_requests_sent": 0
+    },
+    {
+      "case": "legacy_duration_provider_http_body",
+      "input": "10",
+      "input_python_type": "str",
+      "intercepted_request_count": 1,
+      "method": "POST",
+      "path": "/contents/generations/tasks",
+      "body": {
+        "model": "doubao-seedance-1-0-pro-fast-251015",
+        "duration": 10,
+        "ratio": "9:16",
+        "resolution": "720p",
+        "generate_audio": false,
+        "watermark": false,
+        "output_format": "mp4"
+      },
+      "content_types": [
+        "text",
+        "image_url"
+      ],
+      "actual_http_requests_sent": 0
+    },
+    {
+      "case": "mixed_batch_unopened_model",
+      "error_code": "MODEL_NOT_OPENED",
+      "new_tasks": 0
+    },
+    {
+      "case": "approved_submit_after_activation_closed",
+      "error_code": "MODEL_NOT_OPENED",
+      "new_tasks": 0,
+      "approval_used_count_after_rejection": 0
+    }
+  ],
+  "limits": [
+    "No real HTTP/server transport exercised; direct Python handlers were called.",
+    "Provider _request was intercepted before network; this proves outbound body construction, not provider acceptance.",
+    "All task writes and approvals exist only in the new isolated temporary DB.",
+    "This rerun repeats only the extra checks, not the original 13-case suite."
+  ]
+}

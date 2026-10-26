@@ -70,6 +70,17 @@ CREATE TABLE IF NOT EXISTS assistant_approvals(
   expires_at REAL, max_uses INTEGER DEFAULT 1, used_count INTEGER DEFAULT 0,
   task_id TEXT, created_at REAL, used_at REAL);
 
+-- ===== v0.10 S2：项目 / 脚本版本 =====
+CREATE TABLE IF NOT EXISTS projects(
+  id TEXT PRIMARY KEY, name TEXT, brief_json TEXT, status TEXT DEFAULT 'draft',
+  structure_template_id TEXT, structure_template_version INTEGER,
+  created_at REAL, updated_at REAL);
+
+CREATE TABLE IF NOT EXISTS script_versions(
+  id TEXT PRIMARY KEY, project_id TEXT, version INTEGER, content_json TEXT,
+  source TEXT, session_id TEXT, confirmed_at REAL, created_at REAL,
+  UNIQUE(project_id, version));
+
 CREATE TABLE IF NOT EXISTS assistant_messages(
   id TEXT PRIMARY KEY, session_id TEXT, role TEXT, content TEXT,
   reply_type TEXT, structured_json TEXT, created_at REAL);
@@ -95,6 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_assistant_approvals ON assistant_approvals(quote_
 CREATE INDEX IF NOT EXISTS idx_assistant_usage ON assistant_usage(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_assistant_messages ON assistant_messages(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_assistant_sessions_project ON assistant_sessions(project_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_script_versions ON script_versions(project_id, version);
 """
 
 

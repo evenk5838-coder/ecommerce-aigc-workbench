@@ -90,6 +90,10 @@ CODES = {
     "ASSISTANT_MODEL_UNAVAILABLE": (404, False),
     "ASSISTANT_TIMEOUT": (504, True),
     "ASSISTANT_NETWORK_ERROR": (503, True),
+    # v0.10 S2：项目 / 脚本
+    "PROJECT_NOT_FOUND": (404, False),
+    "SCRIPT_NOT_FOUND": (404, False),
+    "SCRIPT_VERSION_CONFLICT": (409, False),
 }
 
 
