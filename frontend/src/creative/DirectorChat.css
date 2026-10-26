@@ -58,3 +58,5 @@
   .director-chat button { min-height:44px; }
 }
 @media(prefers-reduced-motion:reduce) { .dc-spin { animation:none; } .dc-materials>summary svg { transition:none; } }
+.dc-next-actions{display:flex;flex-direction:column;gap:8px;margin:18px 0}.dc-next-action{border:1px solid var(--studio-accent);border-radius:6px;background:var(--studio-accent);color:var(--studio-on-accent);padding:11px 14px;text-align:left;font-size:12px;cursor:pointer}.dc-next-action:disabled{opacity:.5;cursor:default}
+.dc-proposal{padding:13px;border:1px solid var(--studio-line);border-radius:8px;background:var(--studio-soft);font-size:12px;line-height:1.8}.dc-proposal strong{font-weight:650}.dc-proposal ol{margin:8px 0 0;padding-left:18px}.dc-proposal dl{margin:8px 0 0}.dc-proposal dl>div{display:flex;gap:8px}.dc-proposal dt{flex-shrink:0;color:var(--studio-muted)}.dc-proposal dd{margin:0;overflow-wrap:anywhere}

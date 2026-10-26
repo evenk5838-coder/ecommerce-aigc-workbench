@@ -1,0 +1,864 @@
+{
+  "panelInteraction": {
+    "clickDidNotPan": true,
+    "scrollTop": 152.5,
+    "transformAfterScroll": "translate(89.3333px, 66px) scale(0.833333)"
+  },
+  "savedBeforeReload": {
+    "layout_revision": 2,
+    "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+    "edges": [],
+    "viewport": {
+      "x": 89.33333333333331,
+      "y": 66,
+      "zoom": 0.8333333333333334
+    },
+    "nodes": [
+      {
+        "config": {},
+        "position": {
+          "x": 204,
+          "y": 152
+        },
+        "binding": {},
+        "config_revision": 1,
+        "last_execution": null,
+        "node_id": "script",
+        "type": "script"
+      }
+    ],
+    "schema_version": 1
+  },
+  "conflict": {
+    "before": {
+      "panel": {
+        "y": 557.1666259765625,
+        "x": 602.3333740234375,
+        "width": 366.66656494140625,
+        "height": 316.66668701171875
+      },
+      "node": {
+        "y": 382.1666564941406,
+        "x": 602.3333740234375,
+        "width": 240,
+        "height": 163.33334350585938
+      },
+      "transform": "translate(89.3333px, 66px) scale(0.833333)",
+      "zoom": "83%"
+    },
+    "edited": {
+      "panel": {
+        "y": 557.1666259765625,
+        "x": 612.3333740234375,
+        "width": 366.66656494140625,
+        "height": 316.66668701171875
+      },
+      "node": {
+        "y": 382.1666564941406,
+        "x": 612.3333740234375,
+        "width": 240,
+        "height": 163.33334350585938
+      },
+      "transform": "translate(89.3333px, 66px) scale(0.833333)",
+      "zoom": "83%"
+    },
+    "readPreservedLocal": true,
+    "useSaved": {
+      "revision": 5,
+      "position": {
+        "x": 216,
+        "y": 152
+      },
+      "measurement": {
+        "panel": {
+          "y": 557.1666259765625,
+          "x": 652.3333129882812,
+          "width": 366.6666259765625,
+          "height": 316.66668701171875
+        },
+        "node": {
+          "y": 382.1666564941406,
+          "x": 652.3333129882812,
+          "width": 240,
+          "height": 163.33334350585938
+        },
+        "transform": "translate(129.333px, 66px) scale(0.833333)",
+        "zoom": "83%"
+      }
+    },
+    "keepLocal": {
+      "revision": 4,
+      "position": {
+        "x": 216,
+        "y": 152
+      }
+    },
+    "remoteRevision": 3,
+    "errorText": "画布已被更新\n重新读取",
+    "awaitingChoice": {
+      "panel": {
+        "y": 557.1666259765625,
+        "x": 612.3333740234375,
+        "width": 366.66656494140625,
+        "height": 316.66668701171875
+      },
+      "node": {
+        "y": 382.1666564941406,
+        "x": 612.3333740234375,
+        "width": 240,
+        "height": 163.33334350585938
+      },
+      "transform": "translate(89.3333px, 66px) scale(0.833333)",
+      "zoom": "83%"
+    }
+  },
+  "project": "prj_0909e624fd72444ebab7",
+  "mobile": {
+    "measurement": {
+      "panel": {
+        "y": 481.1363525390625,
+        "x": 53,
+        "width": 284,
+        "height": 245.272705078125
+      },
+      "node": {
+        "y": 345.5909118652344,
+        "x": 53,
+        "width": 185.89089965820312,
+        "height": 126.50906372070312
+      },
+      "transform": "translate(-99.4182px, 21.4818px) scale(0.645455)",
+      "zoom": "65%"
+    },
+    "canvas": {
+      "y": 225,
+      "x": 12,
+      "width": 366,
+      "height": 620
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "bodyOverflow": {
+      "scroll": 390,
+      "client": 390
+    }
+  },
+  "checks": {
+    "settingsScrollWorks": true,
+    "keepLocalUsesFreshRevision": true,
+    "mobileNoHorizontalOverflow": true,
+    "revisionConflictPreservesLocal": true,
+    "settingsClickDoesNotPan": true,
+    "scaleTogether": true,
+    "useServerChoiceDoesNotOverwrite": true,
+    "serverRestoresAfterTestCacheRemoval": true,
+    "dragTogether": true
+  },
+  "scope": "QA fixed provider only; no real model/key; isolated db",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "limitations": [
+    "QA fixed reply provider only; no real model capability evaluated",
+    "First script textarea locator timed out during concurrent UI changes; freshly observed aria-label was used and the interaction check then passed",
+    "No source code changed during browser QA"
+  ],
+  "layoutSaves": [
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":0,\"viewport\":{\"x\":0,\"y\":0,\"zoom\":1},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":60,\"y\":80},\"type\":\"script\",\"config\":{}}]}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 1,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 60,
+                "y": 80
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 1,
+        "layout_revision": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":1,\"viewport\":{\"x\":89.33333333333331,\"y\":66,\"zoom\":0.8333333333333334},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":204,\"y\":152}}]}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 2,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 89.33333333333331,
+            "y": 66,
+            "zoom": 0.8333333333333334
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 204,
+                "y": 152
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 1,
+        "layout_revision": 2
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    }
+  ],
+  "measurements": {
+    "scaled": {
+      "panel": {
+        "y": 497.1666564941406,
+        "x": 482.3333435058594,
+        "width": 366.6666564941406,
+        "height": 316.6666564941406
+      },
+      "node": {
+        "y": 322.1666564941406,
+        "x": 482.3333435058594,
+        "width": 240.00003051757812,
+        "height": 163.33334350585938
+      },
+      "transform": "translate(89.3333px, 66px) scale(0.833333)",
+      "zoom": "83%"
+    },
+    "dragged": {
+      "panel": {
+        "y": 557.1666259765625,
+        "x": 602.3333740234375,
+        "width": 366.66656494140625,
+        "height": 316.66668701171875
+      },
+      "node": {
+        "y": 382.1666564941406,
+        "x": 602.3333740234375,
+        "width": 240,
+        "height": 163.33334350585938
+      },
+      "transform": "translate(89.3333px, 66px) scale(0.833333)",
+      "zoom": "83%"
+    },
+    "restored": {
+      "panel": {
+        "y": 557.1666259765625,
+        "x": 602.3333740234375,
+        "width": 366.66656494140625,
+        "height": 316.66668701171875
+      },
+      "node": {
+        "y": 382.1666564941406,
+        "x": 602.3333740234375,
+        "width": 240,
+        "height": 163.33334350585938
+      },
+      "transform": "translate(89.3333px, 66px) scale(0.833333)",
+      "zoom": "83%"
+    },
+    "initial": {
+      "panel": {
+        "y": 479.5,
+        "x": 403,
+        "width": 440,
+        "height": 380
+      },
+      "node": {
+        "y": 269.5,
+        "x": 403,
+        "width": 288,
+        "height": 196
+      },
+      "transform": "translate(0px, 0px) scale(1)",
+      "zoom": "100%"
+    }
+  },
+  "checkedAt": "2026-10-26T11:21:56.333Z",
+  "network": [
+    {
+      "url": "http://127.0.0.1:5192/api/projects",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 0,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 0,
+          "y": 0,
+          "zoom": 1
+        },
+        "nodes": [],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/director/chat",
+      "method": "POST",
+      "status": 200
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":0,\"viewport\":{\"x\":0,\"y\":0,\"zoom\":1},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":60,\"y\":80},\"type\":\"script\",\"config\":{}}]}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 1,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 0,
+            "y": 0,
+            "zoom": 1
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 60,
+                "y": 80
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 1,
+        "layout_revision": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":1,\"viewport\":{\"x\":89.33333333333331,\"y\":66,\"zoom\":0.8333333333333334},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":204,\"y\":152}}]}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 2,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 89.33333333333331,
+            "y": 66,
+            "zoom": 0.8333333333333334
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 204,
+                "y": 152
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 1,
+        "layout_revision": 2
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 2,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 89.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 204,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 2,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 89.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 204,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 2,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 89.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 204,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 2,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 89.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 204,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":2,\"viewport\":{\"x\":199.33333333333331,\"y\":66,\"zoom\":0.8333333333333334}}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 3,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 199.33333333333331,
+            "y": 66,
+            "zoom": 0.8333333333333334
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 204,
+                "y": 152
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 0,
+        "layout_revision": 3
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 409,
+      "body": "{\"expected_layout_revision\":2,\"viewport\":{\"x\":89.33333333333331,\"y\":66,\"zoom\":0.8333333333333334},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":216,\"y\":152}}]}",
+      "method": "PATCH",
+      "response": {
+        "error": {
+          "message": "画布已被更新",
+          "detail": {
+            "current_layout_revision": 3
+          },
+          "code": "CANVAS_REVISION_CONFLICT"
+        }
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 3,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 199.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 204,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":3,\"viewport\":{\"x\":89.33333333333331,\"y\":66,\"zoom\":0.8333333333333334},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":216,\"y\":152}}]}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 4,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 89.33333333333331,
+            "y": 66,
+            "zoom": 0.8333333333333334
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 216,
+                "y": 152
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 1,
+        "layout_revision": 4
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 4,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 89.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 216,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":4,\"viewport\":{\"x\":129.33333333333331,\"y\":66,\"zoom\":0.8333333333333334}}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 5,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": 129.33333333333331,
+            "y": 66,
+            "zoom": 0.8333333333333334
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 216,
+                "y": 152
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 0,
+        "layout_revision": 5
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 409,
+      "body": "{\"expected_layout_revision\":4,\"viewport\":{\"x\":89.33333333333331,\"y\":66,\"zoom\":0.8333333333333334},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":228,\"y\":152}}]}",
+      "method": "PATCH",
+      "response": {
+        "error": {
+          "message": "画布已被更新",
+          "detail": {
+            "current_layout_revision": 5
+          },
+          "code": "CANVAS_REVISION_CONFLICT"
+        }
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 5,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 129.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 216,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": null,
+      "method": "GET",
+      "response": {
+        "layout_revision": 5,
+        "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+        "edges": [],
+        "viewport": {
+          "x": 129.33333333333331,
+          "y": 66,
+          "zoom": 0.8333333333333334
+        },
+        "nodes": [
+          {
+            "config": {},
+            "position": {
+              "x": 216,
+              "y": 152
+            },
+            "binding": {},
+            "config_revision": 1,
+            "last_execution": null,
+            "node_id": "script",
+            "type": "script"
+          }
+        ],
+        "schema_version": 1
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    },
+    {
+      "status": 200,
+      "body": "{\"expected_layout_revision\":5,\"viewport\":{\"x\":-99.41818181818184,\"y\":21.48181818181814,\"zoom\":0.6454545454545455},\"nodes\":[{\"node_id\":\"script\",\"position\":{\"x\":216,\"y\":152}}]}",
+      "method": "PATCH",
+      "response": {
+        "invalidated": [],
+        "canvas": {
+          "layout_revision": 6,
+          "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+          "edges": [],
+          "viewport": {
+            "x": -99.41818181818184,
+            "y": 21.48181818181814,
+            "zoom": 0.6454545454545455
+          },
+          "nodes": [
+            {
+              "config": {},
+              "position": {
+                "x": 216,
+                "y": 152
+              },
+              "binding": {},
+              "config_revision": 1,
+              "last_execution": null,
+              "node_id": "script",
+              "type": "script"
+            }
+          ],
+          "schema_version": 1
+        },
+        "note": "布局已保存，生成确认不变",
+        "config_changed": false,
+        "project_id": "prj_0909e624fd72444ebab7",
+        "nodes_upserted": 1,
+        "layout_revision": 6
+      },
+      "url": "http://127.0.0.1:5192/api/projects/prj_0909e624fd72444ebab7/canvas"
+    }
+  ],
+  "realGenerationCalls": 0,
+  "screenshots": [
+    "desktop-scaled-dragged.png",
+    "desktop-conflict-choice.png",
+    "mobile-390-fit.png"
+  ]
+}

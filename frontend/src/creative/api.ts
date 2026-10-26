@@ -166,6 +166,10 @@ export function createCreativeApi(fetcher: typeof fetch = (input, init) => globa
       if (limit !== undefined && (!integer(limit) || limit < 1)) throw new ApiError('CREATIVE_INPUT_INVALID', '项目列表数量必须为正整数。', 0);
       return request('/projects' + (limit === undefined ? '' : '?limit=' + limit), {}, value => parseList(value, parseProjectListItem), options);
     },
+    deleteProject: (id, options) => request('/projects/' + pathId(id), { method: 'DELETE' }, value => {
+      if (!record(value) || value.project_id !== id || value.deleted !== true || !timestamp(value.deleted_at) || typeof value.already_deleted !== 'boolean') return invalid();
+      return value as { project_id: string; deleted: true; deleted_at: number; already_deleted: boolean };
+    }, options),
     getProject: (id, options) => request('/projects/' + pathId(id), {}, value => parseProjectDetail(value, id), options),
     createProject: (name, brief, options) => {
       if (!text(name) || !record(brief)) throw new ApiError('CREATIVE_INPUT_INVALID', '请填写项目名称及有效的需求信息。', 0);

@@ -74,6 +74,7 @@ export interface CreativeResultUnknownDetail {
 
 export interface CreativeApi {
   listProjects(limit?: number, options?: CreativeRequestOptions): Promise<{ items: CreativeProjectListItem[] }>;
+  deleteProject(id: string, options?: CreativeRequestOptions): Promise<{ project_id: string; deleted: true; deleted_at: number; already_deleted: boolean }>;
   getProject(id: string, options?: CreativeRequestOptions): Promise<CreativeProjectDetail>;
   createProject(name: string, brief: ProjectBrief, options?: CreativeRequestOptions): Promise<CreativeProject>;
   updateProject(id: string, patch: CreativeProjectPatch, options?: CreativeRequestOptions): Promise<CreativeProjectUpdate>;

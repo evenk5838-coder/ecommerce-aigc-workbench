@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Check, FileText, FolderOpen, LoaderCircle, Plus, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, LoaderCircle, Plus, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
 import { ApiError, mediaUrl } from './api';
 import { creativeApi } from './creative/api';
-import type { CreativeProjectDetail, CreativeProjectListItem, CreativeScript, ProjectBrief, ScriptContent } from './creative/types';
+import type { CreativeProjectDetail, CreativeScript, ProjectBrief, ScriptContent } from './creative/types';
 import {
-  briefEditor, buildBrief, displayDate, EMPTY_SCRIPT, latestScript, parseScriptText,
-  prettyContent, readLocalProject, scriptHasContent, SELECTED_PROJECT_KEY, storeLocalProject,
+  briefEditor, buildBrief, EMPTY_SCRIPT, latestScript, parseScriptText,
+  prettyContent, readLocalProject, scriptHasContent, storeLocalProject,
 } from './creative/state';
 import type { BriefEditor, ProjectEditSnapshot, UncertainOperation } from './creative/state';
 import ProductionFlow from './creative/ProductionFlow';
@@ -20,98 +20,25 @@ import './DirectorStudio.css';
 import { readDirector, type DirectorReadiness } from './creative/director';
 
 export interface CreativeSpaceProps {
-  onWorkbench: () => void;
-  initialProjectId?: string | null;
-  createRequest?: number;
-  /** The parent should guard every route that leaves this editor. */
+  onBack: () => void;
+  initialProjectId: string;
   onDirtyChange?: (dirty: boolean) => void;
-}
-const CREATE_KEY = 'material-studio-creative-create-v1';
-function readCreateDraft(): { name: string; subject: string; uncertain: boolean } {
-  try { const value: unknown = JSON.parse(localStorage.getItem(CREATE_KEY) || '{}'); if (value && typeof value === 'object') { const item = value as Record<string, unknown>; return { name: typeof item.name === 'string' ? item.name : '', subject: typeof item.subject === 'string' ? item.subject : '', uncertain: item.uncertain === true }; } } catch { /* Keep the entry available for manual recovery if storage is unavailable. */ }
-  return { name: '', subject: '', uncertain: false };
 }
 const errorMessage = (error: unknown) => error instanceof Error ? error.message : '读取失败，请稍后重新读取。';
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
-function initialProject(): string { try { return localStorage.getItem(SELECTED_PROJECT_KEY) || ''; } catch { return ''; } }
-function rememberProject(id: string): void { try { localStorage.setItem(SELECTED_PROJECT_KEY, id); } catch { /* The server remains the source of saved content. */ } }
 function Spinner() { return <LoaderCircle size={16} className="cs-spin" aria-hidden="true" />; }
 
-export default function CreativeSpace({ onWorkbench, onDirtyChange, initialProjectId, createRequest = 0 }: CreativeSpaceProps) {
-  const [projects, setProjects] = useState<CreativeProjectListItem[]>([]);
-  const [selectedId, setSelectedId] = useState(() => initialProjectId || initialProject());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showCreate, setShowCreate] = useState(() => { const saved = readCreateDraft(); return createRequest > 0 || !!saved.name || !!saved.subject || saved.uncertain; });
-  const [name, setName] = useState(() => readCreateDraft().name);
-  const [subject, setSubject] = useState(() => readCreateDraft().subject);
-  const [creating, setCreating] = useState(false);
-  const [createUnknown, setCreateUnknown] = useState(() => readCreateDraft().uncertain);
-  const [editorDirty, setEditorDirty] = useState(false);
-  const selectedRef = useRef(selectedId);
-  const listController = useRef<AbortController | null>(null);
-  const createController = useRef<AbortController | null>(null);
-  const createLock = useRef(false);
-  const mounted = useRef(true);
-  const [projectsOpen, setProjectsOpen] = useState(!initialProjectId || createRequest > 0);
-  const lastCreateRequest=useRef(createRequest);
-  useEffect(()=>{if(createRequest>0&&createRequest!==lastCreateRequest.current){setShowCreate(true);setProjectsOpen(true);}lastCreateRequest.current=createRequest;},[createRequest]);
-  const dirty = editorDirty || creating || !!name.trim() || !!subject.trim();
-  useEffect(() => { try { localStorage.setItem(CREATE_KEY, JSON.stringify({ name, subject, uncertain: createUnknown })); } catch { /* Unsaved-navigation protection still applies. */ } }, [name, subject, createUnknown]);
-  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
-  useEffect(() => { const warn = (event: BeforeUnloadEvent) => { if (dirty) { event.preventDefault(); event.returnValue = ''; } }; window.addEventListener('beforeunload', warn); return () => window.removeEventListener('beforeunload', warn); }, [dirty]);
-  useEffect(() => () => { onDirtyChange?.(false); }, [onDirtyChange]);
-  const reloadList = useCallback(async () => {
-    listController.current?.abort();
-    const controller = new AbortController(); listController.current = controller;
-    setLoading(true); setError('');
-    try {
-      const result = await creativeApi.listProjects(100, { signal: controller.signal });
-      if (controller.signal.aborted || !mounted.current) return;
-      setProjects(result.items);
-      if (!selectedRef.current && result.items[0]) { selectedRef.current = result.items[0].project_id; setSelectedId(selectedRef.current); rememberProject(selectedRef.current); }
-    } catch (caught) { if (!controller.signal.aborted && mounted.current) setError(errorMessage(caught)); }
-    finally { if (!controller.signal.aborted && mounted.current) setLoading(false); }
-  }, []);
-  useEffect(() => { mounted.current = true; void reloadList(); return () => { mounted.current = false; listController.current?.abort(); createController.current?.abort(); }; }, [reloadList]);
-  const mayLeave = () => !dirty || window.confirm('有未保存的内容或正在等待的请求。编辑会尽量保留在此浏览器中，离开不会取消服务端处理。仍要离开吗？');
-  const selectProject = (id: string) => {
-    if (id === selectedId || creating || !mayLeave()) return;
-    selectedRef.current = id; setSelectedId(id); rememberProject(id); setEditorDirty(false);
-  };
-  const createProject = async () => {
-    if (createLock.current || createUnknown || !name.trim()) return;
-    if (editorDirty && !window.confirm('当前项目有未保存的编辑，将保留在此浏览器中。继续新建并切换项目吗？')) return;
-    createLock.current = true; setCreating(true); setCreateUnknown(true); setError('');
-    try { localStorage.setItem(CREATE_KEY, JSON.stringify({ name, subject, uncertain: true })); } catch { /* Keep the current page guarded. */ }
-    const controller = new AbortController(); createController.current = controller;
-    try {
-      const result = await creativeApi.createProject(name.trim(), subject.trim() ? { subject: subject.trim() } : {}, { signal: controller.signal });
-      if (!mounted.current) return;
-      setName(''); setSubject(''); setCreateUnknown(false); setShowCreate(false); setProjectsOpen(false); selectedRef.current = result.project_id;
-      setSelectedId(result.project_id); rememberProject(result.project_id); setEditorDirty(false); await reloadList();
-    } catch (caught) { if (mounted.current) { setError(errorMessage(caught)); setCreateUnknown(caught instanceof ApiError && caught.code === 'CREATIVE_RESULT_UNKNOWN'); } }
-    finally { createLock.current = false; if (mounted.current) setCreating(false); }
-  };
+export default function CreativeSpace({ onBack, onDirtyChange, initialProjectId }: CreativeSpaceProps) {
+  const changed=useCallback(async()=>{},[]);
+  const setDirty=useCallback((dirty:boolean)=>onDirtyChange?.(dirty),[onDirtyChange]);
+  useEffect(()=>()=>onDirtyChange?.(false),[onDirtyChange]);
   return <div className="creative-space"><div className="cs-shell">
-    <header className="cs-heading"><span className="cs-eyebrow"><Sparkles size={15} />导演台 · 自由画布</span><div className="cs-actions"><button className="cs-button" aria-expanded={projectsOpen} onClick={()=>setProjectsOpen(value=>!value)}><FolderOpen size={16}/>项目</button><button className="cs-button" onClick={() => { if (mayLeave()) onWorkbench(); }}><ArrowLeft size={16} />快捷工作台</button></div></header>
-    <div className="cs-layout"><aside className="cs-projects" hidden={!projectsOpen} aria-label="创作项目">
-      <div className="cs-section-title"><h2><FolderOpen size={17} />我的项目</h2><button className="cs-icon" aria-label="刷新项目列表" disabled={loading} onClick={() => void reloadList()}><RefreshCw size={16} /></button></div>
-      <button className="cs-button cs-new" aria-expanded={showCreate} onClick={() => setShowCreate(!showCreate)}><Plus size={16} />新建项目</button>
-      {showCreate && <form className="cs-create" onSubmit={event => { event.preventDefault(); void createProject(); }}><label>项目名称<input value={name} onChange={event => setName(event.target.value)} placeholder="如：保温杯新品短片" disabled={creating} /></label><label>商品名称<span className="cs-optional">选填</span><input value={subject} onChange={event => setSubject(event.target.value)} placeholder="稍后可补充完整需求" disabled={creating} /></label><button className="cs-button cs-primary" disabled={creating || createUnknown || !name.trim()}>{creating ? <Spinner /> : <Plus size={15} />}创建项目</button></form>}
-      {error && <div className="cs-notice cs-error" role="alert">{error}</div>}
-      {createUnknown && !creating && <div className="cs-notice">新建结果暂不明确。先刷新列表核对是否已创建。<button className="cs-link" disabled={loading} onClick={() => { if (window.confirm('请确认已核对项目列表。继续后可主动重新创建，可能产生重复项目。')) setCreateUnknown(false); }}>已核对列表</button></div>}
-      {loading && <p className="cs-muted" role="status"><Spinner />正在读取项目…</p>}
-      {!loading && !error && !projects.length && <p className="cs-muted">还没有项目。先为这次创作取个名字。</p>}
-      <nav className="cs-project-list" aria-label="切换项目">{projects.map(project => <button key={project.project_id} className={selectedId === project.project_id ? 'selected' : ''} aria-current={selectedId === project.project_id ? 'page' : undefined} disabled={creating} onClick={() => { selectProject(project.project_id); if(!dirty) setProjectsOpen(false); }}><strong>{project.name}</strong><small>{displayDate(project.updated_at)}</small></button>)}</nav>
-
-    </aside>
-    <main className="cs-main">{selectedId ? <ProjectEditor key={selectedId} projectId={selectedId} onDirtyChange={setEditorDirty} onChanged={reloadList} /> : <section className="cs-empty"><FileText size={34} strokeWidth={1.4} /><h2>从一个商品、一支短片开始</h2><p>和 AI 导演聊聊你的商品与想法，在画布上逐步整理脚本、分镜和视频。</p><button className="cs-button cs-primary" onClick={() => { setShowCreate(true); setProjectsOpen(true); }}><Plus size={16} />新建第一个项目</button></section>}</main></div>
-
+    <header className="cs-heading"><span className="cs-eyebrow"><Sparkles size={15}/>导演台 · 自由画布</span><button className="cs-button" onClick={onBack}><ArrowLeft size={16}/>返回导演台</button></header>
+    <div className="cs-layout"><main className="cs-main"><ProjectEditor key={initialProjectId} projectId={initialProjectId} onDirtyChange={setDirty} onChanged={changed} onBack={onBack}/></main></div>
   </div></div>;
 }
 
-function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: string; onDirtyChange: (dirty: boolean) => void; onChanged: () => Promise<void> }) {
+function ProjectEditor({ projectId, onDirtyChange, onChanged, onBack }: { projectId: string; onDirtyChange: (dirty: boolean) => void; onChanged: () => Promise<void>; onBack: () => void }) {
   const [productionDirty,setProductionDirty]=useState(false);
   const [templateDirty,setTemplateDirty]=useState(false);
   const [templatePending,setTemplatePending]=useState(false);
@@ -121,6 +48,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   const directorRead = useRef<AbortController | null>(null);
   const [productionRefresh,setProductionRefresh]=useState(0);
   const [chatPending,setChatPending]=useState(false);
+  const [chatDirty,setChatDirty]=useState(false);
   const [selectedNodeId,setSelectedNodeId]=useState<string|null>(null);
   const [manualScript,setManualScript]=useState(false);
   const [productionSnapshot,setProductionSnapshot]=useState<{shots:Shot[];status:ProductionStatus|null;films?:Film[];loaded?:boolean;error?:string}>({shots:[],status:null});
@@ -138,6 +66,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   const [initialized, setInitialized] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
+  const [missing,setMissing]=useState(false);
   const [notice, setNotice] = useState('');
   const [storageFailed, setStorageFailed] = useState(false);
   const [stale, setStale] = useState(() => readLocalProject(projectId)?.stale ?? false);
@@ -156,11 +85,12 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   const briefDirty = initialized && !!project && JSON.stringify(brief) !== JSON.stringify(briefEditor(project.name, project.brief));
   const scriptDirty = initialized && scriptText !== savedScriptText;
   const productionReady=!!director?.current.confirmation.valid && director.current.script?.script_id===selectedScript?.script_id && director.current.script?.version===selectedScript?.version;
-  const dirty = briefDirty || scriptDirty || !!instruction.trim() || !!busy || productionDirty || templateDirty || chatPending;
+  const dirty = briefDirty || scriptDirty || !!instruction.trim() || !!busy || productionDirty || templateDirty || chatPending || chatDirty;
   const parsed = parseScriptText(scriptText);
   const content = parsed.content;
   const blocked = loading || !!busy || !!uncertain || templatePending || productionPending || chatPending;
   useEffect(() => { onDirtyChange(dirty); }, [dirty, onDirtyChange]);
+  useEffect(() => { const warn=(event:BeforeUnloadEvent)=>{if(dirty){event.preventDefault();event.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn); },[dirty]);
   const refreshDirector = useCallback(async () => {
     directorRead.current?.abort(); const controller = new AbortController(); directorRead.current = controller;
     try {
@@ -187,7 +117,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
       const [next, versions] = await Promise.all([creativeApi.getProject(projectId, { signal: controller.signal }), creativeApi.listScripts(projectId, { signal: controller.signal })]);
       if (controller.signal.aborted || !mounted.current) return null;
       if (next.project_id !== projectId || versions.items.some(script => script.project_id !== projectId)) throw new Error('项目响应不匹配，已停止更新页面。');
-      setProject(next); setScripts(versions.items);
+      setMissing(false); setProject(next); setScripts(versions.items);
       const latest = latestScript(versions.items);
       if (!preserve) { setBrief(briefEditor(next.name, next.brief)); adoptScript(versions.items.find(script => script.script_id === focusId) ?? latest, latest?.version ?? 0); }
       setRecovered(true); return { project: next, scripts: versions.items, latest };
@@ -208,7 +138,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
         const loaded = await fetchProject(false);
         if (!loaded || !mounted.current || cancelled) return;
         restoreEditing(loaded.scripts); setInitialized(true);
-      } catch (caught) { if (mounted.current && !cancelled) setError(errorMessage(caught)); }
+      } catch (caught) { if (mounted.current && !cancelled) { const absent=caught instanceof ApiError && ['PROJECT_NOT_FOUND','PROJECT_DELETED'].includes(caught.code); setMissing(absent); setError(absent?'这个项目已不存在。其他项目和素材仍保留，可返回导演台继续创作。':errorMessage(caught)); } }
     })();
     return () => { cancelled = true; mounted.current = false; readController.current?.abort(); controllerRef.current?.abort(); };
     // A keyed editor owns exactly one project for its entire mounted lifetime.
@@ -297,7 +227,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
   };
   const changeContent = (patch: Partial<ScriptContent>) => { if (content) setScriptText(prettyContent({ ...content, ...patch })); };
   const setField = (field: keyof BriefEditor, value: string) => setBrief(current => ({ ...current, [field]: value }));
-  if (!project) return <section className="cs-card cs-loading">{loading ? <><Spinner /><p>正在恢复项目与脚本版本…</p></> : <><h2>项目暂时无法读取</h2><p role="alert">{error}</p><button className="cs-button" onClick={() => void recover()}><RefreshCw size={16} />重新读取</button></>}</section>;
+  if (!project) return <section className="cs-card cs-loading">{loading ? <><Spinner /><p>正在恢复项目与脚本版本…</p></> : <><h2>{missing?'项目已不存在':'项目暂时无法读取'}</h2><p role="alert">{error}</p><button className="cs-button cs-primary" onClick={onBack}>返回导演台</button><button className="cs-button" onClick={() => void recover()}><RefreshCw size={16} />重新读取</button></>}</section>;
   const statuses=productionSnapshot.status?.shots??[];
   const film=productionSnapshot.films?.[0]??productionSnapshot.status?.film??productionSnapshot.status?.films?.[0];
   const nodes:FreeCreationNode[]=[];
@@ -332,7 +262,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged }: { projectId: str
       {directorError&&<div className="cs-notice cs-warning" role="alert">暂时无法核对制作进度。<button className="cs-link" onClick={()=>void refreshDirector()}>重试</button></div>}
     </div>
     <div className="director-workspace">
-      <aside className="director-conversation"><DirectorChat projectId={projectId} disabled={loading||!!busy||!!uncertain||productionPending||templatePending} onBusyChange={setChatPending}>
+      <aside className="director-conversation"><DirectorChat projectId={projectId} disabled={loading||!!busy||!!uncertain||productionPending||templatePending||briefDirty||scriptDirty||productionDirty} onBusyChange={setChatPending} onDirtyChange={setChatDirty} onRefresh={async()=>{await fetchProject(briefDirty||scriptDirty||productionDirty);await refreshDirector();setProductionRefresh(value=>value+1);}} onRevealNode={setSelectedNodeId}>
         <div className="director-project-tools">
           <fieldset disabled={blocked} className="cs-fields"><label>商品名称<input value={brief.subject} onChange={event=>setField('subject',event.target.value)} placeholder="这次想拍什么商品？"/></label><label>真实卖点<textarea rows={2} value={brief.selling_points} onChange={event=>setField('selling_points',event.target.value)} placeholder="希望重点展示哪些特点"/></label><div className="director-pair"><label>目标总时长<input type="number" min="1" value={brief.target_duration_s} onChange={event=>setField('target_duration_s',event.target.value)} placeholder="秒"/></label><label>商品数量<input inputMode="numeric" value={brief.quantity} onChange={event=>setField('quantity',event.target.value)} placeholder="选填"/></label></div><label>视频风格<input value={brief.style} onChange={event=>setField('style',event.target.value)} placeholder="例如：简洁棚拍"/></label><details><summary>补充创作要求</summary><label>发布平台<input value={brief.target_platform} onChange={event=>setField('target_platform',event.target.value)}/></label><label>避免出现<textarea rows={2} value={brief.forbidden_elements} onChange={event=>setField('forbidden_elements',event.target.value)}/></label><label>其他要求<textarea rows={2} value={brief.notes} onChange={event=>setField('notes',event.target.value)}/></label></details></fieldset>
           {briefDirty&&<button className="cs-button" disabled={blocked||!brief.subject.trim()} onClick={()=>void saveBrief()}>保存创作资料</button>}

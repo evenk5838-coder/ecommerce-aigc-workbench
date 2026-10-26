@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampFreeZoom, defaultFreePosition, fitFreeViewport, FREE_NODE_WIDTH, freeCanvasStorageKey, freeNodePosition, initialFreeLayout, MAX_FREE_ZOOM, MIN_FREE_ZOOM, moveFreeNode, panFreeViewport, parseFreeLayout, serializeFreeLayout, zoomFreeViewport } from './free-canvas-state';
+import { clampFreeZoom, defaultFreePosition, fitFreeViewport, FREE_NODE_WIDTH, FREE_PANEL_GAP, FREE_PANEL_HEIGHT, FREE_PANEL_WIDTH, freeCanvasStorageKey, freeNodePosition, freePanelBounds, initialFreeLayout, MAX_FREE_ZOOM, MIN_FREE_ZOOM, moveFreeNode, panFreeViewport, parseFreeLayout, revealFreeViewport, serializeFreeLayout, zoomFreeViewport } from './free-canvas-state';
 
 describe('自由画布仅存布局', () => {
   it('项目命名空间独立，不覆盖已有工作流布局或其他项目', () => {
@@ -75,5 +75,58 @@ describe('自由画布坐标与手势', () => {
   it('空画布和未测得的容器仍给出有效视口，不制造节点', () => {
     expect(fitFreeViewport([], 0, 0)).toEqual({ x: 24, y: 28, zoom: 1 });
     expect(initialFreeLayout('p').positions).toEqual({});
+  });
+});
+
+describe('节点设置使用世界坐标', () => {
+  it('面板始终位于节点下方，拖动的屏幕位移与节点一致', () => {
+    const node = { x: -40, y: 80, width: FREE_NODE_WIDTH, height: 326 };
+    const panel = freePanelBounds(node);
+    expect(panel).toEqual({ x: -40, y: 80 + 326 + FREE_PANEL_GAP, width: FREE_PANEL_WIDTH, height: FREE_PANEL_HEIGHT });
+    const delta = { x: 120, y: -50 }, zoom = 0.5;
+    const moved = { ...node, ...moveFreeNode(node, delta, zoom) }, movedPanel = freePanelBounds(moved);
+    expect((movedPanel.x - panel.x) * zoom).toBe(delta.x);
+    expect((movedPanel.y - panel.y) * zoom).toBe(delta.y);
+    expect(movedPanel.y - moved.y - moved.height).toBe(FREE_PANEL_GAP);
+    expect(node).toEqual({ x: -40, y: 80, width: FREE_NODE_WIDTH, height: 326 });
+  });
+  it('改变缩放时面板大小与节点间距等比例变化，不固定为屏幕像素', () => {
+    const node = { x: 210, y: 90, width: FREE_NODE_WIDTH, height: 196 }, panel = freePanelBounds(node);
+    const before = { x: 10, y: -25, zoom: 0.5 };
+    const after = zoomFreeViewport(before, 1.5, { x: 370, y: 260 });
+    const gap = (view: typeof before) => (panel.y * view.zoom + view.y) - ((node.y + node.height) * view.zoom + view.y);
+    expect(gap(after)).toBeCloseTo(gap(before) * 3);
+    expect(panel.width * after.zoom).toBe(panel.width * before.zoom * 3);
+    expect(panel.height * after.zoom).toBe(panel.height * before.zoom * 3);
+  });
+  it('全图适配包含展开面板，不把面板下缘截在视口之外', () => {
+    const node = { x: -240, y: 110, width: FREE_NODE_WIDTH, height: 326 }, panel = freePanelBounds(node);
+    const view = fitFreeViewport([node, panel], 390, 620);
+    expect(view.zoom).toBeLessThan(fitFreeViewport([node], 390, 620).zoom);
+    for (const item of [node, panel]) {
+      expect(item.x * view.zoom + view.x).toBeGreaterThanOrEqual(39);
+      expect(item.y * view.zoom + view.y).toBeGreaterThanOrEqual(54);
+      expect((item.x + item.width) * view.zoom + view.x).toBeLessThanOrEqual(351);
+      expect((item.y + item.height) * view.zoom + view.y).toBeLessThanOrEqual(566);
+    }
+  });
+  it('选中后仅最小平移，重复核对可见面板不会跳动或改缩放', () => {
+    const node = { x: 720, y: 680, width: FREE_NODE_WIDTH, height: 196 }, panel = freePanelBounds(node);
+    const original = { x: 20, y: 30, zoom: 0.5 };
+    const view = revealFreeViewport(original, [node, panel], 800, 700);
+    expect(view.zoom).toBe(original.zoom);
+    expect(view.x).toBe(original.x);
+    expect((panel.y + panel.height) * view.zoom + view.y).toBe(600);
+    expect(revealFreeViewport(view, [node, panel], 800, 700)).toBe(view);
+    expect(original).toEqual({ x: 20, y: 30, zoom: 0.5 });
+  });
+  it('节点加面板高于屏幕时保留节点顶部，不为露出底部将节点推到屏幕外', () => {
+    const node = { x: 110, y: 200, width: FREE_NODE_WIDTH, height: 326 }, panel = freePanelBounds(node);
+    const view = revealFreeViewport({ x: 20, y: 30, zoom: 1 }, [node, panel], 390, 620);
+    expect(node.x * view.zoom + view.x).toBe(12);
+    expect(node.y * view.zoom + view.y).toBe(52);
+    expect(view.zoom).toBe(1);
+    expect(revealFreeViewport(view, [node, panel], 390, 620)).toBe(view);
+    expect(revealFreeViewport(view, [], 390, 620)).toBe(view);
   });
 });

@@ -24,9 +24,46 @@ const mutators: Array<{ name: string; call: (api: CreativeApi) => Promise<unknow
   { name: 'manual script', call: api => api.addManualScript(project.project_id, { content: script.content }) },
   { name: 'edit script', call: api => api.editScript(script.script_id, { content: script.content, base_version: 2 }) },
   { name: 'confirm script', call: api => api.confirmScript(script.script_id) },
+  { name: 'delete project', call: api => api.deleteProject(project.project_id) },
 ];
 
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+
+describe('project deletion acknowledgement and recovery (fetch mocked)', () => {
+  const deleted = { project_id: project.project_id, deleted: true, deleted_at: 1_793_010_097, already_deleted: false };
+
+  it.each([false, true])('uses an explicit DELETE and accepts the bound deletion receipt, already_deleted=%s', async already_deleted => {
+    const id = '项目 /1', body = { ...deleted, project_id: id, already_deleted };
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(body));
+    const api = createCreativeApi(fetcher);
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(await api.deleteProject(id)).toEqual(body);
+    expect(fetcher.mock.calls[0][0]).toBe('/api/projects/' + encodeURIComponent(id));
+    expect(fetcher.mock.calls[0][1]?.method).toBe('DELETE');
+    expect(fetcher.mock.calls[0][1]?.body).toBeUndefined();
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { ...deleted, project_id: 'another_project' }, { ...deleted, deleted: false },
+    { ...deleted, deleted_at: 'later' }, { ...deleted, already_deleted: undefined },
+  ])('does not claim success from a malformed or cross-project deletion receipt: %j', body => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(body));
+    return expect(createCreativeApi(fetcher).deleteProject(project.project_id)).rejects.toMatchObject({
+      code: 'CREATIVE_RESULT_UNKNOWN', detail: { reason: 'response_invalid' },
+    });
+  });
+
+  it('preserves PROJECT_BUSY and reads PROJECT_DELETED as authoritative recovery without replaying DELETE', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(response({ error: { code: 'PROJECT_BUSY', message: '项目仍有活动任务' } }, 409))
+      .mockResolvedValueOnce(response({ error: { code: 'PROJECT_DELETED', message: '项目已删除' } }, 410));
+    const api = createCreativeApi(fetcher);
+    await expect(api.deleteProject(project.project_id)).rejects.toMatchObject({ code: 'PROJECT_BUSY', status: 409 });
+    await expect(api.getProject(project.project_id)).rejects.toMatchObject({ code: 'PROJECT_DELETED', status: 410 });
+    expect(fetcher.mock.calls.map(([, init]) => init?.method ?? 'GET')).toEqual(['DELETE', 'GET']);
+  });
+});
 
 describe('S2 API routes and unmodified server data (fetch mocked)', () => {
   it('lists and restores projects, creates and updates using the documented methods', async () => {

@@ -12,6 +12,9 @@ export interface FreeNodeBounds extends FreePoint { width: number; height: numbe
 export const FREE_NODE_WIDTH = 288;
 export const FREE_TEXT_HEIGHT = 196;
 export const FREE_MEDIA_HEIGHT = 326;
+export const FREE_PANEL_WIDTH = 440;
+export const FREE_PANEL_HEIGHT = 380;
+export const FREE_PANEL_GAP = 14;
 export const MIN_FREE_ZOOM = 0.15;
 export const MAX_FREE_ZOOM = 2;
 const LIMIT = 10_000_000;
@@ -29,6 +32,11 @@ export function freeNodePosition(layout: FreeCanvasLayout, node: FreeNodePositio
   if (Object.hasOwn(layout.positions, node.id)) return { ...layout.positions[node.id] };
   const fallback = defaultFreePosition(index);
   return { x: coordinate(node.x) ? node.x : fallback.x, y: coordinate(node.y) ? node.y : fallback.y };
+}
+
+/** The inspector lives in the same world coordinates as its node, never in screen pixels. */
+export function freePanelBounds(node: FreeNodeBounds): FreeNodeBounds {
+  return { x: node.x, y: node.y + node.height + FREE_PANEL_GAP, width: FREE_PANEL_WIDTH, height: FREE_PANEL_HEIGHT };
 }
 
 /** Movement is measured in screen pixels; layout coordinates stay in the canvas world. */
@@ -54,6 +62,24 @@ export function fitFreeViewport(nodes: readonly FreeNodeBounds[], width: number,
   const right = Math.max(...valid.map(node => node.x + node.width)), bottom = Math.max(...valid.map(node => node.y + node.height));
   const zoom = clampFreeZoom(Math.min(1, Math.max(1, width - 80) / (right - left), Math.max(1, height - 110) / (bottom - top)));
   return { x: bounded((width - (right - left) * zoom) / 2 - left * zoom), y: bounded((height - (bottom - top) * zoom) / 2 - top * zoom), zoom };
+}
+
+/** Reveal a selected node and its inspector once, without changing zoom or moving oversized content above the viewport. */
+export function revealFreeViewport(view: FreeViewport, bounds: readonly FreeNodeBounds[], width: number, height: number): FreeViewport {
+  const valid = bounds.filter(item => coordinate(item.x) && coordinate(item.y) && finite(item.width) && finite(item.height) && item.width > 0 && item.height > 0);
+  if (!valid.length || !finite(width) || !finite(height) || width < 1 || height < 1) return view;
+  const left = Math.min(...valid.map(item => item.x)) * view.zoom + view.x;
+  const top = Math.min(...valid.map(item => item.y)) * view.zoom + view.y;
+  const right = Math.max(...valid.map(item => item.x + item.width)) * view.zoom + view.x;
+  const bottom = Math.max(...valid.map(item => item.y + item.height)) * view.zoom + view.y;
+  const shift = (start: number, end: number, near: number, far: number): number => {
+    if (end - start > far - near) return near - start;
+    if (start < near) return near - start;
+    return end > far ? far - end : 0;
+  };
+  const dx = shift(left, right, 12, Math.max(12, width - 12));
+  const dy = shift(top, bottom, 52, Math.max(52, height - 100));
+  return dx || dy ? panFreeViewport(view, { x: dx, y: dy }) : view;
 }
 
 /** Only this namespace's layout is restored; no status, confirmation, content, or ordering is accepted. */
