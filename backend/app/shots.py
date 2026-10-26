@@ -28,6 +28,17 @@ def _require_script_confirmed(project_id: str) -> dict:
     return r
 
 
+def _invalidate_shot_storyboards(shot_id: str, reason: str) -> int:
+    """镜头输入变化 / 重做分镜 / 驳回 → 使该镜**所有分镜版本**的确认失效。
+
+    注意：确认记录的 object_id 是 **storyboard_id**（不是 shot_id），必须逐个失效。
+    """
+    n = 0
+    for sb in db.query("SELECT id FROM storyboards WHERE shot_id=?", (shot_id,)):
+        n += director.invalidate("storyboard", object_id=sb["id"], reason=reason)
+    return n
+
+
 def _duration_for(project_id: str, duration_s: Any, model_id: str | None) -> int:
     """按模型原生区间校验镜头时长（严格；拒绝小数/越界）。"""
     mid = model_id or _default_video_model()
@@ -106,10 +117,12 @@ def get_shot(shot_id: str) -> dict:
 
 def update_shot(shot_id: str, *, description: str | None = None,
                 duration_s: Any = None, motion: str | None = None,
-                expected_revision: int | None = None) -> dict:
+                expected_revision: int | None = None,
+                model_id: str | None = None) -> dict:
     row = db.get("shots", shot_id)
     if not row:
         raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    _require_script_confirmed(row["project_id"])      # B2：服务端执行闸门
     if expected_revision is not None and int(expected_revision) != int(row["revision"]):
         raise err("SHOT_REVISION_CONFLICT",
                   f"镜头已被修改：当前 r{row['revision']}，提交 r{expected_revision}",
@@ -121,33 +134,35 @@ def update_shot(shot_id: str, *, description: str | None = None,
             raise err("VALIDATION_FAILED", "画面描述不能为空")
         patch["description"] = description.strip()
     if duration_s is not None:
-        patch["duration_s"] = _duration_for(row["project_id"], duration_s, None)
+        # B6：允许调用方指定模型上下文（多模型原生时长不同）
+        patch["duration_s"] = _duration_for(row["project_id"], duration_s,
+                                            model_id or _default_video_model())
     if motion is not None:
         patch["motion"] = motion.strip() or None
     db.update("shots", shot_id, patch)
-    # 输入变化 → 该镜分镜确认与整组确认失效（不删除历史）
-    if "description" in patch or "duration_s" in patch:
-        director.invalidate("storyboard", project_id=row["project_id"],
-                            object_id=shot_id, reason="shot_changed")
-        director.invalidate("scope", project_id=row["project_id"],
-                            reason="shot_changed")
+    # 输入变化（描述/时长/运镜）→ 该镜分镜确认与整组确认失效（保留历史）
+    if any(k in patch for k in ("description", "duration_s", "motion")):
+        _invalidate_shot_storyboards(shot_id, "shot_changed")
+        director.invalidate("scope", project_id=row["project_id"], reason="shot_changed")
         invalidated = 1
-    return {**get_shot(shot_id), "invalidated": bool(invalidated)}
+    return {**get_shot(shot_id), "invalidated": bool(invalidated),
+            "invalidated_reason": "shot_changed" if invalidated else None}
 
 
 def delete_shot(shot_id: str) -> dict:
     row = db.get("shots", shot_id)
     if not row:
         raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    _require_script_confirmed(row["project_id"])      # B2
+    _invalidate_shot_storyboards(shot_id, "shot_deleted")
     db.query("DELETE FROM shots WHERE id=?", (shot_id,))
-    director.invalidate("storyboard", project_id=row["project_id"],
-                        object_id=shot_id, reason="shot_deleted")
     director.invalidate("scope", project_id=row["project_id"], reason="shot_deleted")
     return {"deleted": shot_id, "project_id": row["project_id"]}
 
 
 def reorder_shots(project_id: str, order: list[str]) -> dict:
     """重排**只影响成片拼接顺序**；不使镜头/分镜产物失效；不触发生成。"""
+    _require_script_confirmed(project_id)             # B2
     rows = db.query("SELECT id FROM shots WHERE project_id=?", (project_id,))
     existing = {r["id"] for r in rows}
     if set(order) != existing:
@@ -212,6 +227,7 @@ def generate_storyboard(shot_id: str, model_id: str, confirm: bool,
     shot = db.get("shots", shot_id)
     if not shot:
         raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    _require_script_confirmed(shot["project_id"])     # B2
     if not confirm:
         return {**quote_storyboard([shot_id], model_id, size, prompt),
                 "need_confirm": True,
@@ -229,8 +245,12 @@ def generate_storyboard(shot_id: str, model_id: str, confirm: bool,
     sb = db.new_id("sb")
     db.insert("storyboards", {"id": sb, "shot_id": shot_id, "task_id": task["id"],
                               "asset_id": None, "version": ver, "status": "draft",
-                              "reject_reason": None, "created_at": db.now()})
+                              "reject_reason": None, "created_at": db.now(),
+                              "shot_revision": int(shot.get("revision") or 1)})
     db.update("shots", shot_id, {"status": "storyboard_pending", "updated_at": db.now()})
+    # B1：新版本产生 → 旧版本确认失效，旧 scope 失效（历史保留）
+    _invalidate_shot_storyboards(shot_id, "storyboard_regenerated")
+    director.invalidate("scope", project_id=shot["project_id"], reason="storyboard_regenerated")
     return {"shot_id": shot_id, "storyboard_id": sb, "version": ver,
             "task_id": task["id"], "estimated_cost_cny": task.get("estimated_cost_cny"),
             "need_confirm": False}
@@ -259,11 +279,18 @@ def review_storyboard(storyboard_id: str, approve: bool,
     row = db.get("storyboards", storyboard_id)
     if not row:
         raise err("STORYBOARD_NOT_FOUND", f"分镜不存在：{storyboard_id}")
+    owner = db.get("shots", row["shot_id"]) or {}
+    _require_script_confirmed(owner.get("project_id", ""))   # B2：先过闸门
     if not row["asset_id"]:
         raise err("STORYBOARD_NOT_READY", "分镜图尚未生成完成，无法审核",
                   detail={"storyboard_id": storyboard_id})
     shot = db.get("shots", row["shot_id"]) or {}
     if approve:
+        if row.get("shot_revision") and int(row["shot_revision"]) != int(shot.get("revision") or 1):
+            raise err("STORYBOARD_STALE",
+                      "该分镜基于旧版镜头输入生成，请重新生成后再审核",
+                      detail={"storyboard_revision": row["shot_revision"],
+                              "shot_revision": shot.get("revision")})
         db.update("storyboards", storyboard_id, {"status": "approved"})
         db.update("shots", row["shot_id"], {"status": "storyboard_approved",
                                            "updated_at": db.now()})
@@ -276,6 +303,39 @@ def review_storyboard(storyboard_id: str, approve: bool,
     db.update("storyboards", storyboard_id, {"status": "rejected",
                                             "reject_reason": reason.strip()})
     db.update("shots", row["shot_id"], {"status": "draft", "updated_at": db.now()})
+    # B1：驳回已批准版本 → 该版本确认失效 + 整组 scope 失效
+    director.invalidate("storyboard", object_id=storyboard_id, reason="storyboard_rejected")
+    director.invalidate("scope", project_id=shot.get("project_id", ""),
+                        reason="storyboard_rejected")
     return {"storyboard_id": storyboard_id, "status": "rejected",
             "reason": reason.strip(),
             "hint": "只重做该镜分镜图即可，其它镜头不受影响"}
+
+
+# ---------------- B5：历史版本读取 ----------------
+def list_storyboards(shot_id: str) -> list[dict]:
+    """该镜**全部**分镜版本（含 task_id，便于刷新后恢复轮询）。"""
+    if not db.get("shots", shot_id):
+        raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    rows = db.query("SELECT * FROM storyboards WHERE shot_id=? ORDER BY version DESC", (shot_id,))
+    out = []
+    for r in rows:
+        cfm = director.current_confirmation("storyboard", r["id"], r["version"])
+        out.append({"storyboard_id": r["id"], "shot_id": r["shot_id"],
+                    "version": r["version"], "task_id": r["task_id"],
+                    "asset_id": r["asset_id"], "status": r["status"],
+                    "shot_revision": r.get("shot_revision"),
+                    "reject_reason": r["reject_reason"],
+                    "confirmation": cfm, "created_at": r["created_at"]})
+    return out
+
+
+def list_takes(shot_id: str) -> list[dict]:
+    """该镜**全部** take（含失败项与实测时长），供前端回选历史成功片段。"""
+    if not db.get("shots", shot_id):
+        raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    rows = db.query("SELECT * FROM shot_takes WHERE shot_id=? ORDER BY created_at DESC", (shot_id,))
+    return [{"take_id": r["id"], "task_id": r["task_id"], "asset_id": r["asset_id"],
+             "status": r["status"], "duration_ms": r["duration_ms"],
+             "cost_cny": r["cost_cny"], "spec": db.loads(r.get("spec_json")) or {},
+             "created_at": r["created_at"]} for r in rows]

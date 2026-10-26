@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 13:41:41",
+  "date": "2026-10-26 16:21:00",
   "scope": "S1 后端 B10：时长严格校验与四处一致",
   "isolation": {
     "db": "临时副本",
@@ -148,6 +148,7 @@
       "detail": {
         "estimate": 0.5443,
         "effective": {
+          "generation_mode": "image_to_video",
           "duration": 6,
           "ratio": "9:16",
           "resolution": "720p",

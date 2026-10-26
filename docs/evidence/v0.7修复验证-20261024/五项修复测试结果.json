@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 13:41:47",
+  "date": "2026-10-26 16:21:05",
   "scope": "v0.7 五项修复 · 免费验证（零付费、零真实模型调用）",
   "isolation": {
     "db": "临时副本",
@@ -107,6 +107,7 @@
       "ok": true,
       "detail": {
         "effective": {
+          "generation_mode": "image_to_video",
           "duration": 5,
           "ratio": "9:16",
           "resolution": "720p",
@@ -120,6 +121,7 @@
       "ok": true,
       "detail": {
         "estimate": {
+          "generation_mode": "image_to_video",
           "duration": 10,
           "ratio": "1:1",
           "resolution": "720p",
@@ -137,6 +139,7 @@
       "ok": true,
       "detail": {
         "effective": {
+          "generation_mode": "image_to_video",
           "duration": 5,
           "ratio": "1:1",
           "resolution": "720p",
@@ -201,7 +204,7 @@
       "detail": {
         "generation_mode": "text_to_image",
         "concept_mode": 1,
-        "task_id": "task_ffe279aed33c4ab99349",
+        "task_id": "task_fc426820f30a4fdabe79",
         "notice_in_prompt": true
       }
     },

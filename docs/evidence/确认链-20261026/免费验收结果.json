@@ -1,0 +1,140 @@
+{
+  "date": "2026-10-26 16:20:37",
+  "scope": "B1 确认链 / B2 执行闸门 / B3 动作 / B4 模板列表 / B5 历史 / B6 时长上下文",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "provider": "未调用",
+    "worker": "未启动"
+  },
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "total": 13,
+  "passed": 13,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "改镜头描述 → 该镜分镜确认失效（object_id 匹配正确）",
+      "ok": true,
+      "detail": {
+        "before": true,
+        "after": "invalidated",
+        "reason": "shot_changed"
+      }
+    },
+    {
+      "case": "改运镜同样使分镜确认失效",
+      "ok": true,
+      "detail": {
+        "reason": "shot_changed"
+      }
+    },
+    {
+      "case": "重做分镜 → 旧版本确认失效；未审核新版本不算通过",
+      "ok": true,
+      "detail": {
+        "old_valid": false,
+        "new_version": 2
+      }
+    },
+    {
+      "case": "驳回已批准版本 → 该版本确认失效",
+      "ok": true,
+      "detail": {
+        "reason": "storyboard_rejected"
+      }
+    },
+    {
+      "case": "分镜基于旧镜头版本 → 审核被拒 STORYBOARD_STALE",
+      "ok": true,
+      "detail": {
+        "code": "STORYBOARD_STALE",
+        "http": 409
+      }
+    },
+    {
+      "case": "改镜头后旧 scope 不可提交（SCOPE_STALE）",
+      "ok": true,
+      "detail": {
+        "code": "SCOPE_STALE",
+        "http": 409
+      }
+    },
+    {
+      "case": "提交阶段复查脚本确认（不信任报价时点）",
+      "ok": true,
+      "detail": {
+        "code": "SCRIPT_NOT_CONFIRMED",
+        "http": 409
+      }
+    },
+    {
+      "case": "未确认脚本 → 增删改/排序/生成分镜/审核全部 409",
+      "ok": true,
+      "detail": {
+        "add": "SCRIPT_NOT_CONFIRMED",
+        "update": "SCRIPT_NOT_CONFIRMED",
+        "delete": "SCRIPT_NOT_CONFIRMED",
+        "reorder": "SCRIPT_NOT_CONFIRMED",
+        "generate_storyboard": "SCRIPT_NOT_CONFIRMED",
+        "review": "SCRIPT_NOT_CONFIRMED"
+      }
+    },
+    {
+      "case": "交付动作随状态出现：有片段→compose_film；有成片→export",
+      "ok": true,
+      "detail": {
+        "before": [
+          "edit_brief",
+          "regenerate_script",
+          "edit_shot_plan",
+          "quote_generation",
+          "confirm_generation"
+        ],
+        "after": [
+          "edit_brief",
+          "regenerate_script",
+          "edit_shot_plan",
+          "quote_generation",
+          "confirm_generation",
+          "compose_film"
+        ]
+      }
+    },
+    {
+      "case": "旧确认失效后不越过失效继续（阶段回退）",
+      "ok": true,
+      "detail": {
+        "stage": "script",
+        "valid": false
+      }
+    },
+    {
+      "case": "GET /api/structure-templates 返回真实模板列表",
+      "ok": true,
+      "detail": {
+        "count": 2
+      }
+    },
+    {
+      "case": "按镜头读全部历史分镜/片段（含 task_id、失败项、实测时长）",
+      "ok": true,
+      "detail": {
+        "storyboards": 2,
+        "takes": 2,
+        "has_task_id": true,
+        "has_asset": true
+      }
+    },
+    {
+      "case": "修改镜头时长可用指定模型上下文校验",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_CAPABILITY_MISMATCH",
+        "http": 400,
+        "v_ok": 8
+      }
+    }
+  ],
+  "disclaimer": "全为隔离免费验证；未调用真实模型。"
+}

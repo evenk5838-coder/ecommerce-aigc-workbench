@@ -15,17 +15,27 @@ import json
 from typing import Any
 
 from . import config, db, director, projects, shots
-from .errors import err
+from .errors import AppError as AppErrorLike, err
 
 MODES = ("full", "clips")
 QUOTE_TTL_S = 600
 
 
 # ---------------- 冻结输入 ----------------
-def _storyboard_for(shot_id: str) -> dict | None:
-    rows = db.query("SELECT * FROM storyboards WHERE shot_id=? AND status='approved' "
-                    "ORDER BY version DESC LIMIT 1", (shot_id,))
-    return rows[0] if rows else None
+def _storyboard_for(shot: dict) -> dict | None:
+    """只返回**当前有效**的分镜：最新版本 + 已批准 + 确认有效 + 与镜头 revision 匹配。"""
+    rows = db.query("SELECT * FROM storyboards WHERE shot_id=? ORDER BY version DESC LIMIT 1",
+                    (shot["id"],))
+    if not rows:
+        return None
+    sb = rows[0]
+    if sb["status"] != "approved" or not sb["asset_id"]:
+        return None
+    if int(sb.get("shot_revision") or 0) != int(shot.get("revision") or 1):
+        return None
+    if not director.current_confirmation("storyboard", sb["id"], sb["version"]).get("valid"):
+        return None
+    return sb
 
 
 def freeze(project_id: str, shot_ids: list[str], specs: dict) -> dict:
@@ -48,7 +58,7 @@ def freeze(project_id: str, shot_ids: list[str], specs: dict) -> dict:
         shot = db.get("shots", sid)
         if not shot or shot["project_id"] != project_id:
             raise err("SHOT_NOT_FOUND", f"镜头不存在或不属于该项目：{sid}")
-        sb = _storyboard_for(sid)
+        sb = _storyboard_for(shot)
         if not sb:
             raise err("SHOT_NOT_READY", f"镜头缺少已通过的分镜：{sid}",
                       detail={"shot_id": sid})
@@ -151,10 +161,25 @@ def submit_scope(scope_id: str) -> dict:
     if float(row["expires_at"]) <= db.now():
         raise err("SCOPE_EXPIRED", "确认已过期，请重新报价并确认")
 
+    # 提交阶段复查：脚本确认仍有效（不只信任报价时点）
+    r = director.readiness(row["project_id"])
+    if not r["current"]["confirmation"].get("valid"):
+        raise err("SCRIPT_NOT_CONFIRMED",
+                  "脚本确认已失效，请重新确认后再提交",
+                  detail={"reason": r["current"]["confirmation"].get("reason")})
+
     frozen = db.loads(row["frozen_json"]) or {}
-    current = freeze(row["project_id"], [i["shot_id"] for i in frozen["items"]],
-                     {"model_id": frozen["model_id"], "ratio": frozen["ratio"],
-                      "resolution": frozen["resolution"]})
+    try:
+        current = freeze(row["project_id"], [i["shot_id"] for i in frozen["items"]],
+                         {"model_id": frozen["model_id"], "ratio": frozen["ratio"],
+                          "resolution": frozen["resolution"]})
+    except AppErrorLike as e:  # once 报价时的镜头/分镜已不可用 → 明确 stale
+        if e.code in ("SHOT_NOT_READY", "SHOT_NOT_FOUND", "REFERENCE_IMAGE_REQUIRED",
+                      "STORYBOARD_STALE"):
+            raise err("SCOPE_STALE",
+                      "镜头或分镜自报价后已变更，请重新报价并确认",
+                      detail={"cause": e.code}) from e
+        raise
     if scope_hash(current, row["mode"]) != row["scope_hash"]:
         raise err("SCOPE_STALE", "镜头或分镜自报价后已变更，请重新报价并确认",
                   detail={"scope_hash": row["scope_hash"]})

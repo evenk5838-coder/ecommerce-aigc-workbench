@@ -261,7 +261,8 @@ def _now() -> float:
 def _effective(params: dict, kind: str) -> dict:
     if kind == "image":
         return {"generation_mode": params.get("generation_mode"), "size": params.get("size")}
-    return {"duration": params.get("duration"), "ratio": params.get("ratio"),
+    return {"generation_mode": params.get("generation_mode"),
+            "duration": params.get("duration"), "ratio": params.get("ratio"),
             "resolution": params.get("resolution"), "generate_audio": params.get("generate_audio")}
 
 
@@ -328,9 +329,49 @@ def resolve_task(body: TaskIn, now_ts: float | None = None, *,
                                   {"compatible_models": tpl_info["compatible_models"]})})
 
     if body.kind == "video":
-        if not body.input_asset_id:
-            raise err("VALIDATION_FAILED", "视频任务需要 input_asset_id（首帧图）")
-        load_asset(body.input_asset_id)
+        # B0：视频区分 text_to_video / image_to_video；旧请求（无 mode + 有首帧）兼容为 I2V
+        mode = params.get("generation_mode")
+        if mode is None:
+            if body.input_asset_id:
+                mode = "image_to_video"          # 旧 I2V 请求：不静默改成 T2V
+            else:
+                raise err("VALIDATION_FAILED",
+                          "视频任务需要 generation_mode（text_to_video / image_to_video）"
+                          "或首帧图（input_asset_id）",
+                          detail={"allowed": ["text_to_video", "image_to_video"]})
+        if mode not in ("text_to_video", "image_to_video"):
+            raise err("VALIDATION_FAILED",
+                      "视频 generation_mode 只能为 text_to_video 或 image_to_video",
+                      detail={"allowed": ["text_to_video", "image_to_video"], "got": mode})
+        params["generation_mode"] = mode
+
+        # 模型必须真实支持该模式
+        vid_caps = config.MODEL_CAPABILITIES.get(body.model_id, {})
+        allowed_vmodes = vid_caps.get("input_modes") or []
+        if allowed_vmodes and mode not in allowed_vmodes:
+            raise err("MODEL_CAPABILITY_MISMATCH",
+                      f"模型 {body.model_id} 不支持 {mode}",
+                      detail={"field": "generation_mode", "got": mode,
+                              "allowed": allowed_vmodes})
+
+        if mode == "text_to_video":
+            if body.input_asset_id:
+                raise err("GENERATION_MODE_CONFLICT",
+                          "文生视频不携带首帧图；请移除 input_asset_id 或改用 image_to_video",
+                          detail={"generation_mode": mode,
+                                  "input_asset_id": body.input_asset_id})
+            params.pop("input_asset_id", None)          # 防旧草稿/重试残留污染
+            if not (params.get("prompt") or "").strip():
+                raise err("VALIDATION_FAILED", "文生视频需要非空提示词",
+                          detail={"field": "prompt"})
+        else:
+            if not body.input_asset_id:
+                raise err("REFERENCE_IMAGE_REQUIRED",
+                          "图生视频需要首帧图（input_asset_id）",
+                          detail={"generation_mode": mode})
+            ref = load_asset(body.input_asset_id)       # 不存在 → 404
+            validate_image_asset(ref)                   # 非图片/损坏 → 明确错误
+            params["input_asset_id"] = body.input_asset_id
     if body.kind == "image":
         if not (params.get("prompt") or "").strip():
             raise err("VALIDATION_FAILED", "prompt 不能为空")

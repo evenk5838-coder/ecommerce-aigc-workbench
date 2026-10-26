@@ -126,6 +126,7 @@ class ShotPatch(BaseModel):
     duration_s: int | None = None
     motion: str | None = None
     expected_revision: int | None = None
+    model_id: str | None = None        # B6：时长校验的模型上下文
 
 
 class ReorderIn(BaseModel):
@@ -176,7 +177,8 @@ def get_shot(shot_id: str):
 def patch_shot(shot_id: str, body: ShotPatch):
     return shots.update_shot(shot_id, description=body.description,
                              duration_s=body.duration_s, motion=body.motion,
-                             expected_revision=body.expected_revision)
+                             expected_revision=body.expected_revision,
+                             model_id=body.model_id)
 
 
 @router.delete("/shots/{shot_id}")
@@ -195,6 +197,18 @@ def generate_storyboard(shot_id: str, body: StoryboardGenIn):
     """生成分镜图；confirm=false 时只返回报价。"""
     return shots.generate_storyboard(shot_id, body.model_id, body.confirm, body.size,
                                      body.prompt, body.input_asset_id)
+
+
+@router.get("/shots/{shot_id}/storyboards")
+def list_storyboards(shot_id: str):
+    """B5：该镜全部分镜版本（含 task_id，刷新后可恢复轮询）。"""
+    return {"items": shots.list_storyboards(shot_id)}
+
+
+@router.get("/shots/{shot_id}/takes")
+def list_takes(shot_id: str):
+    """B5：该镜全部 take（含失败项与实测时长，可回选历史成功片段）。"""
+    return {"items": shots.list_takes(shot_id)}
 
 
 @router.get("/storyboards/{storyboard_id}")
@@ -297,6 +311,17 @@ def save_structure_template(body: StructureIn):
 @router.post("/projects/{project_id}/structure-templates")
 def save_project_as_template(project_id: str, body: dict):
     return assembly.save_from_project(project_id, (body or {}).get("name") or "结构模板")
+
+
+@router.get("/structure-templates")
+def list_structure_templates(limit: int = 50):
+    """B4：已保存的结构模板列表（真实读取，不含临时缓存）。"""
+    rows = assembly.db.query(
+        "SELECT id, name, latest_version, status, updated_at FROM structure_templates "
+        "ORDER BY updated_at DESC LIMIT ?", (max(1, min(limit, 200)),))
+    return {"items": [{"template_id": r["id"], "name": r["name"],
+                       "latest_version": r["latest_version"],
+                       "status": r["status"], "updated_at": r["updated_at"]} for r in rows]}
 
 
 @router.get("/structure-templates/{template_id}")

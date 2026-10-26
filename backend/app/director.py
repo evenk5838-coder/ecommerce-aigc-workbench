@@ -112,6 +112,24 @@ def invalidate_after_upstream_change(*, project_id: str, change: str) -> dict:
 
 
 # ---------------- 就绪度 ----------------
+def _shot_current_approved(shot: dict) -> bool:
+    """当前镜头输入是否"有效通过"：最新分镜版本已批准 + 该版本确认有效 + revision 匹配。
+
+    历史批准不授权当前输入（B1 核心规则）。
+    """
+    rows = db.query("SELECT * FROM storyboards WHERE shot_id=? ORDER BY version DESC LIMIT 1",
+                    (shot["id"],))
+    if not rows:
+        return False
+    sb = rows[0]
+    if sb["status"] != "approved" or not sb["asset_id"]:
+        return False
+    if int(sb.get("shot_revision") or 0) != int(shot.get("revision") or 1):
+        return False
+    cfm = current_confirmation("storyboard", sb["id"], sb["version"])
+    return bool(cfm.get("valid"))
+
+
 def _latest_script(project_id: str) -> dict | None:
     rows = db.query("SELECT * FROM script_versions WHERE project_id=? ORDER BY version DESC LIMIT 1",
                     (project_id,))
@@ -138,12 +156,11 @@ def readiness(project_id: str, now_ts: float | None = None) -> dict:
         shots = db.query("SELECT * FROM shots WHERE project_id=? ORDER BY seq", (project_id,))
     shots_defined = len(shots) > 0
     shots_valid = False
+    shot_ready = []          # 每镜是否"当前有效通过"
     if shots_defined and _table_exists("storyboards"):
-        approved = db.query(
-            "SELECT COUNT(*) c FROM shots s WHERE s.project_id=? AND EXISTS "
-            "(SELECT 1 FROM storyboards b WHERE b.shot_id=s.id AND b.status='approved')",
-            (project_id,))[0]["c"]
-        shots_valid = approved == len(shots) and approved > 0
+        for sh in shots:
+            shot_ready.append(_shot_current_approved(sh))
+        shots_valid = all(shot_ready)
 
     takes = []
     if _table_exists("shot_takes"):
@@ -167,6 +184,9 @@ def readiness(project_id: str, now_ts: float | None = None) -> dict:
         "delivery": "done" if film_ready else ("current" if takes_ok else "locked"),
     }
 
+    films_ready = film_ready
+    takes_any = any(t["status"] == "succeeded" for t in takes) if takes else False
+
     allowed: list[str] = []
     if not facts_ready:
         allowed += ["save_brief"]
@@ -183,6 +203,10 @@ def readiness(project_id: str, now_ts: float | None = None) -> dict:
                 allowed += ["generate_storyboard", "review_storyboard"]
             else:
                 allowed += ["quote_generation", "confirm_generation"]
+                if takes_any:
+                    allowed.append("compose_film")
+                if films_ready:
+                    allowed.append("export")
 
     stages = []
     for s in STAGES:

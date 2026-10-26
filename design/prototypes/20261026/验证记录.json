@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-26",
+  "scope": "isolated_visual_interaction_prototypes",
+  "variants": [
+    "a-canvas",
+    "b-guide",
+    "c-studio"
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "views": [
+    "home",
+    "director",
+    "workbench"
+  ],
+  "widths": [
+    390,
+    768,
+    1280,
+    1440
+  ],
+  "layout_checks": 72,
+  "horizontal_overflows": 0,
+  "desktop_image_failures": 0,
+  "desktop_screenshots": 18,
+  "mobile_screenshots": 3,
+  "javascript_syntax_check": "3 passed",
+  "browser_flow_variants_passed": [
+    "a",
+    "b",
+    "c"
+  ],
+  "flow_checks": [
+    "theme-keeps-input",
+    "progressive-stages",
+    "storyboard-quote-confirm",
+    "per-shot-review",
+    "clips-delivery",
+    "explicit-compose"
+  ],
+  "extra_checks": {
+    "a": [
+      "edited-script-retained-after-return",
+      "upstream-return-invalidates-confirmations"
+    ],
+    "b": [
+      "edited-script-retained-after-return"
+    ]
+  },
+  "page_errors": [],
+  "api_or_mutation_requests": [],
+  "model_calls": 0,
+  "paid_calls": 0,
+  "business_data_writes": 0,
+  "production_frontend_integration": false,
+  "real_generation_this_turn": false,
+  "media_source": "existing docs/evidence/真实验收-20261026/media",
+  "limitations": [
+    "Local prototype state resets on refresh",
+    "Sample quotes are not current pricing",
+    "Prototype validation is not production or full-product acceptance"
+  ],
+  "gallery_checks": {
+    "all_18_preview_images_loaded": true,
+    "theme_keeps_iframe_input": true,
+    "variant_switching": true,
+    "page_errors": []
+  },
+  "visual_review": [
+    "mobile layouts A B C",
+    "A dark director",
+    "C light home",
+    "comparison gallery"
+  ]
+}

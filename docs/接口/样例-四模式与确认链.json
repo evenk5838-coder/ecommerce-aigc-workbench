@@ -1,0 +1,244 @@
+{
+  "B0_t2v_estimate": {
+    "kind": "video",
+    "submittable": true,
+    "blocked_reasons": [],
+    "model_id": "doubao-seedance-1-0-pro-fast-251015",
+    "template_id": null,
+    "template_version": null,
+    "template_name": null,
+    "concept_mode": false,
+    "estimated_cost_cny": 0.4536,
+    "effective": {
+      "generation_mode": "text_to_video",
+      "duration": 5,
+      "ratio": "9:16",
+      "resolution": "720p",
+      "generate_audio": null
+    },
+    "params_preview": {
+      "prompt": "瓶子旋转",
+      "fields": null
+    },
+    "model_lifecycle": {
+      "status": "eos_scheduled",
+      "eos_at": "2026-11-24T14:00:00+08:00",
+      "eom_at": "2026-09-24T10:00:00+08:00",
+      "migrate_to": "doubao-seedance-2-0-mini-260615",
+      "migrate_to_activation": "not_opened",
+      "action": "关停",
+      "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+      "seconds_remaining": 2497119,
+      "eom_passed": true
+    },
+    "warnings": [],
+    "side_effects": {
+      "task_created": false,
+      "queued": false,
+      "model_called": false,
+      "budget_deducted": false
+    }
+  },
+  "B0_t2v_effective": {
+    "generation_mode": "text_to_video",
+    "duration": 5,
+    "ratio": "9:16",
+    "resolution": "720p",
+    "generate_audio": null
+  },
+  "B0_i2v_effective": {
+    "generation_mode": "image_to_video",
+    "duration": 5,
+    "ratio": "9:16",
+    "resolution": "720p",
+    "generate_audio": null
+  },
+  "B0_t2v_payload_types": [
+    "text"
+  ],
+  "B0_i2v_payload": [
+    {
+      "type": "text",
+      "text": "推近"
+    },
+    {
+      "type": "image_url",
+      "image_url": {
+        "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAO0lEQVR4nO3RsREAMAjDQJP9V0uTmmEygmjo9AOYO1H3dTad1fV4YMAfIBMhEyETIRMhEyETIRMhE4V8oEwCu/NHf4cAAAAASUVORK5CYII="
+      },
+      "role": "first_frame"
+    }
+  ],
+  "B1_storyboard_review": {
+    "storyboard_id": "sb_195e737eac6147d69dac",
+    "status": "approved",
+    "confirmation": {
+      "confirmation_id": "cfm_4aaa39d2c17442af926e",
+      "status": "active",
+      "object_type": "storyboard",
+      "object_id": "sb_195e737eac6147d69dac",
+      "object_version": 1,
+      "reused": false
+    }
+  },
+  "B1_shot_after_change": {
+    "shot_id": "shot_626412ecafba47d295bd",
+    "project_id": "prj_8a61f2b0170e4e668825",
+    "script_version_id": "scr_44d0e711450c475da425",
+    "seq": 1,
+    "duration_s": 5,
+    "description": "改成海边",
+    "motion": null,
+    "status": "storyboard_approved",
+    "revision": 2,
+    "storyboard": {
+      "storyboard_id": "sb_195e737eac6147d69dac",
+      "version": 1,
+      "asset_id": "asset_ad8fb00386464f9b9028",
+      "status": "approved",
+      "approved": true
+    },
+    "storyboard_versions": 1,
+    "invalidated": true,
+    "invalidated_reason": "shot_changed"
+  },
+  "B1_confirmation_after_change": {
+    "confirmed": true,
+    "valid": false,
+    "status": "invalidated",
+    "object_version": 1,
+    "confirmed_at": 1793002880.8956952,
+    "invalidated_at": 1793002880.9138901,
+    "reason": "shot_changed"
+  },
+  "B3_director": {
+    "project_id": "prj_8a61f2b0170e4e668825",
+    "project": {
+      "name": "样例",
+      "status": "script_confirmed"
+    },
+    "facts": {
+      "brief": {
+        "subject": "单瓶精华液",
+        "quantity": 1
+      },
+      "ready": true
+    },
+    "current": {
+      "stage": "storyboard",
+      "script": {
+        "script_id": "scr_44d0e711450c475da425",
+        "version": 1,
+        "source": "manual",
+        "confirmed_at": 1793002880.764791
+      },
+      "confirmation": {
+        "confirmed": true,
+        "valid": true,
+        "status": "active",
+        "object_version": 1,
+        "confirmed_at": 1793002880.769106,
+        "invalidated_at": null,
+        "reason": null
+      }
+    },
+    "stages": [
+      {
+        "key": "requirements",
+        "label": "需求",
+        "status": "done",
+        "visible": true,
+        "actions": [
+          "edit_brief"
+        ]
+      },
+      {
+        "key": "script",
+        "label": "脚本与镜头计划",
+        "status": "done",
+        "visible": true,
+        "actions": [
+          "regenerate_script",
+          "edit_shot_plan"
+        ]
+      },
+      {
+        "key": "storyboard",
+        "label": "分镜画面与审核",
+        "status": "current",
+        "visible": true,
+        "actions": [
+          "generate_storyboard",
+          "review_storyboard"
+        ]
+      },
+      {
+        "key": "video",
+        "label": "视频生成",
+        "status": "locked",
+        "visible": false,
+        "actions": []
+      },
+      {
+        "key": "delivery",
+        "label": "成片交付",
+        "status": "locked",
+        "visible": false,
+        "actions": []
+      }
+    ],
+    "allowed_actions": [
+      "edit_brief",
+      "regenerate_script",
+      "edit_shot_plan",
+      "generate_storyboard",
+      "review_storyboard"
+    ],
+    "warnings": [
+      {
+        "object": "shot_review",
+        "reason": "storyboards_not_all_approved",
+        "message": "存在未通过的分镜，需审核后才能生成视频"
+      }
+    ],
+    "counts": {
+      "scripts": 1,
+      "shots": 1,
+      "takes": 0,
+      "films": 0
+    }
+  },
+  "B5_storyboards": [
+    {
+      "storyboard_id": "sb_195e737eac6147d69dac",
+      "shot_id": "shot_626412ecafba47d295bd",
+      "version": 1,
+      "task_id": "task_09dc68be5d9c43e6b074",
+      "asset_id": "asset_ad8fb00386464f9b9028",
+      "status": "approved",
+      "shot_revision": 1,
+      "reject_reason": null,
+      "confirmation": {
+        "confirmed": true,
+        "valid": false,
+        "status": "invalidated",
+        "object_version": 1,
+        "confirmed_at": 1793002880.8956952,
+        "invalidated_at": 1793002880.9138901,
+        "reason": "shot_changed"
+      },
+      "created_at": 1793002880.8621068
+    }
+  ],
+  "B5_takes": [],
+  "B4_template_list": {
+    "items": [
+      {
+        "template_id": "stpl_demo",
+        "name": "两镜快节奏",
+        "latest_version": 1,
+        "status": "active"
+      }
+    ]
+  }
+}

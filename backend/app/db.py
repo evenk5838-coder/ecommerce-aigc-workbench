@@ -233,6 +233,8 @@ MIGRATIONS = [
     ("assistant_sessions", "facts_json", "TEXT"),
     # v0.10：成片来源批次（用于 full 模式自动合成幂等）
     ("films", "source_batch", "TEXT"),
+    # v0.10.1：分镜绑定生成时的镜头修订号（B1 当前版本确认链）
+    ("storyboards", "shot_revision", "INTEGER"),
 ]
 
 

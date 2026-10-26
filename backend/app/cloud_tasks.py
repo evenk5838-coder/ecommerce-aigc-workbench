@@ -96,18 +96,35 @@ MAX_POLL_SECONDS = float(1800)   # 本地轮询上限；到点不判失败，只
 
 
 def build_content(params: dict) -> list[dict]:
-    content: list[dict] = []
+    """按视频模式构建供应商 content。
+
+    - text_to_video  ：**只含文字**（绝不携带图片）
+    - image_to_video ：文字 + 首帧图（按素材**真实 MIME** 编码）
+    未写 mode 的历史参数按"有首帧即 I2V"兼容。
+    """
+    mode = (params.get("generation_mode")
+            or ("image_to_video" if params.get("input_asset_id") else "text_to_video"))
     prompt = (params.get("prompt") or "").strip()
+    content: list[dict] = []
     if prompt:
         content.append({"type": "text", "text": prompt})
-    asset_id = params.get("input_asset_id")
-    if asset_id:
+
+    if mode == "image_to_video":
+        asset_id = params.get("input_asset_id")
+        if not asset_id:
+            raise err("REFERENCE_IMAGE_REQUIRED",
+                      "图生视频缺少首帧图（input_asset_id）",
+                      detail={"generation_mode": mode})
         a = storage.load_asset(asset_id)
-        b64 = base64.b64encode(storage.asset_path(a).read_bytes()).decode()
-        content.append({"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"},
+        content.append({"type": "image_url",
+                        "image_url": {"url": storage.asset_data_url(a)},
                         "role": params.get("image_role", "first_frame")})
+    elif mode != "text_to_video":
+        raise err("VALIDATION_FAILED", f"未知视频模式：{mode}",
+                  detail={"allowed": ["text_to_video", "image_to_video"], "got": mode})
+
     if not content:
-        raise err("VALIDATION_FAILED", "视频任务至少需要 prompt 或首帧图")
+        raise err("VALIDATION_FAILED", "视频任务至少需要提示词或首帧图")
     return content
 
 

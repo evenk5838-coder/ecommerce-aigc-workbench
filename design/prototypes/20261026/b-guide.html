@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>物料间 · 轻量向导</title>
+  <link rel="stylesheet" href="b-guide.css">
+  <script src="b-guide.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="?view=home" data-view="home" aria-label="物料间项目首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>物料间<span class="brand-caption">MATERIAL ROOM</span></span></a>
+    <nav aria-label="主要导航"><button data-view="home">项目首页</button><button data-view="workbench">快捷工作台</button><button data-view="director">导演台</button></nav>
+    <div class="top-actions"><button class="icon-button theme-toggle" aria-label="切换深浅主题" title="切换深浅主题"></button><span class="avatar" aria-label="当前用户">Z</span></div>
+  </header>
+  <main id="app"></main>
+  <aside id="companion" class="companion" aria-label="创作助手"></aside>
+  <button class="mobile-assistant" id="assistant-open"><span aria-hidden="true">✳</span> 创作助手</button>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="prototype-label"><span></span>交互原型 · 示例数据 · 不产生费用</div>
+  <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
+  <input id="reference-file" type="file" accept="image/*" hidden>
+</body>
+</html>

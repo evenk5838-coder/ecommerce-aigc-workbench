@@ -213,10 +213,14 @@ def run() -> int:
         shots.attach_storyboard_asset(g2["storyboard_id"], "asset_fake_2")
         new_cur = director.current_confirmation("storyboard", g2["storyboard_id"], g2["version"])
         assert g2["version"] == g1["version"] + 1
-        assert new_cur["valid"] is False
-        assert director.current_confirmation(
-            "storyboard", g1["storyboard_id"], g1["version"])["valid"] is True
-        return {"v1": g1["version"], "v2": g2["version"], "new_unconfirmed": True}
+        assert new_cur["valid"] is False, "新版本不应自动继承批准"
+        # B1 新语义：重做分镜使**旧版本确认失效**（历史记录保留但不再授权）
+        old_cur = director.current_confirmation("storyboard", g1["storyboard_id"], g1["version"])
+        assert old_cur["valid"] is False, old_cur
+        assert old_cur["reason"] == "storyboard_regenerated", old_cur
+        assert old_cur["confirmed"] is True, "历史确认记录应保留"
+        return {"v1": g1["version"], "v2": g2["version"],
+                "new_unconfirmed": True, "old_invalidated": old_cur["reason"]}
     case("分镜多版本、审核绑定版本、新版本不继承批准", version_and_review)
 
     def reject_requires_reason():

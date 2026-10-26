@@ -200,8 +200,10 @@ def main_run() -> int:
         est = main.estimate_task(body) if False else main.resolve_task(body, now_ts=EOS_TS - 60)
         assert est["params"]["duration"] == 10, est["params"]
         assert est["params"]["ratio"] == "1:1", est["params"]
-        assert est["effective"] == {"duration": 10, "ratio": "1:1",
-                                    "resolution": "720p", "generate_audio": False}
+        eff = est["effective"]
+        assert (eff["duration"], eff["ratio"], eff["resolution"],
+                eff["generate_audio"]) == (10, "1:1", "720p", False), eff
+        assert eff["generation_mode"] == "image_to_video", eff
         created = main.create_task(main.TaskIn(
             kind="video", model_id=V10, input_asset_id=FIRST_FRAME,
             template_id="tpl_product_motion_5s", template_version=2,
