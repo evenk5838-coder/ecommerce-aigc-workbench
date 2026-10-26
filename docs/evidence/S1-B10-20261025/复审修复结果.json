@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25 22:10:51",
+  "date": "2026-10-26 10:13:24",
   "scope": "S1 复审修复：R1 未开通闸门 + R2 历史参数兼容",
   "isolation": {
     "fresh_db": true,
@@ -12,8 +12,8 @@
   "paid_calls": 0,
   "real_llm_calls": 0,
   "generation_tasks_executed": 0,
-  "total": 13,
-  "passed": 13,
+  "total": 18,
+  "passed": 18,
   "failed": 0,
   "cases": [
     {
@@ -45,7 +45,7 @@
       "case": "已开通模型正常入队",
       "ok": true,
       "detail": {
-        "task": "task_f153a8ac7…",
+        "task": "task_723f8742e…",
         "status": "queued"
       }
     },
@@ -139,6 +139,59 @@
         "'10'": "rejected",
         "True": "rejected",
         "5.5": "rejected"
+      }
+    },
+    {
+      "case": "R3-1 历史 10.0 / \"10\" 无覆盖重试 → 仍为 10 秒，历史不变",
+      "ok": true,
+      "detail": {
+        "rows": [
+          {
+            "raw": "10.0",
+            "new_duration": 10
+          },
+          {
+            "raw": "'10'",
+            "new_duration": 10
+          }
+        ]
+      }
+    },
+    {
+      "case": "R3-2 新覆盖整数 10 → 通过",
+      "ok": true,
+      "detail": {
+        "new_duration": 10
+      }
+    },
+    {
+      "case": "R3-3 新覆盖 10.0 / \"10\" / 5.5 / true → 拒绝且不新增任务",
+      "ok": true,
+      "detail": {
+        "rejected": {
+          "10.0": "not_integer",
+          "'10'": "not_integer",
+          "5.5": "not_integer",
+          "True": "not_integer"
+        },
+        "no_new_tasks": true
+      }
+    },
+    {
+      "case": "R3-4 只改 prompt → 旧时长仍兼容为 10 秒",
+      "ok": true,
+      "detail": {
+        "duration": 10,
+        "prompt": "已更新"
+      }
+    },
+    {
+      "case": "R3-5 模板字段映射的时长也按新输入严格校验",
+      "ok": true,
+      "detail": {
+        "float_rejected": true,
+        "reject_code": "TEMPLATE_FIELD_INVALID",
+        "int_ok": true
       }
     }
   ],

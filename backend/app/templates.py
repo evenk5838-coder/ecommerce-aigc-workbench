@@ -353,11 +353,28 @@ def _field_params(snap: dict, clean: dict) -> dict:
         if val in (None, ""):
             continue
         if param_key == "duration":
-            try:
-                out[param_key] = int(val)
-            except (TypeError, ValueError):
-                raise err("TEMPLATE_FIELD_INVALID", f"时长必须为数字，收到：{val}",
-                          detail={"field": field_key}) from None
+            # B10：**不做 int() 截断**。只接受整数，或与下拉选项**完全相等**的字符串。
+            # 10.0 / 5.5 / True 一律视为非法（由后续严格校验拒绝），避免静默改值。
+            if isinstance(val, bool):
+                raise err("TEMPLATE_FIELD_INVALID", f"时长不能为布尔值：{val!r}",
+                          detail={"field": field_key, "got": val}) from None
+            if isinstance(val, int):
+                out[param_key] = val
+                continue
+            if isinstance(val, float) or not isinstance(val, str):
+                raise err("TEMPLATE_FIELD_INVALID",
+                          f"时长必须为整数秒，收到：{val!r}",
+                          detail={"field": field_key, "got": val,
+                                  "got_type": type(val).__name__}) from None
+            # 字符串：仅当与某个数值选项完全相等时才转换（如下拉值 "10"）
+            allowed = [str(o) for o in (next((f.get("options") or [] for f in snap.get("fields", [])
+                                              if f["key"] == field_key), []) or [])]
+            if val.strip() not in allowed:
+                raise err("TEMPLATE_FIELD_INVALID",
+                          f"时长只能为 {allowed}，收到：{val!r}",
+                          detail={"field": field_key, "allowed": allowed, "got": val}) from None
+            out[param_key] = int(val.strip())
+            continue
         else:
             out[param_key] = str(val)
     return out

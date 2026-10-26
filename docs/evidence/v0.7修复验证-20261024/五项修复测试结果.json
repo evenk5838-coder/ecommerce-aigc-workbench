@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25 22:12:17",
+  "date": "2026-10-26 10:13:29",
   "scope": "v0.7 五项修复 · 免费验证（零付费、零真实模型调用）",
   "isolation": {
     "db": "临时副本",
@@ -43,8 +43,8 @@
       "case": "路由顺序：estimate 在动态路由之前",
       "ok": true,
       "detail": {
-        "estimate_index": 16,
-        "dynamic_index": 19,
+        "estimate_index": 17,
+        "dynamic_index": 20,
         "note": "/api/tasks/{task_id} 仅 GET，与 POST /api/tasks/estimate 无冲突"
       }
     },
@@ -201,7 +201,7 @@
       "detail": {
         "generation_mode": "text_to_image",
         "concept_mode": 1,
-        "task_id": "task_91da77077fd84294bc13",
+        "task_id": "task_1de001956db04333be4c",
         "notice_in_prompt": true
       }
     },

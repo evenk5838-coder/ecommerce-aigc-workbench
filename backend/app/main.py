@@ -52,8 +52,10 @@ app.add_exception_handler(Exception, unhandled_handler)
 
 # 可选创作助手（阶段一）：不影响既有路由与手动生成路径
 from .assistant.router import router as assistant_router  # noqa: E402
+from .routers.creative import router as creative_router  # noqa: E402
 
 app.include_router(assistant_router)
+app.include_router(creative_router)
 if STATIC.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
 if (FRONTEND_DIST / "assets").exists():
@@ -523,10 +525,36 @@ def retry_task(task_id: str, body: RetryIn | None = None):
         raise err("TASK_NOT_FOUND", f"任务不存在：{task_id}")
     if t["status"] in worker.ACTIVE:
         raise err("CANCEL_REJECTED_PHASE", "任务仍在执行，请先取消")
-    params = (db.loads(t["params_json"]) or {})
-    if body and body.params:
-        params = {**params, **body.params}
-    tfields = params.get("fields") if isinstance(params.get("fields"), dict) else None
+    stored = (db.loads(t["params_json"]) or {})
+    override = dict((body.params if body else None) or {})
+    params = {**stored, **override}
+
+    def _pick_fields(d: dict) -> dict:
+        for key in ("template_fields", "fields"):
+            v = d.get(key)
+            if isinstance(v, dict):
+                return v
+        return {}
+
+    # 模板字段也可能被本次覆盖（含其中的 duration）→ 合并后交给模板解析
+    stored_fields, override_fields = _pick_fields(stored), _pick_fields(override)
+    tfields = ({**stored_fields, **override_fields}
+               if (stored_fields or override_fields) else None)
+
+    # R3：**只有未被本次覆盖的历史时长**才走兼容解析。
+    #  * 未覆盖 duration → legacy=True（旧记录 10.0 / "10" 仍按 10 秒执行）
+    #  * 本次显式给了 duration（含模板字段映射进入的时长）→ 严格校验，
+    #    拒绝 10.0 / "10" / 5.5 / true，且失败时**不新增任务**。
+    # 覆盖来源包括：params.duration、模板字段映射（template_fields.duration）、params.fields.duration
+    _sources = [override,
+                override.get("template_fields") if isinstance(override.get("template_fields"), dict) else {},
+                override.get("fields") if isinstance(override.get("fields"), dict) else {}]
+    duration_from_override = any("duration" in src for src in _sources)
+    if duration_from_override and "duration" not in override:
+        # 时长改由本次模板字段/fields 映射决定 → 必须先摘除旧的顶层 duration，
+        # 否则旧值会覆盖模板映射，导致"新输入被旧值顶掉"（R3 复现点）。
+        params.pop("duration", None)
+    legacy_for_retry = not duration_from_override
     # 重试同样受模型生命周期保护：到期后 create_task → resolve_task 抛 MODEL_EOS
     new = create_task(TaskIn(kind=t["kind"], model_id=t["model_id"],
                              params=params,
@@ -535,7 +563,8 @@ def retry_task(task_id: str, body: RetryIn | None = None):
                              template_version=t.get("template_version"),
                              template_fields=tfields,
                              external_request_id=t.get("external_request_id"),
-                             caller_id=t.get("caller_id")), legacy=True)
+                             caller_id=t.get("caller_id")),
+                       legacy=legacy_for_retry)
     db.update("tasks", new["id"], {"retry_of": task_id})
     return {"task_id": new["id"], "retry_of": task_id, "status": "queued",
             "template_id": new.get("template_id"),

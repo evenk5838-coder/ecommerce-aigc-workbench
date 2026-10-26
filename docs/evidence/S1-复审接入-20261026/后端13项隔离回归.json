@@ -1,0 +1,146 @@
+{
+  "date": "2026-10-25 23:48:03",
+  "scope": "S1 复审修复：R1 未开通闸门 + R2 历史参数兼容",
+  "isolation": {
+    "fresh_db": true,
+    "assets_dir": "临时目录",
+    "synthetic_image": "32×32 PNG 自制",
+    "business_db_opened": false,
+    "worker": "未启动",
+    "network": "全拦截"
+  },
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 13,
+  "passed": 13,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "可提交性判定：not_opened 被标记（图片 + 视频）",
+      "ok": true,
+      "detail": {
+        "mini": "blocked",
+        "pro": "blocked",
+        "flash": "ok"
+      }
+    },
+    {
+      "case": "未开通视频模型（合法 4 秒）→ 拒绝，任务数不变",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_NOT_OPENED",
+        "tasks": "0→0"
+      }
+    },
+    {
+      "case": "未开通图片模型 → 拒绝，任务数不变",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_NOT_OPENED",
+        "tasks_unchanged": true
+      }
+    },
+    {
+      "case": "已开通模型正常入队",
+      "ok": true,
+      "detail": {
+        "task": "task_04960084f…",
+        "status": "queued"
+      }
+    },
+    {
+      "case": "费用预估仍可返回，但标记 submittable=false 且不建任务",
+      "ok": true,
+      "detail": {
+        "submittable": false,
+        "reasons": [
+          "MODEL_NOT_OPENED"
+        ],
+        "estimate": 1.9872
+      }
+    },
+    {
+      "case": "助手报价路径同样拦截未开通模型",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_NOT_OPENED"
+      }
+    },
+    {
+      "case": "幂等查询已有任务不被未开通闸门误拦",
+      "ok": true,
+      "detail": {
+        "same_task": true,
+        "idempotent_replay": true
+      }
+    },
+    {
+      "case": "历史 10.0 / \"10\" 回放报价仍为 10 秒（≈0.9072，非 0.4536）",
+      "ok": true,
+      "detail": {
+        "rows": [
+          {
+            "raw": "10.0",
+            "estimate": 0.9072
+          },
+          {
+            "raw": "'10'",
+            "estimate": 0.9072
+          }
+        ]
+      }
+    },
+    {
+      "case": "历史 10.0 / \"10\" 待执行任务执行时按 10 秒请求（不报 not_integer）",
+      "ok": true,
+      "detail": {
+        "rows": [
+          {
+            "raw": "10.0",
+            "provider_duration": 10
+          },
+          {
+            "raw": "'10'",
+            "provider_duration": 10
+          }
+        ]
+      }
+    },
+    {
+      "case": "历史任务重试：新任务归一为整数 10，历史原始参数不改",
+      "ok": true,
+      "detail": {
+        "new_duration": 10,
+        "history_untouched": true
+      }
+    },
+    {
+      "case": "remote_task_id 续查：不重新创建，仅查询原任务",
+      "ok": true,
+      "detail": {
+        "create_calls": 0,
+        "query_calls": 1
+      }
+    },
+    {
+      "case": "解析失败不再按 5 秒兜底（明确报错）",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_CAPABILITY_MISMATCH",
+        "fallback_to_5": false
+      }
+    },
+    {
+      "case": "新请求仍严格拒绝 10.0 / \"10\" / true / 5.5",
+      "ok": true,
+      "detail": {
+        "10.0": "rejected",
+        "'10'": "rejected",
+        "True": "rejected",
+        "5.5": "rejected"
+      }
+    }
+  ],
+  "disclaimer": "仅验证闸门与兼容逻辑；未执行真实生成。"
+}

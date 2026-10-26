@@ -1,0 +1,342 @@
+{
+  "date": "2026-10-25",
+  "backend_commit": "6eeda7e",
+  "source": "live 5184 proxy -> 8100; GET metadata and free estimates only",
+  "created_tasks": 0,
+  "paid_calls": 0,
+  "models": [
+    {
+      "id": "doubao-seedream-5-0-pro-260628",
+      "submittability": {
+        "submittable": false,
+        "reasons": [
+          "MODEL_NOT_OPENED"
+        ],
+        "activation": "not_opened",
+        "lifecycle_status": "active",
+        "duration_policy_kind": null
+      },
+      "duration_policy": null
+    },
+    {
+      "id": "doubao-seedream-5-0-flash-260915",
+      "submittability": {
+        "submittable": true,
+        "reasons": [],
+        "activation": "verified",
+        "lifecycle_status": "active",
+        "duration_policy_kind": null
+      },
+      "duration_policy": null
+    },
+    {
+      "id": "doubao-seedance-2-0-260128",
+      "submittability": {
+        "submittable": false,
+        "reasons": [
+          "MODEL_NOT_OPENED",
+          "DURATION_POLICY_UNAVAILABLE"
+        ],
+        "activation": "not_opened",
+        "lifecycle_status": "active",
+        "duration_policy_kind": "unavailable"
+      },
+      "duration_policy": {
+        "kind": "unavailable",
+        "min": null,
+        "max": null,
+        "step": null,
+        "allowed": null
+      }
+    },
+    {
+      "id": "doubao-seedance-1-0-pro-fast-251015",
+      "submittability": {
+        "submittable": true,
+        "reasons": [],
+        "activation": "verified",
+        "lifecycle_status": "eos_scheduled",
+        "duration_policy_kind": "range"
+      },
+      "duration_policy": {
+        "kind": "range",
+        "min": 2,
+        "max": 12,
+        "step": 1,
+        "allowed": null
+      }
+    },
+    {
+      "id": "doubao-seedance-2-0-mini-260615",
+      "submittability": {
+        "submittable": false,
+        "reasons": [
+          "MODEL_NOT_OPENED"
+        ],
+        "activation": "not_opened",
+        "lifecycle_status": "active",
+        "duration_policy_kind": "range"
+      },
+      "duration_policy": {
+        "kind": "range",
+        "min": 4,
+        "max": 15,
+        "step": 1,
+        "allowed": null
+      }
+    },
+    {
+      "id": "doubao-seedance-2-5-260628",
+      "submittability": {
+        "submittable": false,
+        "reasons": [
+          "MODEL_NOT_OPENED",
+          "DURATION_POLICY_UNAVAILABLE"
+        ],
+        "activation": "not_opened",
+        "lifecycle_status": "active",
+        "duration_policy_kind": "unavailable"
+      },
+      "duration_policy": {
+        "kind": "unavailable",
+        "min": null,
+        "max": null,
+        "step": null,
+        "allowed": null
+      }
+    },
+    {
+      "id": "doubao-seedance-2-0-fast-260128",
+      "submittability": {
+        "submittable": false,
+        "reasons": [
+          "MODEL_NOT_OPENED",
+          "DURATION_POLICY_UNAVAILABLE"
+        ],
+        "activation": "not_opened",
+        "lifecycle_status": "active",
+        "duration_policy_kind": "unavailable"
+      },
+      "duration_policy": {
+        "kind": "unavailable",
+        "min": null,
+        "max": null,
+        "step": null,
+        "allowed": null
+      }
+    }
+  ],
+  "estimates": [
+    {
+      "duration": 3,
+      "status": 200,
+      "response": {
+        "kind": "video",
+        "submittable": true,
+        "blocked_reasons": [],
+        "model_id": "doubao-seedance-1-0-pro-fast-251015",
+        "template_id": null,
+        "template_version": null,
+        "template_name": null,
+        "concept_mode": false,
+        "estimated_cost_cny": 0.2722,
+        "effective": {
+          "duration": 3,
+          "ratio": "9:16",
+          "resolution": "720p",
+          "generate_audio": null
+        },
+        "params_preview": {
+          "prompt": "S1 参数联调，仅估价。",
+          "fields": null
+        },
+        "model_lifecycle": {
+          "status": "eos_scheduled",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 2556423,
+          "eom_passed": true
+        },
+        "warnings": [],
+        "side_effects": {
+          "task_created": false,
+          "queued": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      }
+    },
+    {
+      "duration": 6,
+      "status": 200,
+      "response": {
+        "kind": "video",
+        "submittable": true,
+        "blocked_reasons": [],
+        "model_id": "doubao-seedance-1-0-pro-fast-251015",
+        "template_id": null,
+        "template_version": null,
+        "template_name": null,
+        "concept_mode": false,
+        "estimated_cost_cny": 0.5443,
+        "effective": {
+          "duration": 6,
+          "ratio": "9:16",
+          "resolution": "720p",
+          "generate_audio": null
+        },
+        "params_preview": {
+          "prompt": "S1 参数联调，仅估价。",
+          "fields": null
+        },
+        "model_lifecycle": {
+          "status": "eos_scheduled",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 2556423,
+          "eom_passed": true
+        },
+        "warnings": [],
+        "side_effects": {
+          "task_created": false,
+          "queued": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      }
+    },
+    {
+      "duration": 12,
+      "status": 200,
+      "response": {
+        "kind": "video",
+        "submittable": true,
+        "blocked_reasons": [],
+        "model_id": "doubao-seedance-1-0-pro-fast-251015",
+        "template_id": null,
+        "template_version": null,
+        "template_name": null,
+        "concept_mode": false,
+        "estimated_cost_cny": 1.0886,
+        "effective": {
+          "duration": 12,
+          "ratio": "9:16",
+          "resolution": "720p",
+          "generate_audio": null
+        },
+        "params_preview": {
+          "prompt": "S1 参数联调，仅估价。",
+          "fields": null
+        },
+        "model_lifecycle": {
+          "status": "eos_scheduled",
+          "eos_at": "2026-11-24T14:00:00+08:00",
+          "eom_at": "2026-09-24T10:00:00+08:00",
+          "migrate_to": "doubao-seedance-2-0-mini-260615",
+          "migrate_to_activation": "not_opened",
+          "action": "关停",
+          "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+          "seconds_remaining": 2556423,
+          "eom_passed": true
+        },
+        "warnings": [],
+        "side_effects": {
+          "task_created": false,
+          "queued": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      }
+    },
+    {
+      "duration": 5.5,
+      "status": 400,
+      "response": {
+        "error": {
+          "code": "MODEL_CAPABILITY_MISMATCH",
+          "message": "模型 doubao-seedance-1-0-pro-fast-251015 的时长不合法：got=5.5（not_integer）",
+          "detail": {
+            "field": "duration",
+            "policy": {
+              "kind": "range",
+              "min": 2,
+              "max": 12,
+              "step": 1,
+              "allowed": null
+            },
+            "reason": "not_integer",
+            "got": 5.5,
+            "got_type": "float"
+          }
+        }
+      }
+    },
+    {
+      "duration": "5",
+      "status": 400,
+      "response": {
+        "error": {
+          "code": "MODEL_CAPABILITY_MISMATCH",
+          "message": "模型 doubao-seedance-1-0-pro-fast-251015 的时长不合法：got='5'（not_integer）",
+          "detail": {
+            "field": "duration",
+            "policy": {
+              "kind": "range",
+              "min": 2,
+              "max": 12,
+              "step": 1,
+              "allowed": null
+            },
+            "reason": "not_integer",
+            "got": "5",
+            "got_type": "str"
+          }
+        }
+      }
+    }
+  ],
+  "unopened_estimate": {
+    "status": 200,
+    "response": {
+      "kind": "video",
+      "submittable": false,
+      "blocked_reasons": [
+        "MODEL_NOT_OPENED"
+      ],
+      "model_id": "doubao-seedance-2-0-mini-260615",
+      "template_id": null,
+      "template_version": null,
+      "template_name": null,
+      "concept_mode": false,
+      "estimated_cost_cny": 1.9872,
+      "effective": {
+        "duration": 4,
+        "ratio": "9:16",
+        "resolution": "720p",
+        "generate_audio": null
+      },
+      "params_preview": {
+        "prompt": "S1 参数联调，仅估价。",
+        "fields": null
+      },
+      "model_lifecycle": {
+        "status": "active"
+      },
+      "warnings": [],
+      "side_effects": {
+        "task_created": false,
+        "queued": false,
+        "model_called": false,
+        "budget_deducted": false
+      }
+    }
+  }
+}
