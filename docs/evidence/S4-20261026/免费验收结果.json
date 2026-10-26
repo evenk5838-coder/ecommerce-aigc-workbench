@@ -1,0 +1,111 @@
+{
+  "date": "2026-10-26 13:21:44",
+  "scope": "S4 整组范围：两模式 / 冻结输入 / 确认 / 事务提交 / 幂等 / 定向重试",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "worker": "未启动",
+    "real_model_calls": 0,
+    "note": "任务只入队不执行，无费用"
+  },
+  "paid_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 10,
+  "passed": 10,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "full / clips 均可报价，且不建任务",
+      "ok": true,
+      "detail": {
+        "full": 0.9072,
+        "clips": 0.9072,
+        "planned_s": 10,
+        "tasks": "2→2"
+      }
+    },
+    {
+      "case": "冻结每镜完整输入（含分镜版本与素材）",
+      "ok": true,
+      "detail": {
+        "fields": [
+          "description",
+          "duration_s",
+          "input_asset_id",
+          "model_id",
+          "prompt",
+          "ratio"
+        ],
+        "hash": "sha256:51f86081b…"
+      }
+    },
+    {
+      "case": "未确认直接提交 → SCOPE_REQUIRED",
+      "ok": true,
+      "detail": {
+        "code": "SCOPE_REQUIRED",
+        "http": 409
+      }
+    },
+    {
+      "case": "改镜头描述后提交 → SCOPE_STALE（不建任务）",
+      "ok": true,
+      "detail": {
+        "code": "SCOPE_STALE",
+        "http": 409
+      }
+    },
+    {
+      "case": "过期 scope 无法确认 → SCOPE_EXPIRED",
+      "ok": true,
+      "detail": {
+        "code": "SCOPE_EXPIRED",
+        "http": 409
+      }
+    },
+    {
+      "case": "确认后提交：batch + 2 tasks + 2 takes + 收据",
+      "ok": true,
+      "detail": {
+        "tasks": 2,
+        "takes": 2,
+        "batch": "batch_291628…"
+      }
+    },
+    {
+      "case": "重复提交同一 scope → 返回原 batch（不新建任务）",
+      "ok": true,
+      "detail": {
+        "same_batch": true,
+        "tasks_unchanged": true
+      }
+    },
+    {
+      "case": "clips 模式：提交后不自动合成（auto_film=false）",
+      "ok": true,
+      "detail": {
+        "mode": "clips",
+        "auto_film": false
+      }
+    },
+    {
+      "case": "逐镜状态可查（刷新恢复入口）",
+      "ok": true,
+      "detail": {
+        "shots": 2,
+        "stage": "video"
+      }
+    },
+    {
+      "case": "只重试失败镜；成功镜与历史 take 保持不变",
+      "ok": true,
+      "detail": {
+        "code": "VALIDATION_FAILED",
+        "http": 400,
+        "new_take": "take_37a92…",
+        "tasks_added": 1
+      }
+    }
+  ],
+  "disclaimer": "任务仅入队；未执行真实生成。"
+}

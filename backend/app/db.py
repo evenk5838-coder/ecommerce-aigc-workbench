@@ -86,6 +86,24 @@ CREATE TABLE IF NOT EXISTS storyboards(
   status TEXT DEFAULT 'draft', reject_reason TEXT, created_at REAL,
   UNIQUE(shot_id, version));
 
+CREATE TABLE IF NOT EXISTS shot_takes(
+  id TEXT PRIMARY KEY, shot_id TEXT, task_id TEXT, asset_id TEXT, duration_ms INTEGER,
+  spec_json TEXT, cost_cny REAL, status TEXT DEFAULT 'queued', created_at REAL);
+
+CREATE TABLE IF NOT EXISTS generation_scopes(
+  id TEXT PRIMARY KEY, project_id TEXT, mode TEXT, shot_ids_json TEXT, frozen_json TEXT,
+  scope_hash TEXT, estimated_cost_cny REAL, expires_at REAL, approved_at REAL,
+  consumed_at REAL, status TEXT DEFAULT 'quoted', created_at REAL);
+
+CREATE TABLE IF NOT EXISTS submit_receipts(
+  id TEXT PRIMARY KEY, scope_id TEXT UNIQUE, project_id TEXT, batch_id TEXT, mode TEXT,
+  tasks_json TEXT, scope_hash TEXT, created_at REAL);
+
+CREATE TABLE IF NOT EXISTS films(
+  id TEXT PRIMARY KEY, project_id TEXT, version INTEGER, status TEXT DEFAULT 'pending',
+  items_json TEXT, duration_ms INTEGER, asset_id TEXT, partial INTEGER DEFAULT 0,
+  created_at REAL, UNIQUE(project_id, version));
+
 CREATE TABLE IF NOT EXISTS confirmations(
   id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
   object_version INTEGER, status TEXT DEFAULT 'active', reason TEXT,
@@ -126,6 +144,9 @@ CREATE INDEX IF NOT EXISTS idx_script_versions ON script_versions(project_id, ve
 CREATE INDEX IF NOT EXISTS idx_confirmations ON confirmations(project_id, object_type, status);
 CREATE INDEX IF NOT EXISTS idx_shots ON shots(project_id, seq);
 CREATE INDEX IF NOT EXISTS idx_storyboards ON storyboards(shot_id, version);
+CREATE INDEX IF NOT EXISTS idx_takes ON shot_takes(shot_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_scopes ON generation_scopes(project_id, status);
+CREATE INDEX IF NOT EXISTS idx_films ON films(project_id, version);
 """
 
 

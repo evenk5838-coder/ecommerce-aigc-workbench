@@ -7,7 +7,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from .. import director, projects, shots
+from .. import director, projects, scope, shots
 
 router = APIRouter(prefix="/api", tags=["creative"])
 
@@ -204,3 +204,50 @@ def get_storyboard(storyboard_id: str):
 @router.post("/storyboards/{storyboard_id}/review")
 def review_storyboard(storyboard_id: str, body: ReviewIn):
     return shots.review_storyboard(storyboard_id, body.approve, body.reason)
+
+
+# ---------------- S4：整组范围（两种平级模式） ----------------
+class ScopeIn(BaseModel):
+    mode: str                      # full | clips
+    shot_ids: list[str]
+    specs: dict
+
+
+class ScopeConfirmIn(BaseModel):
+    confirm: bool = True
+
+
+@router.post("/projects/{project_id}/scope")
+def create_scope(project_id: str, body: ScopeIn):
+    """整组报价：两种模式共用；不建任务、不调模型。"""
+    return scope.create_scope(project_id, body.mode, body.shot_ids, body.specs)
+
+
+@router.post("/scopes/{scope_id}/confirm")
+def confirm_scope(scope_id: str, body: ScopeConfirmIn | None = None):
+    return scope.confirm_scope(scope_id, bool((body or ScopeConfirmIn()).confirm))
+
+
+@router.post("/projects/{project_id}/generate")
+def generate(project_id: str, body: dict):
+    """按已确认的 scope 提交整组任务（单事务、幂等、单 worker 顺序执行）。"""
+    scope_id = (body or {}).get("scope_id")
+    if not scope_id:
+        raise ValueError("scope_id 必填")
+    row = scope._get_scope(scope_id)
+    if row["project_id"] != project_id:
+        from ..errors import err as _err
+        raise _err("VALIDATION_FAILED", "scope 不属于该项目")
+    return scope.submit_scope(scope_id)
+
+
+@router.get("/projects/{project_id}/status")
+def project_status(project_id: str):
+    """刷新恢复唯一入口：逐镜状态/take/成片。不调用模型。"""
+    return scope.project_status(project_id)
+
+
+@router.post("/takes/{take_id}/retry")
+def retry_take(take_id: str):
+    """只重试用户选定的失败镜头；成功的镜头不重做。"""
+    return scope.retry_take(take_id)

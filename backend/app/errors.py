@@ -100,6 +100,19 @@ CODES = {
     "SHOT_REVISION_CONFLICT": (409, False),
     "STORYBOARD_NOT_FOUND": (404, False),
     "STORYBOARD_NOT_READY": (409, False),
+    # v0.10 S4-S6：整组范围 / 成片 / 模板
+    "SCOPE_NOT_FOUND": (404, False),
+    "SCOPE_REQUIRED": (409, False),
+    "SCOPE_EXPIRED": (409, False),
+    "SCOPE_STALE": (409, False),
+    "SCOPE_ALREADY_USED": (409, False),
+    "TAKE_NOT_FOUND": (404, False),
+    "TAKE_STILL_RUNNING": (409, False),
+    "FILM_NOT_FOUND": (404, False),
+    "FILM_MISSING_SHOTS": (409, False),
+    "ASSEMBLY_FAILED": (502, True),
+    "STRUCTURE_TEMPLATE_NOT_FOUND": (404, False),
+    "STRUCTURE_TEMPLATE_VERSION_NOT_FOUND": (404, False),
 }
 
 
