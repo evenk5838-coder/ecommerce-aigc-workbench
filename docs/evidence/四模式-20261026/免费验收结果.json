@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 16:20:39",
+  "date": "2026-10-26 18:21:00",
   "scope": "B0 四模式：T2V/T2I/I2V/I2I 分支、payload、批量、重试、旧请求兼容",
   "isolation": {
     "fresh_db": true,

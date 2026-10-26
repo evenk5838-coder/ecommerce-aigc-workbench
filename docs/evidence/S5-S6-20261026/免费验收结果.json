@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 16:20:50",
+  "date": "2026-10-26 18:21:06",
   "scope": "S5 成片拼接 + S6 结构模板 / 导出",
   "isolation": {
     "fresh_db": true,
@@ -52,7 +52,7 @@
       "case": "保存/查看结构模板（只含结构，不含商品事实）",
       "ok": true,
       "detail": {
-        "template_id": "stpl_da785dd…",
+        "template_id": "stpl_d0d6155…",
         "version": 1
       }
     },
@@ -77,10 +77,10 @@
       "ok": true,
       "detail": {
         "files": 4,
-        "bytes": 3532,
+        "bytes": 3531,
         "has_manifest": true,
         "has_film": true,
-        "download_url": "/api/exports/exp_adc3e9d1c9ad445f8408/file"
+        "download_url": "/api/exports/exp_d2756f986c954531b68a/file"
       }
     },
     {

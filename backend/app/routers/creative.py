@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from .. import assembly, director, projects, scope, shots
+from .. import assembly, canvas, director, director_chat, projects, scope, shots
 
 router = APIRouter(prefix="/api", tags=["creative"])
 
@@ -345,3 +345,65 @@ def download_export(export_id: str):
     """导出包下载入口（前端用这个 URL 触发下载）。"""
     path, row = assembly.export_path(export_id)
     return FileResponse(path, media_type="application/zip", filename=row["file_name"])
+
+
+# ---------------- 对话导演（D1/D2） ----------------
+class DirectorChatIn(BaseModel):
+    message: str
+    client_request_id: str
+    session_id: str | None = None
+    selected_asset_ids: list[str] | None = None
+    expected_workflow_revision: int | None = None
+    intent: str | None = None
+
+
+class ProposalApplyIn(BaseModel):
+    expected_version: int | None = None
+    client_request_id: str | None = None
+    user_action: str | None = "apply_proposal"
+
+
+@router.post("/projects/{project_id}/director/chat")
+def director_chat_endpoint(project_id: str, body: DirectorChatIn):
+    """项目范围对话：自动保存结构化草案，返回真实 ID/版本与下一步动作。
+
+    **不创建图片/视频任务，不代表用户已确认。**
+    """
+    return director_chat.chat(project_id, body.model_dump())
+
+
+@router.get("/projects/{project_id}/director/messages")
+def director_messages(project_id: str, cursor: str | None = None, limit: int = 30):
+    """分页读取完整对话（不依赖 LLM 记忆窗口）。"""
+    return director_chat.messages(project_id, cursor, limit)
+
+
+@router.get("/projects/{project_id}/director/requests/{client_request_id}")
+def director_request_receipt(project_id: str, client_request_id: str):
+    """断线/双击后查回执：completed 返回原结果，pending 表示仍在处理。"""
+    return director_chat.request_receipt(project_id, client_request_id)
+
+
+@router.get("/projects/{project_id}/director/proposals")
+def director_proposals(project_id: str, kind: str | None = None):
+    return director_chat.proposals(project_id, kind)
+
+
+@router.post("/projects/{project_id}/director/proposals/{proposal_id}/apply")
+def director_apply(project_id: str, proposal_id: str, body: ProposalApplyIn | None = None):
+    """用户应用提案（需求/镜头计划）。**不触发生成**。"""
+    b = body or ProposalApplyIn()
+    return director_chat.apply_proposal(project_id, proposal_id, b.expected_version,
+                                        b.client_request_id)
+
+
+# ---------------- 自由画布（D3） ----------------
+@router.get("/projects/{project_id}/canvas")
+def get_canvas(project_id: str):
+    return canvas.get_canvas(project_id)
+
+
+@router.patch("/projects/{project_id}/canvas")
+def patch_canvas(project_id: str, body: dict):
+    """布局/节点编辑（并发校验）。**不生成、不确认**。"""
+    return canvas.patch_canvas(project_id, body)

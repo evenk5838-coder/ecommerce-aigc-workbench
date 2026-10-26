@@ -119,6 +119,35 @@ CREATE TABLE IF NOT EXISTS project_exports(
 CREATE TABLE IF NOT EXISTS assembly_errors(
   id TEXT PRIMARY KEY, project_id TEXT, batch_id TEXT, error TEXT, created_at REAL);
 
+-- ===== v0.11：对话导演 / 自由画布 =====
+CREATE TABLE IF NOT EXISTS director_requests(
+  id TEXT PRIMARY KEY, project_id TEXT, client_request_id TEXT, payload_hash TEXT,
+  status TEXT DEFAULT 'pending', turn_id TEXT, error_code TEXT, error_message TEXT,
+  response_json TEXT, created_at REAL, updated_at REAL,
+  UNIQUE(project_id, client_request_id));
+
+CREATE TABLE IF NOT EXISTS director_turns(
+  id TEXT PRIMARY KEY, project_id TEXT, session_id TEXT, request_id TEXT,
+  user_text TEXT, reply_text TEXT, reply_type TEXT, structured_json TEXT,
+  created_at REAL);
+
+CREATE TABLE IF NOT EXISTS director_proposals(
+  id TEXT PRIMARY KEY, project_id TEXT, kind TEXT, version INTEGER,
+  content_json TEXT, target_id TEXT, target_version INTEGER, status TEXT DEFAULT 'draft',
+  source_session_id TEXT, source_request_id TEXT, created_at REAL, applied_at REAL,
+  UNIQUE(project_id, kind, version));
+
+CREATE TABLE IF NOT EXISTS canvas_states(
+  project_id TEXT PRIMARY KEY, schema_version INTEGER DEFAULT 1,
+  layout_revision INTEGER DEFAULT 0, viewport_json TEXT, edges_json TEXT,
+  updated_at REAL);
+
+CREATE TABLE IF NOT EXISTS canvas_nodes(
+  id TEXT PRIMARY KEY, project_id TEXT, node_id TEXT, type TEXT,
+  position_json TEXT, config_json TEXT, binding_json TEXT,
+  config_revision INTEGER DEFAULT 1, created_at REAL, updated_at REAL,
+  UNIQUE(project_id, node_id));
+
 CREATE TABLE IF NOT EXISTS confirmations(
   id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
   object_version INTEGER, status TEXT DEFAULT 'active', reason TEXT,
@@ -162,6 +191,8 @@ CREATE INDEX IF NOT EXISTS idx_storyboards ON storyboards(shot_id, version);
 CREATE INDEX IF NOT EXISTS idx_takes ON shot_takes(shot_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_scopes ON generation_scopes(project_id, status);
 CREATE INDEX IF NOT EXISTS idx_films ON films(project_id, version);
+CREATE INDEX IF NOT EXISTS idx_director_turns ON director_turns(project_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_director_proposals ON director_proposals(project_id, kind, version);
 """
 
 
@@ -235,6 +266,7 @@ MIGRATIONS = [
     ("films", "source_batch", "TEXT"),
     # v0.10.1：分镜绑定生成时的镜头修订号（B1 当前版本确认链）
     ("storyboards", "shot_revision", "INTEGER"),
+    ("canvas_states", "edges_json", "TEXT"),
 ]
 
 

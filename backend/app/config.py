@@ -139,6 +139,14 @@ MODEL_ACTIVATION = {
 
 BUDGET_CNY = float(os.getenv("APP_BUDGET_CNY", "0"))   # 0 = 未批准预算，禁止调用云端
 
+# ---------- 导演对话（LLM）预算闸门：**每次 LLM 请求前**检查 ----------
+# 单次请求的预估上限（元）；0 = 不限制。默认给一个保守值，避免一次对话烧掉大量 token。
+DIRECTOR_MAX_COST_PER_CALL_CNY = float(os.getenv("DIRECTOR_MAX_COST_PER_CALL_CNY", "0.05"))
+# 单会话累计上限（元）；0 = 不限制
+DIRECTOR_MAX_SESSION_COST_CNY = float(os.getenv("DIRECTOR_MAX_SESSION_COST_CNY", "0.30"))
+# 单轮最多工具调用次数
+DIRECTOR_MAX_TOOL_CALLS = int(os.getenv("DIRECTOR_MAX_TOOL_CALLS", "2"))
+
 MODEL_REGISTRY.update({
     "doubao-seedream-5-0-pro-260628": {
         "name": "Seedream 5.0 pro（云端）", "kind": "image", "provider": "ark",

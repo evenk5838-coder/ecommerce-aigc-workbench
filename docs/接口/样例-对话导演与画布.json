@@ -1,0 +1,360 @@
+{
+  "director_chat": {
+    "session_id": "asst_e6f798314c6a43809c96",
+    "request_id": "req-fixture-1",
+    "request_status": "completed",
+    "reply": "",
+    "reply_type": "proposal_ready",
+    "artifacts": [
+      {
+        "type": "script",
+        "proposal_id": "prop_d67927761c7848a4b371",
+        "proposal_version": 1,
+        "target_id": "scr_85c0019333f24a908210",
+        "target_version": 1,
+        "persistence": "saved",
+        "confirmed": false
+      },
+      {
+        "type": "shot_plan",
+        "proposal_id": "prop_ad32c1920f07449aa4c4",
+        "proposal_version": 1,
+        "target_id": "scr_85c0019333f24a908210",
+        "target_version": 1,
+        "persistence": "saved",
+        "confirmed": false
+      }
+    ],
+    "actions": [
+      {
+        "type": "confirm_script",
+        "target_id": "scr_85c0019333f24a908210",
+        "target_version": 1,
+        "requires_user_action": true
+      }
+    ],
+    "current": {
+      "stage": "script",
+      "script": {
+        "script_id": "scr_85c0019333f24a908210",
+        "version": 1,
+        "source": "assistant",
+        "confirmed_at": null
+      },
+      "confirmation": {
+        "confirmed": false,
+        "valid": false,
+        "reason": "never_confirmed",
+        "object_version": 1
+      }
+    },
+    "allowed_actions": [
+      "edit_brief",
+      "regenerate_script",
+      "confirm_script"
+    ],
+    "workflow_revision": 3,
+    "usage": {
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_cny": 0.0,
+      "estimated_cny": 0.004884,
+      "note": "费用为应用侧估算，非供应商账单"
+    },
+    "tool_calls": [
+      {
+        "tool": "propose_script",
+        "ok": true,
+        "result": {
+          "proposal_id": "prop_d67927761c7848a4b371",
+          "kind": "script",
+          "version": 1,
+          "target_id": "scr_85c0019333f24a908210",
+          "target_version": 1,
+          "saved": true,
+          "confirmed": false,
+          "note": "脚本草案已保存为未确认版本"
+        }
+      },
+      {
+        "tool": "propose_shot_plan",
+        "ok": true,
+        "result": {
+          "proposal_id": "prop_ad32c1920f07449aa4c4",
+          "kind": "shot_plan",
+          "version": 1,
+          "target_id": "scr_85c0019333f24a908210",
+          "target_version": 1,
+          "saved": true,
+          "confirmed": false,
+          "note": "镜头计划草案已保存，需用户确认后应用"
+        }
+      }
+    ],
+    "budget": {
+      "per_call_limit_cny": 0.05,
+      "session_limit_cny": 0.3
+    },
+    "note": "草案已自动保存，但未确认；生成图片/视频需用户显式操作"
+  },
+  "director_messages": {
+    "items": [
+      {
+        "turn_id": "dturn_58814658805a4e9bad84",
+        "request_id": "req-fixture-1",
+        "user": "两个镜头，先整体再瓶盖",
+        "reply": "",
+        "reply_type": "proposal_ready",
+        "structured": {
+          "artifacts": [
+            {
+              "type": "script",
+              "proposal_id": "prop_d67927761c7848a4b371",
+              "proposal_version": 1,
+              "target_id": "scr_85c0019333f24a908210",
+              "target_version": 1,
+              "persistence": "saved",
+              "confirmed": false
+            },
+            {
+              "type": "shot_plan",
+              "proposal_id": "prop_ad32c1920f07449aa4c4",
+              "proposal_version": 1,
+              "target_id": "scr_85c0019333f24a908210",
+              "target_version": 1,
+              "persistence": "saved",
+              "confirmed": false
+            }
+          ],
+          "actions": [
+            {
+              "type": "confirm_script",
+              "target_id": "scr_85c0019333f24a908210",
+              "target_version": 1,
+              "requires_user_action": true
+            }
+          ]
+        },
+        "created_at": 1793010097.1961842
+      }
+    ],
+    "next_cursor": "dturn_58814658805a4e9bad84",
+    "has_more": false
+  },
+  "proposals": {
+    "items": [
+      {
+        "proposal_id": "prop_ad32c1920f07449aa4c4",
+        "kind": "shot_plan",
+        "version": 1,
+        "status": "draft",
+        "target_id": "scr_85c0019333f24a908210",
+        "target_version": 1,
+        "content": {
+          "shots": [
+            {
+              "seq": 1,
+              "description": "整体展示",
+              "duration_s": 5,
+              "motion": null
+            },
+            {
+              "seq": 2,
+              "description": "瓶盖特写",
+              "duration_s": 5,
+              "motion": null
+            }
+          ],
+          "script_id": "scr_85c0019333f24a908210",
+          "script_version": 1
+        },
+        "created_at": 1793010097.180319,
+        "applied_at": null
+      },
+      {
+        "proposal_id": "prop_d67927761c7848a4b371",
+        "kind": "script",
+        "version": 1,
+        "status": "draft",
+        "target_id": "scr_85c0019333f24a908210",
+        "target_version": 1,
+        "content": {
+          "summary": "整体展示后推近瓶盖",
+          "shots": [
+            {
+              "seq": 1,
+              "hint": "商品整体"
+            },
+            {
+              "seq": 2,
+              "hint": "瓶盖细节"
+            }
+          ]
+        },
+        "created_at": 1793010097.177145,
+        "applied_at": null
+      }
+    ]
+  },
+  "request_receipt": {
+    "client_request_id": "req-fixture-1",
+    "status": "completed",
+    "turn_id": "dturn_58814658805a4e9bad84",
+    "error_code": null,
+    "response": {
+      "session_id": "asst_e6f798314c6a43809c96",
+      "request_id": "req-fixture-1",
+      "request_status": "completed",
+      "reply": "",
+      "reply_type": "proposal_ready",
+      "artifacts": [
+        {
+          "type": "script",
+          "proposal_id": "prop_d67927761c7848a4b371",
+          "proposal_version": 1,
+          "target_id": "scr_85c0019333f24a908210",
+          "target_version": 1,
+          "persistence": "saved",
+          "confirmed": false
+        },
+        {
+          "type": "shot_plan",
+          "proposal_id": "prop_ad32c1920f07449aa4c4",
+          "proposal_version": 1,
+          "target_id": "scr_85c0019333f24a908210",
+          "target_version": 1,
+          "persistence": "saved",
+          "confirmed": false
+        }
+      ],
+      "actions": [
+        {
+          "type": "confirm_script",
+          "target_id": "scr_85c0019333f24a908210",
+          "target_version": 1,
+          "requires_user_action": true
+        }
+      ],
+      "current": {
+        "stage": "script",
+        "script": {
+          "script_id": "scr_85c0019333f24a908210",
+          "version": 1,
+          "source": "assistant",
+          "confirmed_at": null
+        },
+        "confirmation": {
+          "confirmed": false,
+          "valid": false,
+          "reason": "never_confirmed",
+          "object_version": 1
+        }
+      },
+      "allowed_actions": [
+        "edit_brief",
+        "regenerate_script",
+        "confirm_script"
+      ],
+      "workflow_revision": 3,
+      "usage": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_cny": 0.0,
+        "estimated_cny": 0.004884,
+        "note": "费用为应用侧估算，非供应商账单"
+      },
+      "tool_calls": [
+        {
+          "tool": "propose_script",
+          "ok": true,
+          "result": {
+            "proposal_id": "prop_d67927761c7848a4b371",
+            "kind": "script",
+            "version": 1,
+            "target_id": "scr_85c0019333f24a908210",
+            "target_version": 1,
+            "saved": true,
+            "confirmed": false,
+            "note": "脚本草案已保存为未确认版本"
+          }
+        },
+        {
+          "tool": "propose_shot_plan",
+          "ok": true,
+          "result": {
+            "proposal_id": "prop_ad32c1920f07449aa4c4",
+            "kind": "shot_plan",
+            "version": 1,
+            "target_id": "scr_85c0019333f24a908210",
+            "target_version": 1,
+            "saved": true,
+            "confirmed": false,
+            "note": "镜头计划草案已保存，需用户确认后应用"
+          }
+        }
+      ],
+      "budget": {
+        "per_call_limit_cny": 0.05,
+        "session_limit_cny": 0.3
+      },
+      "note": "草案已自动保存，但未确认；生成图片/视频需用户显式操作"
+    }
+  },
+  "canvas": {
+    "schema_version": 1,
+    "layout_revision": 1,
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    },
+    "nodes": [
+      {
+        "node_id": "node_video_1",
+        "type": "video",
+        "position": {
+          "x": 640,
+          "y": 120
+        },
+        "config": {
+          "generation_mode": "image_to_video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "prompt": "商品轻微旋转",
+          "input_asset_id": "asset_f25abd97c2fc47d597ea",
+          "params": {
+            "duration": 5,
+            "ratio": "9:16",
+            "resolution": "720p"
+          }
+        },
+        "binding": {
+          "shot_id": null
+        },
+        "config_revision": 1,
+        "last_execution": null
+      },
+      {
+        "node_id": "node_video_2",
+        "type": "video",
+        "position": {
+          "x": 640,
+          "y": 420
+        },
+        "config": {
+          "generation_mode": "text_to_video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "prompt": "瓶盖特写",
+          "params": {
+            "duration": 5,
+            "ratio": "9:16",
+            "resolution": "720p"
+          }
+        },
+        "binding": {},
+        "config_revision": 1,
+        "last_execution": null
+      }
+    ],
+    "note": "布局与生成配置分开；last_execution 只读，不可 PATCH"
+  }
+}

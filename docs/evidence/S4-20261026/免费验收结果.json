@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 16:20:54",
+  "date": "2026-10-26 18:21:10",
   "scope": "S4 整组范围：两模式 / 冻结输入 / 确认 / 事务提交 / 幂等 / 定向重试",
   "isolation": {
     "fresh_db": true,
@@ -36,7 +36,7 @@
           "prompt",
           "ratio"
         ],
-        "hash": "sha256:56c576327…"
+        "hash": "sha256:c664989ef…"
       }
     },
     {
@@ -69,7 +69,7 @@
       "detail": {
         "tasks": 2,
         "takes": 2,
-        "batch": "batch_4bffe1…"
+        "batch": "batch_dfb028…"
       }
     },
     {
@@ -102,7 +102,7 @@
       "detail": {
         "code": "VALIDATION_FAILED",
         "http": 400,
-        "new_take": "take_1a2c9…",
+        "new_take": "take_dbe07…",
         "tasks_added": 1
       }
     }
