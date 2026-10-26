@@ -1,0 +1,26 @@
+{
+  "revision": "5a2c7efb6039f810df11079e83e2e20d749ea92b",
+  "files": {
+    "backend/app/assistant/__init__.py": "e2471386b1f27823577b73e9df9d95ef33fae2fa7a8dd4ba11bd42d19a2a672c",
+    "backend/app/assistant/approval.py": "587c67888e850746c259e401653cf3323157cdaea474446f893431ee05ce5b4f",
+    "backend/app/assistant/provider.py": "2a69288207cfa43ed4f6b27220cb9f664d6f278c2d2a16c94a8c610735e880f3",
+    "backend/app/assistant/router.py": "7fdd234d394157153ba83bcce9343c00a65fc8dc9137f8310882d2baaaf56a82",
+    "backend/app/assistant/service.py": "27f93cbacaabf5fdf05eb1bca0d89bd3d15b985335867d97f75e0f8cad76ac2d",
+    "backend/app/assistant/tools.py": "abff516e8afc9e4a4cd1d35cb63073b26222530760166cd634f61f8f11960ead",
+    "backend/app/cloud_tasks.py": "4549b2e217fbd5a65d61dfa83e2103bbd1c083091b1dcc533b64cb243c196513",
+    "backend/app/config.py": "88fb159406eca04d748c2e3d3f3f587a119fee0f3675f9eb542c96f9c24e9da0",
+    "backend/app/db.py": "d768839e0c20a973b8c2e26d0e37c0ae9e4698aba891fb946389491df250dc07",
+    "backend/app/engines.py": "9055f3626f40ad933a56a71e59fb0f341f7342da61e738e2bf1a2a4ac03413dd",
+    "backend/app/errors.py": "76e989c660e60f2a51b82c22b6a4f631edec29a5c96b282cd9f58efec90611c2",
+    "backend/app/main.py": "f3cb2dcfc7f50a9f92ff3b523aa514860797cfac64254ebba2af50bf474232b1",
+    "backend/app/projects.py": "db69f44611b4ee360d8525477d8ea364ad024320e70b1da153f3645f1d19a1ed",
+    "backend/app/providers_ark.py": "54985ad7efe3547b8b2c14ce1b7104538fc521330b01a706a8d9072a2c1c2e0e",
+    "backend/app/routers/__init__.py": "8a3152d994ddbe63d953158d6ccd1804b60818f96d6cde8ff13770495609ed03",
+    "backend/app/routers/creative.py": "e0fde070c776f13c473fe0431f8ace02c5d1d1abb057e8719ee55f43825790c6",
+    "backend/app/storage.py": "56db43068d829e8bb9b315df414dc4839b02f75b29d7093de04f092e987fd44d",
+    "backend/app/templates.py": "5bb33a0704c3fb638cfcf2f9010ac4340b40b47dbcf0e468040baf7c362c0d80",
+    "backend/app/worker.py": "11c7a5187436b2ed8d3e338516b04bb3e5e9506add0703b96c56d3020efb12b3",
+    "backend/tools_s1_fix_tests.py": "06b11c5da5abcad6bbad17ded49644e3e2e6ad0e7dee9753738a4aa53dbdd2d4",
+    "backend/tools_s2_projects_tests.py": "c0db320148ee280089d1144477ea194409e780c966d7f404adeacd9f173b37fa"
+  }
+}
