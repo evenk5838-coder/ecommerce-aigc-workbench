@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Model, Task } from '../types';
 import type { ProductionStatus, ScopeInput, Shot } from './production-types';
-import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, parseProductionEditor, planOrderChanged, productionFingerprint, shotDraftChanged, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
+import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, shotDraftChanged, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
 const model: Model = { id:'video', name:'video', kind:'video', provider:'ark', downloaded:true, loaded:false, weights_mb:0, submittability:{submittable:true,reasons:[]}, capabilities:{duration_policy:{kind:'range',min:2,max:12,step:1}} };
 const shot: Shot = {shot_id:'s1',project_id:'p',revision:2,seq:1,duration_s:6,description:'保留产品',input_asset_id:'a1'};
 const status: ProductionStatus = {project_id:'p',mode:'clips',shots:[],batch:null,film:null};
@@ -10,7 +10,8 @@ describe('production UI state safety',()=>{
   it('passes exact native duration and reference unchanged',()=>{ const checked=inspectShotDraft(draftFromShot(shot),model,1);expect(checked.error).toBeNull();expect(checked.input?.duration_s).toBe(6);expect(checked.input?.input_asset_id).toBe('a1'); });
   it.each(['5.5','13','1','-1','NaN',''])('rejects unsupported duration %s without normalizing',duration=>{const draft={...draftFromShot(shot),duration};expect(inspectShotDraft(draft,model,1).input).toBeNull();expect(draft.duration).toBe(duration);});
   it('does not grant model permission from downloaded flags',()=>{expect(inspectShotDraft(draftFromShot(shot),{...model,submittability:undefined},1).input).toBeNull();});
-  it('finds changed inputs and order independently',()=>{expect(shotDraftChanged(draftFromShot(shot),shot)).toBe(false);expect(shotDraftChanged({...draftFromShot(shot),prompt:'new'},shot)).toBe(true);expect(planOrderChanged([draftFromShot(shot)],[shot])).toBe(false);expect(planOrderChanged([draftFromShot({...shot,shot_id:'s2'})],[shot])).toBe(true);});
+  it('finds changed inputs and order independently',()=>{expect(shotDraftChanged(draftFromShot(shot),shot)).toBe(false);expect(shotDraftChanged({...draftFromShot(shot),prompt:'new'},shot)).toBe(false);expect(shotDraftChanged({...draftFromShot(shot),description:'new'},shot)).toBe(true);expect(planOrderChanged([draftFromShot(shot)],[shot])).toBe(false);expect(planOrderChanged([draftFromShot({...shot,shot_id:'s2'})],[shot])).toBe(true);});
+  it('preserves browser-only board inputs when refreshing saved shot data',()=>{const local={...draftFromShot(shot),prompt:'new prompt',input_asset_id:'local-ref'};expect(restoreShotDraft({...shot,revision:3,description:'最新'},local)).toMatchObject({revision:3,description:'最新',prompt:'new prompt',input_asset_id:'local-ref'});});
   it('only selects explicitly failed shots for retry',()=>{expect(failedShotIds({...status,shots:[{shot_id:'a',status:'succeeded'},{shot_id:'b',status:'failed'},{shot_id:'c',status:'running'}]})).toEqual(['b']);});
   it('keeps successful prior takes when the latest attempt failed',()=>{const item={...shot,takes:[{take_id:'old',asset_id:'asset',status:'succeeded'},{take_id:'bad',status:'failed'}]};expect(successfulTakes(item,{...status,shots:[{shot_id:'s1',status:'failed'}]}).map(t=>t.take_id)).toEqual(['old']);});
   it('cannot use missing assets or planned duration as successful media',()=>{expect(successfulTakes({...shot,takes:[{take_id:'empty',status:'succeeded'}]},status)).toEqual([]);});

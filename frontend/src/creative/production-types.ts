@@ -12,6 +12,7 @@ export interface Storyboard {
   asset_id?: string | null;
   reject_reason?: string | null;
   created_at?: number | null;
+  approved?: boolean;
 }
 export interface ShotTake {
   take_id: string;
@@ -32,7 +33,7 @@ export interface Shot {
   description: string;
   script_id?: string;
   prompt?: string;
-  motion?: string;
+  motion?: string | null;
   input_asset_id?: string | null;
   model_id?: string;
   status?: string;
@@ -49,10 +50,10 @@ export interface ShotInput {
   input_asset_id?: string | null;
   model_id?: string;
 }
-export interface CreateShotsInput { script_id: string; shots: ShotInput[] }
+export interface CreateShotsInput { script_id: string; shots: ShotInput[]; model_id?: string }
 export interface ShotPatch extends Partial<ShotInput> { expected_revision: number }
 /** Response shapes for CRUD/list must be supplied by Pi; no fabricated acknowledgement. */
-export interface ShotsWriteResult { project_id: string; shots: Shot[] }
+export interface ShotsWriteResult { project_id: string; shot_ids: string[]; count: number }
 export interface ShotDeleteResult { shot_id: string; deleted: true }
 export interface ReorderResult { project_id: string; order: string[] }
 export interface StoryboardInput {
@@ -63,7 +64,9 @@ export interface StoryboardCreation {
   estimated_cost_cny: number;
 }
 export interface StoryboardReview {
-  storyboard_id: string; version: number; status: 'approved' | 'rejected';
+  storyboard_id: string; version?: number; status: 'approved' | 'rejected';
+  confirmation?: { confirmation_id: string; status: 'active'; object_type: 'storyboard'; object_id: string; object_version: number; reused: boolean };
+  reason?: string; hint?: string;
   shot_id?: string; reject_reason?: string | null;
 }
 export interface ScopeSpecs { model_id: string; ratio: string; resolution: string }
@@ -96,7 +99,7 @@ export interface ScopeApproval {
 export interface ScopeTask { shot_id: string; task_id: string; take_id?: string }
 export interface ScopeSubmission {
   batch_id: string; mode: GenerationMode; tasks: ScopeTask[];
-  auto_film: boolean; sequential: true;
+  auto_film?: boolean; sequential: true;
   scope_id?: string;
   idempotent_replay?: boolean;
 }
@@ -111,6 +114,8 @@ export interface ShotStatus {
   error_message?: string | null;
   takes?: ShotTake[];
   storyboards?: Storyboard[];
+  /** Wire takes is a count; takes above contains only the explicitly returned latest take. */
+  take_count?: number;
 }
 export interface FilmItem {
   shot_id: string; take_id: string; actual_duration_ms?: number | null;
@@ -121,6 +126,7 @@ export interface Film {
   version?: number;
   planned_duration_s?: number | null;
   actual_duration_ms?: number | null;
+  duration_ms?: number | null;
   items?: FilmItem[];
   partial?: boolean;
   missing_shot_ids?: string[];
@@ -130,10 +136,13 @@ export interface Film {
 }
 export interface ProductionStatus {
   project_id: string;
-  mode: GenerationMode | null;
+  /** Backend uses this field for generation-stage status, not full/clips mode. */
+  mode: GenerationMode | 'locked' | 'current' | 'done' | null;
+  current_stage?: string;
+  allowed_actions?: string[];
   shots: ShotStatus[];
-  batch: { batch_id: string; queued: number; running: number; succeeded: number; failed: number } | null;
-  film: Film | null;
+  batch?: { batch_id: string; queued: number; running: number; succeeded: number; failed: number } | null;
+  film?: Film | null;
   /** History is not synthesized from the latest film. */
   films?: Film[];
 }
@@ -149,11 +158,17 @@ export interface StructureTemplateCreation { template_id: string; version: numbe
 export interface ApplyStructureInput { template_id: string; version: number }
 export interface AppliedStructure {
   project_id: string; created_shots: number; requires: string[];
+  created_shot_details: Array<{shot_id: string; seq: number; duration_s: number; role: string}>;
   model_revalidation: { ok: boolean; notes: string[] };
 }
 export type ExportPart = 'film' | 'clips' | 'storyboards' | 'manifest';
 export interface ExportInput { include: ExportPart[] }
-export interface ProjectExport { export_id: string; status: 'ready'; asset_id: string; file_name: string }
+export interface ProjectExport {
+  export_id: string; project_id: string; file_name: string; download_url: string;
+  bytes: number; includes: ExportPart[]; films_included: number; clips_included: number; storyboards_included: number;
+  missing: Array<{ kind: string; reason: string; film_id?: string; shot_id?: string }>;
+  note?: string;
+}
 
 export interface ProductionApi {
   listShots(projectId: string, options?: ProductionRequestOptions): Promise<{ items: Shot[] }>;
@@ -171,7 +186,7 @@ export interface ProductionApi {
   createFilm(projectId: string, input: FilmInput, options?: ProductionRequestOptions): Promise<FilmCreation>;
   listFilms(projectId: string, options?: ProductionRequestOptions): Promise<{ items: Film[] }>;
   getFilm(filmId: string, options?: ProductionRequestOptions): Promise<Film>;
-  filmFileUrl(filmId: string): string;
+  filmFileUrl(film: Pick<Film, 'asset_id'>): string;
   listStructureTemplates(options?: ProductionRequestOptions): Promise<{ items: StructureTemplateSummary[] }>;
   createStructureTemplate(input: StructureTemplateInput, options?: ProductionRequestOptions): Promise<StructureTemplateCreation>;
   getStructureTemplate(templateId: string, version?: number, options?: ProductionRequestOptions): Promise<StructureTemplate>;

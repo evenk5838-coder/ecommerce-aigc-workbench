@@ -1,4 +1,7 @@
 import type { SingleTemplateSelection } from './single-templates';
+export type ImageMode = 'text_to_image' | 'image_to_image';
+export type VideoMode = 'text_to_video' | 'image_to_video';
+export type GenerationMode = ImageMode | VideoMode;
 export interface Asset {
   id: string; kind: 'image' | 'video'; mime: string; size: number;
   width: number; height: number; source: string; created_at: number;
@@ -62,7 +65,9 @@ export interface Project {
 }
 export interface GenerationSettings {
   template?:SingleTemplateSelection|null;
-  kind: 'image' | 'video'; imageMode: 'text_to_image' | 'image_to_image';
+  kind: 'image' | 'video'; imageMode: ImageMode;
+  /** Legacy video drafts omit this and remain first-frame generation. */
+  videoMode?: VideoMode;
   purpose: 'white' | 'scene' | 'custom'; imagePrompt: string; videoPrompt: string;
   imageRatio: string; videoRatio: string; imageReference: string | null; videoReference: string | null;
   batchCount: number; duration: number; imageSize?: string; videoResolution?: string;

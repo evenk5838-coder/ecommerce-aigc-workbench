@@ -1,12 +1,15 @@
-import type { Asset, Model, TaskInput } from './types';
+import type { Asset, ImageMode, VideoMode, Model, TaskInput } from './types';
+import { validateGenerationMode } from './generation-modes';
 import { getDefaultImageSize, getImageSizesForRatio, getSupportedRatios, getSupportedResolutions, validateModelSelection, validateVideoDuration } from './capabilities';
 
-export type ImageMode = 'text_to_image' | 'image_to_image';
+export type { ImageMode, VideoMode, GenerationMode } from './types';
 export type ImagePurpose = 'white' | 'scene' | 'custom';
 
 export interface GenerationOptions {
   kind: 'image' | 'video';
   imageMode: ImageMode;
+  /** Omitted by legacy callers: retain their first-frame behavior. */
+  videoMode?: VideoMode;
   modelId: string;
   prompt: string;
   reference?: Asset;
@@ -33,7 +36,7 @@ export function getImagePrompt(mode: ImageMode, purpose: ImagePurpose): string {
 
 function requireImage(reference: Asset | undefined, label: string): Asset {
   if (!reference?.id) throw new Error(`请先选择或上传${label}`);
-  if (reference.kind !== 'image' || !reference.mime.startsWith('image/')) {
+  if (reference.kind !== 'image' || typeof reference.mime !== 'string' || !reference.mime.startsWith('image/')) {
     throw new Error(`${label}必须是图片，请重新选择`);
   }
   if (!Number.isFinite(reference.size) || reference.size <= 0) {
@@ -58,22 +61,25 @@ export function buildGenerationInput(options: GenerationOptions): Omit<TaskInput
   if (!getSupportedRatios(model).includes(ratio)) throw new Error('当前模型不支持所选画面比例，请重新选择');
 
   if (kind === 'video') {
-    const image = requireImage(reference, '视频首帧图片');
-    if (!model.capabilities?.input_modes?.includes('image_to_video')) throw new Error('当前模型未提供首帧生视频能力');
+    const mode = options.videoMode ?? 'image_to_video';
+    const modeError = validateGenerationMode(model, mode);
+    if (modeError) throw new Error(modeError);
+    const inputAssetId = mode === 'image_to_video' ? requireImage(reference, '视频首帧图片').id : null;
     const durationError = validateVideoDuration(model, duration);
     if (durationError) throw new Error(durationError);
     const resolution = options.resolution ?? '720p';
     if (!getSupportedResolutions(model).includes(resolution)) throw new Error('当前模型不支持所选视频清晰度，请重新选择');
     return {
-      kind, model_id: modelId, input_asset_id: image.id,
-      params: { prompt, duration, ratio, resolution, generate_audio: false },
+      kind, model_id: modelId, input_asset_id: inputAssetId,
+      params: { prompt, generation_mode: mode, duration, ratio, resolution, generate_audio: false },
     };
   }
 
   if (imageMode !== 'text_to_image' && imageMode !== 'image_to_image') {
     throw new Error('请选择文生图或图生图');
   }
-  if (!model.capabilities?.input_modes?.includes(imageMode)) throw new Error('当前模型不支持所选生图方式');
+  const modeError = validateGenerationMode(model, imageMode);
+  if (modeError) throw new Error(modeError);
   const size = options.imageSize ?? getDefaultImageSize(model, ratio);
   if (!size || !getImageSizesForRatio(model, ratio).includes(size)) throw new Error('当前图片尺寸不支持所选比例，请重新选择输出规格');
   const inputAssetId = imageMode === 'image_to_image' ? requireImage(reference, '参考图').id : null;

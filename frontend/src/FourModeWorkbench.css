@@ -1,0 +1,12 @@
+.four-mode-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 11px}
+.four-mode-switch button{display:flex;min-width:0;min-height:68px;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;padding:12px 14px;border:1px solid var(--studio-line,var(--line));border-radius:12px;background:var(--studio-panel,#fff);color:var(--studio-text,#222);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.four-mode-switch button strong{font-size:14px;font-weight:650;line-height:1.3}
+.four-mode-switch button span{font-size:11px;line-height:1.4;color:var(--studio-muted,var(--muted))}
+.four-mode-switch button:hover:not(:disabled){border-color:var(--studio-accent,var(--purple))}
+.four-mode-switch button.selected{border-color:var(--studio-accent,var(--purple));background:var(--studio-accent-soft,#f1efff);box-shadow:inset 0 0 0 1px var(--studio-accent,var(--purple))}
+.four-mode-switch button:focus-visible{outline:3px solid var(--studio-accent,var(--purple));outline-offset:3px}
+.four-mode-switch button:disabled{cursor:not-allowed;opacity:.48}
+.four-mode-description,.four-mode-template-note{margin:0 0 15px;color:var(--studio-muted,var(--muted));font-size:12px;line-height:1.8}
+.four-mode-template-note{padding:10px 12px;border-left:2px solid var(--studio-accent,var(--purple));background:var(--studio-soft,#f8f8fa)}
+.four-mode-pending{padding:12px 14px;margin:0 0 16px;border:1px solid var(--studio-line,var(--line));border-radius:10px;background:var(--studio-soft,#faf7ee);color:var(--studio-text,#514a3b);font-size:12px;line-height:1.8}
+@media(max-width:480px){.four-mode-switch button{padding:11px 12px;min-height:72px}.four-mode-switch button span{font-size:10px}}

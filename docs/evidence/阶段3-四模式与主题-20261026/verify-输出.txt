@@ -1,0 +1,54 @@
+CHECK: npm run typecheck
+
+> ecommerce-local-studio@0.1.0 typecheck
+> tsc --noEmit
+
+PASS
+CHECK: npm run lint
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+
+PASS
+CHECK: npm test
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend
+
+
+ Test Files  18 passed (18)
+      Tests  422 passed (422)
+   Start at  15:58:18
+   Duration  585ms (tests 46%, import 35%, transform 15%, worker 4%)
+
+PASS
+CHECK: npm run build
+
+> ecommerce-local-studio@0.1.0 build
+> tsc --noEmit && vite build
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1628 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.60 kB │ gzip:   0.45 kB
+dist/assets/index-Bejt-vig.css  167.43 kB │ gzip:  32.01 kB
+dist/assets/index-Cw0jPINt.js   555.08 kB │ gzip: 174.37 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.48s
+PASS
+CHECK: git diff --check
+PASS
+CHECK: python3 -
+PASS: no runtime env tracked; no selected credential patterns in frontend source/build. Pattern scan is not a complete security audit.
+PASS
+PENDING: backend S3-S6 integration, real model generation, persistence recovery, final human review.
+This check does not declare internal-test readiness.

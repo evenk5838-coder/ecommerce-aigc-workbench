@@ -15,10 +15,14 @@ export const isActiveStatus = (value: string | undefined): boolean => !!value &&
 export function draftFromShot(shot: Shot): ShotDraft {
   return { key: shot.shot_id, shot_id: shot.shot_id, revision: shot.revision, description: shot.description, motion: shot.motion ?? '', prompt: shot.prompt ?? '', input_asset_id: shot.input_asset_id ?? '', duration: String(shot.duration_s) };
 }
+/** Prompt and reference are local storyboard inputs, not fields persisted by the shot API. */
+export function restoreShotDraft(shot: Shot, local?: ShotDraft): ShotDraft {
+  return { ...draftFromShot(shot), prompt: local?.prompt ?? shot.prompt ?? '', input_asset_id: local?.input_asset_id ?? shot.input_asset_id ?? '' };
+}
 export function shotDraftChanged(draft: ShotDraft, shot?: Shot): boolean {
   if (!shot) return true;
   const original = draftFromShot(shot);
-  return (['description', 'motion', 'prompt', 'input_asset_id', 'duration'] as const).some(key => draft[key] !== original[key]);
+  return (['description', 'motion', 'duration'] as const).some(key => draft[key] !== original[key]);
 }
 export function inspectShotDraft(draft: ShotDraft, model: Model | undefined, seq: number): { input: ShotInput | null; error: string | null } {
   const fail = (error: string) => ({ input: null, error });

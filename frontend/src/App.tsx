@@ -3,6 +3,8 @@ import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { ArrowDownToLine, ArrowUpRight, Check, ChevronDown, Clock3, Cloud, Copy, Download, Film, FolderOpen, Image as ImageIcon, Layers, LayoutGrid, Loader2, Minus, MousePointer2, Plus, RefreshCw, Save, Search, SlidersHorizontal, Sparkles, Square, Trash2, Type, Undo2, Upload, X } from 'lucide-react';
 import JSZip from 'jszip';
 import Home from './Home';
+import ProjectHome from './ProjectHome';
+import StudioThemeToggle from './StudioTheme';
 import CreativeSpace from './CreativeSpace';
 import ImageOutputSettings from './ImageOutputSettings';
 import SingleTemplatePanel from './SingleTemplatePanel';
@@ -12,18 +14,19 @@ import GenerationConfirm from './GenerationConfirm';
 import PromptOptimizer from './assistant/PromptOptimizer';
 import { getDefaultImageSize, getDurationPolicy, getImageSizesForRatio, getModelUnavailableReason, getSupportedRatios, getSupportedResolutions, validateModelSelection, validateVideoDuration } from './capabilities';
 import './S1Workbench.css';
+import './FourModeWorkbench.css';
+import { GENERATION_MODES, getVideoPrompt, modeKind, modeNeedsReference, modesForKind, supportedGenerationModes, templateGenerationMode, validateGenerationMode, workbenchModeIntegrationError } from './generation-modes';
 import ReferencePicker from './ReferencePicker';
 import { buildGenerationInput, getImagePrompt } from './generation';
 import { inspectGenerationEstimates } from './estimates';
-import type { ImageMode, ImagePurpose } from './generation';
+import type { GenerationMode, ImageMode, ImagePurpose, VideoMode } from './generation';
 import { api, ApiError, mediaUrl } from './api';
-import { downloadBlob, fitAsset, metadata, moveLayer, newProject, realAssets, renderCanvas, safeName } from './editor';
+import { downloadBlob, fitAsset, metadata, moveLayer, newProject, realAssets, renderCanvas, restoreGenerationSettings, safeName } from './editor';
 import type { Asset, GenerationSettings, Layer, Model, Project, SystemStatus, Task, TaskEstimate, TaskInput } from './types';
 
 const STORAGE = 'material-studio-project-v1';
 const ACTIVE = ['queued','loading','running','postprocess','remote_queued','remote_running','cancel_requested'];
 const NAMES: Record<string,string> = {queued:'排队中',loading:'加载中',running:'生成中',postprocess:'保存结果',remote_queued:'云端排队',remote_running:'云端生成',cancel_requested:'已请求取消',succeeded:'已完成',failed:'生成失败',canceled:'已取消',interrupted:'已中断'};
-const DEFAULT_GENERATION: GenerationSettings = {kind:'image',imageMode:'text_to_image',purpose:'white',imagePrompt:getImagePrompt('text_to_image','white'),videoPrompt:'镜头缓慢推近商品，柔和光线掠过表面，保持商品形态和包装稳定，适合电商商品展示。',imageRatio:'1:1',videoRatio:'9:16',imageReference:null,videoReference:null,batchCount:1,duration:5,videoResolution:'720p'};
 const ERRORS: Record<string,string> = {AUTH_MISSING:'尚未配置云端 Key，请在后端配置后重试。',AUTH_FAILED:'模型鉴权失败，请检查 Key 与模型开通权限。',BUDGET_NOT_APPROVED:'后端尚未批准云端预算。',BUDGET_EXCEEDED:'已达到本次预算上限，请先核对用量。',MODEL_NOT_DOWNLOADED:'本地模型权重未就位。',MODEL_NOT_OPENED:'当前账号尚未开通该模型，请核对火山控制台。',CREATE_RESULT_UNKNOWN:'创建结果暂不明确，请先核对云端任务，避免重复扣费。'};
 type PendingGeneration = { id:string; items:TaskInput[]; kind:'image'|'video'; modelName:string; specLabel:string; costs:number[]|null; estimates:TaskEstimate[]|null; prompts:string[]; error:string };
 const time = (ms?: number) => ms == null ? '—' : ms < 60000 ? `${(ms/1000).toFixed(1)}秒` : `${(ms/60000).toFixed(1)}分钟`;
@@ -44,19 +47,27 @@ export default function App() {
   const [saveError,setSaveError]=useState(''),[submitError,setSubmitError]=useState('');
   const [validation,setValidation]=useState<{prompt?:string;reference?:string}>({});
   const [propertiesOpen,setPropertiesOpen]=useState(false);
-  const [view,setView]=useState<'home'|'creative'|'canvas'|'library'>('home'),[taskDrawer,setTaskDrawer]=useState(false),[preview,setPreview]=useState<Asset|null>(null);
+  const [view,setView]=useState<'projects'|'home'|'creative'|'canvas'|'library'>('projects'),[taskDrawer,setTaskDrawer]=useState(false),[preview,setPreview]=useState<Asset|null>(null);
   const creativeDirty=useRef(false);
+  const [creativeProjectId,setCreativeProjectId]=useState<string|null>(null),[creativeCreateNonce,setCreativeCreateNonce]=useState(0);
   const onCreativeDirtyChange=useCallback((value:boolean)=>{creativeDirty.current=value;},[]);
   const canLeaveCreative=()=>view!=='creative'||!creativeDirty.current||window.confirm('引导创作还有未保存内容或正在处理的请求，确定离开吗？');
-  const navigate=(next:typeof view)=>{if(next===view||!canLeaveCreative())return;creativeDirty.current=false;setView(next);};
+  const changeView=(next:typeof view)=>{if(next!=='creative')setCreativeCreateNonce(0);setView(next);};
+  const navigate=(next:typeof view)=>{if(next===view||!canLeaveCreative())return;creativeDirty.current=false;changeView(next);};
   const [selected,setSelected]=useState<string|null>(null),[zoom,setZoom]=useState(1),[undo,setUndo]=useState<Project[]>([]);
   const [modelId,setModelId]=useState(''),[referencePicker,setReferencePicker]=useState(false);
-  const settings={...DEFAULT_GENERATION,...project.generation};
+  const settings=restoreGenerationSettings(project.generation);
   const {kind,imageMode,purpose,batchCount,duration}=settings;
+  const videoMode=settings.videoMode??'image_to_video';
   const activeTemplate=settings.template?.template.kind===kind?settings.template:null;
   const prompt=kind==='image'?settings.imagePrompt:settings.videoPrompt;
   const ratio=kind==='image'?settings.imageRatio:settings.videoRatio;
   const reference=kind==='image'?settings.imageReference:settings.videoReference;
+  const templateMode=activeTemplate?templateGenerationMode(activeTemplate,reference):null;
+  const generationMode:GenerationMode=templateMode??(kind==='image'?imageMode:videoMode);
+  const templateModeError=activeTemplate&&!templateMode?'模板的输入方式尚未配置，请退出模板后手动创作。':null;
+  const needsReference=modeNeedsReference(generationMode)||activeTemplate?.template.template_id==='tpl_season_theme';
+  const requiresReference=activeTemplate?activeTemplate.template.template_id!=='tpl_season_theme'&&(kind==='video'||activeTemplate.template.required_assets.some(a=>a.required)):modeNeedsReference(generationMode);
   const [pendingGeneration,setPendingGeneration]=useState<PendingGeneration|null>(null);
   const pendingRef=useRef<string|null>(null);
   const modelSelection=useRef<{kind:'image'|'video';initialized:boolean}>({kind:'image',initialized:false});
@@ -73,13 +84,19 @@ export default function App() {
     projectRef.current=next;dirty.current++;setProject(next);setSaveState('待保存');
   },[]);
   const mutate=useCallback((fn:(p:Project)=>Project,history=true)=>commit(fn(projectRef.current),history),[commit]);
-  const updateGeneration=(patch:Partial<GenerationSettings>)=>{setValidation({});setSubmitError('');mutate(p=>({...p,generation:{...DEFAULT_GENERATION,...p.generation,...patch}}),false);};
+  const updateGeneration=(patch:Partial<GenerationSettings>)=>{setValidation({});setSubmitError('');mutate(p=>({...p,generation:{...restoreGenerationSettings(p.generation),...patch}}),false);};
   const setPrompt=(value:string)=>updateGeneration(kind==='image'?{imagePrompt:value}:{videoPrompt:value});
   const setRatio=(value:string)=>updateGeneration(kind==='image'?{imageRatio:value,imageSize:''}:{videoRatio:value});
-  const setImageMode=(mode:ImageMode)=>{
-    const isPreset=settings.imagePrompt===getImagePrompt(imageMode,purpose);
-    updateGeneration({imageMode:mode,...(isPreset?{imagePrompt:getImagePrompt(mode,purpose)}:{})});
+  const setGenerationMode=(mode:GenerationMode)=>{
+    if(activeTemplate&&!window.confirm('切换输入方式会退出当前模板，保留已填写的描述。是否继续？'))return false;
+    const target=modeKind(mode);
+    if(target==='image'){const next=mode as ImageMode;const isPreset=!settings.imagePrompt.trim()||settings.imagePrompt===getImagePrompt(imageMode,purpose);updateGeneration({kind:target,imageMode:next,template:null,...(isPreset?{imagePrompt:getImagePrompt(next,purpose)}:{})});}
+    else{const next=mode as VideoMode;const isPreset=!settings.videoPrompt.trim()||settings.videoPrompt===getVideoPrompt(videoMode);updateGeneration({kind:target,videoMode:next,template:null,...(isPreset?{videoPrompt:getVideoPrompt(next)}:{})});}
+    return true;
   };
+  const openCreativeProject=(id:string)=>{if(!canLeaveCreative())return;creativeDirty.current=false;setCreativeCreateNonce(0);setCreativeProjectId(id);changeView('creative');};
+  const createCreativeProject=()=>{if(!canLeaveCreative())return;creativeDirty.current=false;setCreativeProjectId(null);setCreativeCreateNonce(value=>value+1);changeView('creative');};
+  const startGeneration=(mode:GenerationMode)=>{if(!canLeaveCreative()||!setGenerationMode(mode))return;creativeDirty.current=false;changeView('home');};
   const selectPurpose=(value:ImagePurpose)=>{
     const preset=getImagePrompt(imageMode,value);
     if(value!=='custom'&&prompt.trim()&&prompt!==getImagePrompt(imageMode,purpose)&&!window.confirm('切换用途将替换当前图片描述，是否使用新的预设？'))return;
@@ -118,14 +135,14 @@ export default function App() {
       try {
         const raw=localStorage.getItem(STORAGE);
         if(raw){const local=JSON.parse(raw) as {project:Project;draft:{id:string;version:number}|null;pending:boolean};
-          if(local.project?.canvas?.layers){local.project.assistantProjectId ||= local.draft?.id||`workbench-${crypto.randomUUID()}`;projectRef.current=local.project;setProject(local.project);draftRef.current=local.draft;
+          if(local.project?.canvas?.layers){local.project.generation=restoreGenerationSettings(local.project.generation);local.project.assistantProjectId ||= local.draft?.id||`workbench-${crypto.randomUUID()}`;projectRef.current=local.project;setProject(local.project);draftRef.current=local.draft;
             if(local.pending){dirty.current=1;setSaveState('已恢复未保存修改');}
-            else if(local.draft){const d=await api.draft(local.draft.id);const p={name:d.content.meta?.name||d.name,canvas:d.content.canvas,assetGroups:d.content.assetGroups||{},generation:d.content.generation,assistantProjectId:d.content.meta?.assistantProjectId||d.id};
+            else if(local.draft){const d=await api.draft(local.draft.id);const p={name:d.content.meta?.name||d.name,canvas:d.content.canvas,assetGroups:d.content.assetGroups||{},generation:restoreGenerationSettings(d.content.generation),assistantProjectId:d.content.meta?.assistantProjectId||d.id};
               projectRef.current=p;setProject(p);draftRef.current={id:d.id,version:d.version};setSaveState('已保存到本机');}
           }
         } else {
           const d=(await api.drafts()).items.find(d=>Array.isArray(d.content?.canvas?.layers));
-          if(d){const p={name:d.content.meta?.name||d.name,canvas:d.content.canvas,assetGroups:d.content.assetGroups||{},generation:d.content.generation,assistantProjectId:d.content.meta?.assistantProjectId||d.id};
+          if(d){const p={name:d.content.meta?.name||d.name,canvas:d.content.canvas,assetGroups:d.content.assetGroups||{},generation:restoreGenerationSettings(d.content.generation),assistantProjectId:d.content.meta?.assistantProjectId||d.id};
             projectRef.current=p;setProject(p);draftRef.current={id:d.id,version:d.version};setSaveState('已保存到本机');}
         }
       }catch{setSaveError('暂时无法恢复上次服务端草稿。已保留当前页面内容，请检查服务后再保存。');}
@@ -145,10 +162,10 @@ export default function App() {
       return;
     }
     if(!models.length)return;
-    const list=models.filter(m=>m.kind===kind&&!getModelUnavailableReason(m));
+    const list=models.filter(m=>m.kind===kind&&!getModelUnavailableReason(m)&&supportedGenerationModes(m).includes(generationMode));
     modelSelection.current.initialized=true;
     setModelId((list.find(m=>m.id.includes('flash'))||list[0])?.id||'');
-  },[models,kind,modelId]);
+  },[models,kind,modelId,generationMode]);
   useEffect(()=>{if(!notice)return;const timer=window.setTimeout(()=>setNotice(''),8000);return()=>window.clearTimeout(timer);},[notice]);
   useEffect(()=>{
     if(!preview&&!referencePicker&&!taskDrawer)return;
@@ -174,7 +191,9 @@ export default function App() {
   const durations=durationPolicy.kind==='enum'?durationPolicy.allowed:durationPolicy.kind==='range'&&durationPolicy.max-durationPolicy.min<=300?Array.from({length:(durationPolicy.max-durationPolicy.min)/durationPolicy.step+1},(_,i)=>durationPolicy.min+i*durationPolicy.step):[];
   const resolution=settings.videoResolution??'720p';
   const imageSize=project.generation?.imageSize??getDefaultImageSize(selectedModel,ratio)??'';
-  const selectionError=validateModelSelection(selectedModel,kind)||(!supportedRatios.includes(ratio)?'请重新选择当前模型支持的画面比例。':kind==='video'?(validateVideoDuration(selectedModel,duration)||(!supportedResolutions.includes(resolution)?'请重新选择视频清晰度。':null)):(!imageSizes.includes(imageSize)?'请为当前比例选择清晰度。':null));
+  const modeError=validateGenerationMode(selectedModel,generationMode);
+  const integrationError=workbenchModeIntegrationError(generationMode);
+  const selectionError=validateModelSelection(selectedModel,kind)||templateModeError||modeError||integrationError||(!supportedRatios.includes(ratio)?'请重新选择当前模型支持的画面比例。':kind==='video'?(validateVideoDuration(selectedModel,duration)||(!supportedResolutions.includes(resolution)?'请重新选择视频清晰度。':null)):(!imageSizes.includes(imageSize)?'请为当前比例选择清晰度。':null));
   const pendingPermissionError=pendingGeneration?getModelUnavailableReason(models.find(model=>model.id===pendingGeneration.items[0]?.model_id)):null;
   const pendingEstimateError=pendingGeneration?.estimates?inspectGenerationEstimates(pendingGeneration.estimates,pendingGeneration.items.length).error:null;
   const assistantProjectId=project.assistantProjectId??draftRef.current?.id??'';
@@ -185,7 +204,7 @@ export default function App() {
     if(a.kind==='video'){setPreview(a);return;}
     if(!canLeaveCreative())return;creativeDirty.current=false;
     const layer=fitAsset(a,projectRef.current.canvas.width,projectRef.current.canvas.height);
-    mutate(p=>({...p,canvas:{...p.canvas,layers:[...p.canvas.layers,layer]}}));setSelected(layer.id);setPropertiesOpen(true);setView('canvas');
+    mutate(p=>({...p,canvas:{...p.canvas,layers:[...p.canvas.layers,layer]}}));setSelected(layer.id);setPropertiesOpen(true);changeView('canvas');
   };
   const addElement=(type:'text'|'shape')=>{
     const id=crypto.randomUUID(), d=projectRef.current.canvas;
@@ -211,8 +230,8 @@ export default function App() {
     if(!canLeaveCreative())return;creativeDirty.current=false;
     if(asset.size>10*1024*1024)return notify('用于生成的参考图请控制在 10MB 以内。');
     const isPreset=settings.imagePrompt===getImagePrompt(imageMode,purpose);
-    updateGeneration(target==='image'?{kind:'image',imageMode:'image_to_image',imageReference:asset.id,...(isPreset?{imagePrompt:getImagePrompt('image_to_image',purpose)}:{})}:{kind:'video',videoReference:asset.id});
-    setReferencePicker(false);setPreview(null);setView('home');
+    updateGeneration(target==='image'?{kind:'image',imageMode:'image_to_image',imageReference:asset.id,...(isPreset?{imagePrompt:getImagePrompt('image_to_image',purpose)}:{})}:{kind:'video',videoMode:'image_to_video',videoReference:asset.id});
+    setReferencePicker(false);setPreview(null);changeView('home');
     notify(target==='image'?'已选为图生图参考，填写修改要求后即可生成。':'已选为视频首帧，填写动作描述后即可生成。');
   };
   const openUpload=(intent:'image'|'video'|'library'|'canvas')=>{uploadIntent.current=intent;if(fileRef.current){fileRef.current.multiple=intent==='library'||intent==='canvas';fileRef.current.click();}};
@@ -220,7 +239,7 @@ export default function App() {
     const intent=uploadIntent.current,asReference=intent==='image'||intent==='video';
     try{let first='';for(const file of Array.from(files)){if(file.size>(asReference?10:20)*1024*1024)throw new Error(`单张图片不能超过 ${asReference?10:20}MB`);const r=await api.upload(file);first ||= r.asset_id;}
       await refresh();
-      if(asReference){updateGeneration(intent==='image'?{kind:'image',imageMode:'image_to_image',imageReference:first}:{kind:'video',videoReference:first});setReferencePicker(false);}
+      if(asReference){updateGeneration(intent==='image'?{kind:'image',imageMode:'image_to_image',imageReference:first}:{kind:'video',videoMode:'image_to_video',videoReference:first});setReferencePicker(false);}
       notify(`已上传 ${files.length} 张素材${asReference?'，第一张已选作参考图':'，原件保存在本机'}。`);
     }catch(e){notify(e instanceof Error?e.message:'上传失败');}finally{setUploading(false);if(fileRef.current)fileRef.current.value='';}};
   const submit=async()=>{
@@ -228,16 +247,16 @@ export default function App() {
     setSubmitError('');
     const fields:{prompt?:string;reference?:string}={};
     if(!activeTemplate&&!prompt.trim())fields.prompt='请填写商品描述或修改要求。';
-    if((kind==='video'||(imageMode==='image_to_image'&&!activeTemplate)||(activeTemplate&&activeTemplate.template.template_id!=='tpl_season_theme'&&activeTemplate.template.required_assets.some(a=>a.required)))&&!refAsset)fields.reference='请先上传或选择一张商品参考图。';
+    if((requiresReference||activeTemplate&&reference)&&!refAsset)fields.reference=reference?'所选参考图暂时无法读取，请重新选择，避免把概念图当成商品图。':'请先上传或选择一张商品参考图。';
     setValidation(fields);
     if(fields.reference||fields.prompt){document.getElementById(fields.reference?'reference-select':'prompt')?.focus();return;}
     let base;
-    try{base=activeTemplate?templateInput(activeTemplate,selectedModel,{ratio,imageSize,duration,resolution,reference:refAsset?.id??null,prompt}):buildGenerationInput({kind,imageMode,modelId,prompt,reference:refAsset,ratio,duration,model:selectedModel,resolution,imageSize});}
+    try{if(selectionError)throw new Error(selectionError);base=activeTemplate?templateInput(activeTemplate,selectedModel,{ratio,imageSize,duration,resolution,reference:modeNeedsReference(generationMode)?refAsset?.id??null:null,prompt}):buildGenerationInput({kind,imageMode,videoMode,modelId,prompt,reference:refAsset,ratio,duration,model:selectedModel,resolution,imageSize});}
     catch(e){setSubmitError(e instanceof Error?e.message:'请检查生成参数。');return;}
     const id=crypto.randomUUID();
     const items=Array.from({length:batchCount},()=>({...base,params:{...base.params},client_request_id:crypto.randomUUID()}));
     pendingRef.current=id;
-    setPendingGeneration({id,items,kind,modelName:selectedModel?.name||modelId,specLabel:kind==='video'?`${ratio} · ${resolution} · ${duration} 秒`:`${ratio} · ${imageSize.replace('x',' × ')}`,costs:null,estimates:null,prompts:[],error:''});
+    setPendingGeneration({id,items,kind,modelName:selectedModel?.name||modelId,specLabel:kind==='video'?`${GENERATION_MODES[generationMode].label} · ${ratio} · ${resolution} · ${duration} 秒`:`${GENERATION_MODES[generationMode].label} · ${ratio} · ${imageSize.replace('x',' × ')}`,costs:null,estimates:null,prompts:[],error:''});
     try{
       const quotes=await Promise.all(items.map(item=>api.estimateTask(item)));
       const estimateCheck=inspectGenerationEstimates(quotes,items.length);
@@ -253,13 +272,14 @@ export default function App() {
     const estimateCheck=inspectGenerationEstimates(frozen.estimates,frozen.items.length);
     if(estimateCheck.error){setPendingGeneration({...frozen,error:estimateCheck.error});return;}
     const model=models.find(item=>item.id===frozen.items[0].model_id);
-    const unavailable=getModelUnavailableReason(model);
+    const frozenMode=(frozen.items[0].params.generation_mode??(frozen.kind==='video'?'image_to_video':frozen.items[0].input_asset_id?'image_to_image':'text_to_image')) as GenerationMode;
+    const unavailable=getModelUnavailableReason(model)||validateGenerationMode(model,frozenMode)||workbenchModeIntegrationError(frozenMode);
     if(unavailable){setPendingGeneration({...frozen,error:unavailable});return;}
     submitLock.current=true;setBusy(true);
     try{
       if(frozen.items.length===1)await api.createTask(frozen.items[0]);
       else await api.createBatch(`${project.name} · 批量生成`,frozen.items);
-      pendingRef.current=null;setPendingGeneration(null);setView('home');
+      pendingRef.current=null;setPendingGeneration(null);changeView('home');
       await refresh();notify(`已提交 ${frozen.items.length} 个任务，完成后会显示在生成结果中。`);
     }catch(e){setPendingGeneration(current=>current?{...current,error:`${e instanceof ApiError?(ERRORS[e.code]||e.message):e instanceof Error?e.message:'提交结果暂时未知。'} 请先检查任务中心，勿连续重复提交。`}:current);}
     finally{submitLock.current=false;setBusy(false);}
@@ -281,17 +301,17 @@ export default function App() {
     {!compact&&<div className="asset-bottom"><label><input type="checkbox" checked={marked.has(a.id)} onChange={()=>setMarked(old=>{const n=new Set(old);if(n.has(a.id))n.delete(a.id);else n.add(a.id);return n;})}/>选择</label><span>{a.source==='upload'?'已上传':'已生成'}</span></div>}
   </article>)}{!filteredAssets.length&&!resourceErrors.assets&&<div className="empty-state"><ImageIcon size={26}/><strong>{query||assetTab!=='all'?'没有符合筛选条件的素材':'素材从这里开始'}</strong><span>{query||assetTab!=='all'?'试试其他关键词，或切换筛选条件。':'上传商品图，或生成第一张图片。'}</span><button className="secondary" onClick={()=>openUpload(view==='canvas'?'canvas':'library')}><Upload size={14}/>上传素材</button></div>}</div>;
 
-  const needsReference=kind==='video'||imageMode==='image_to_image'||!!activeTemplate;
   const generationForm=<fieldset disabled={!ready||busy||!!pendingGeneration} className="composer-content">
     <div className="kind-switch" aria-label="生成类型">
-      <button aria-pressed={kind==='image'} className={kind==='image'?'selected':''} onClick={()=>updateGeneration({kind:'image'})}><ImageIcon size={18}/>生图</button>
-      <button aria-pressed={kind==='video'} className={kind==='video'?'selected':''} onClick={()=>updateGeneration({kind:'video'})}><Film size={18}/>生视频</button>
+      <button aria-pressed={kind==='image'} className={kind==='image'?'selected':''} onClick={()=>updateGeneration({kind:'image'})}><ImageIcon size={18}/>图片生成</button>
+      <button aria-pressed={kind==='video'} className={kind==='video'?'selected':''} onClick={()=>updateGeneration({kind:'video'})}><Film size={18}/>视频生成</button>
     </div>
     <div className="composer-fields"><SingleTemplatePanel kind={kind} modelId={modelId} value={activeTemplate} onChange={value=>updateGeneration({template:value})} onSelect={template=>{if(prompt.trim()&&!window.confirm('套用模板将清空当前描述，由模板生成新描述，是否继续？'))return;updateGeneration({template:{template,fields:{},conceptAcknowledged:false},...(kind==='image'?{imagePrompt:'',imageMode:template.default_params.generation_mode==='image_to_image'?'image_to_image':'text_to_image',imageSize:typeof template.default_params.size==='string'?template.default_params.size:undefined,imageRatio:'1:1'}:{videoPrompt:'',duration:typeof template.default_params.duration==='number'?template.default_params.duration:duration})});}}/><p className="composer-section-heading"><span>01</span> 创作内容</p>
-    {kind==='image'?<>
-      {activeTemplate?<p className="microcopy">{activeTemplate.template.template_id==='tpl_season_theme'?'有商品图时参考原图创作；未提供时按创意概念图生成。':'此模板使用商品参考图；退出模板后可切换输入方式。'}</p>:<div className="mode-switch" aria-label="图片输入方式">{([['text_to_image','文生图'],['image_to_image','图生图']] as const).map(([mode,label])=><button key={mode} aria-pressed={imageMode===mode} className={imageMode===mode?'selected':''} onClick={()=>setImageMode(mode)}>{label}</button>)}</div>}
-      {!activeTemplate&&<><label className="field-label">图片用途</label><div className="purpose-options">{([['white','白底商品图'],['scene','氛围场景图'],['custom','自定义']] as const).map(([value,label])=><button key={value} aria-pressed={purpose===value} className={purpose===value?'selected':''} onClick={()=>selectPurpose(value)}>{label}</button>)}</div></>}
-    </>:<p className="composer-intro">从一张商品图开始，描述你想要的镜头和动作。</p>}
+    <div className="four-mode-switch" role="group" aria-label={kind==='image'?'图片输入方式':'视频输入方式'}>{modesForKind(kind).map(mode=><button type="button" key={mode} aria-pressed={generationMode===mode} className={generationMode===mode?'selected':''} disabled={!!models.length&&!models.some(model=>model.kind===kind&&supportedGenerationModes(model).includes(mode))} onClick={()=>setGenerationMode(mode)}><strong>{GENERATION_MODES[mode].label}</strong><span>{modeNeedsReference(mode)?'使用商品原图':'仅使用文字描述'}</span></button>)}</div>
+    <p className="four-mode-description">{GENERATION_MODES[generationMode].description}</p>
+    {activeTemplate&&<p className="four-mode-template-note">{activeTemplate.template.template_id==='tpl_season_theme'?'此主题模板：有参考图时图生图；无参考图时生成概念图。':'当前输入方式由模板要求决定。'}切换方式会退出模板。</p>}
+    {integrationError&&<div className="four-mode-pending" role="status">{integrationError}</div>}
+    {kind==='image'&&!activeTemplate&&<><label className="field-label">图片用途</label><div className="purpose-options">{([['white','白底商品图'],['scene','氛围场景图'],['custom','自定义']] as const).map(([value,label])=><button key={value} aria-pressed={purpose===value} className={purpose===value?'selected':''} onClick={()=>selectPurpose(value)}>{label}</button>)}</div></>}
     {needsReference&&<div className="reference-field">
       <label className="field-label">{kind==='image'?(activeTemplate?.template.template_id==='tpl_season_theme'?'商品参考图（可选）':'商品参考图'):'视频首帧图'}<span>单张 · 最大 10MB</span></label>
       {refAsset?<div className="selected-reference"><img src={mediaUrl(refAsset.id)} alt={kind==='image'?'已选商品参考图':'已选视频首帧图'}/><div><strong>已选择 1 张图片</strong><span>{refAsset.width} × {refAsset.height} · {(refAsset.size/1e6).toFixed(1)} MB</span><button onClick={()=>setReferencePicker(true)}>更换图片</button></div><IconButton label="移除参考图" onClick={()=>updateGeneration(kind==='image'?{imageReference:null}:{videoReference:null})}><X size={15}/></IconButton></div>:<button id="reference-select" aria-invalid={!!validation.reference} aria-describedby={validation.reference?'reference-error':undefined} className="reference-empty" onClick={()=>setReferencePicker(true)}><Upload size={23}/><strong>上传或选择商品图</strong><span>从素材库选择，也可以上传新图片</span></button>}
@@ -300,11 +320,11 @@ export default function App() {
     <label className="field-label" htmlFor="prompt">{activeTemplate?'覆盖模板描述（选填）':kind==='video'?'镜头与动作描述':imageMode==='image_to_image'?'你想修改什么？':'描述你想生成的商品图'}<Sparkles size={14}/></label>
     <textarea id="prompt" aria-invalid={!!validation.prompt} aria-describedby={validation.prompt?'prompt-error':undefined} value={prompt} onChange={e=>setPrompt(e.target.value)} rows={5} placeholder={kind==='image'?'描述商品、背景、光线和构图…':'例如：镜头缓慢推近，商品保持静止…'}/>
     {validation.prompt&&<p className="field-error" id="prompt-error" role="alert">{validation.prompt}</p>}
-    {kind==='image'&&imageMode==='image_to_image'&&<p className="microcopy reference-tip">以参考图中的实际商品为准，请勿描述图中没有的商品。生成后请核对数量、包装与外形。</p>}
+    {kind==='image'&&generationMode==='image_to_image'&&<p className="microcopy reference-tip">以参考图中的实际商品为准，请勿描述图中没有的商品。生成后请核对数量、包装与外形。</p>}
     <PromptOptimizer projectId={assistantProjectId} prompt={prompt} kind={kind} onApply={setPrompt}/>
     <details open className="composer-parameters"><summary><span className="composer-section-heading"><span>02</span> 生成设置</span><span>{ratio} · {kind==='image'?(imageSizes.includes(imageSize)?imageSizeTier(imageSize):'请选择清晰度'):`${duration}秒 · ${resolution}`} · {batchCount}{kind==='image'?'张':'条'}</span><ChevronDown size={16}/></summary>
       <label className="field-label" htmlFor="generation-model">生成模型<span>云端推理</span></label>
-      <select id="generation-model" aria-label="生成模型" value={modelId} onChange={e=>setModelId(e.target.value)}><option value="" disabled>请选择可用模型</option>{models.filter(m=>m.kind===kind).map(m=><option key={m.id} value={m.id} disabled={!!getModelUnavailableReason(m)}>{m.name}{getModelUnavailableReason(m)?` · ${getModelUnavailableReason(m)}`:''}</option>)}</select>
+      <select id="generation-model" aria-label="生成模型" value={modelId} onChange={e=>setModelId(e.target.value)}><option value="" disabled>请选择可用模型</option>{models.filter(m=>m.kind===kind).map(m=>{const error=getModelUnavailableReason(m)||validateGenerationMode(m,generationMode);return <option key={m.id} value={m.id} disabled={!!error}>{m.name}{error?` · ${error}`:''}</option>;})}</select>
       {selectedModel?.lifecycle?.status==='eos_scheduled'&&<p className="microcopy model-lifecycle">此模型计划于 {selectedModel.lifecycle.eos_at?new Date(selectedModel.lifecycle.eos_at).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'}):'近期'} 下线，请提前准备替代模型。</p>}
       {kind==='image'?<ImageOutputSettings model={selectedModel} ratio={ratio} imageSize={imageSize} count={batchCount} onRatioChange={setRatio} onSizeChange={value=>updateGeneration({imageSize:value})} onCountChange={value=>updateGeneration({batchCount:value})}/>:<>
       <label className="field-label">画面比例</label><div className="ratio-options">{supportedRatios.map(r=><button key={r} aria-pressed={ratio===r} onClick={()=>setRatio(r)} className={ratio===r?'selected':''}>{r}</button>)}</div>
@@ -313,24 +333,25 @@ export default function App() {
       {selectionError&&<p className="field-error" role="alert">{selectionError}</p>}
       <p className="microcopy">选项来自当前模型能力。新增规格的真实效果仍需实测，费用以下一步预估为准。</p>
     </details></div>
-    <div className="generation-footer">{submitError&&<p className="field-error" role="alert">{submitError}</p>}{resourceErrors.models&&<p className="field-error">{resourceErrors.models}</p>}<button className="generate-button" disabled={busy||!ready||uploading||!!selectionError||!connected} onClick={()=>void submit()}>{busy?<Loader2 size={18} className="spin"/>:<Sparkles size={18}/>} {busy?'正在提交…':`生成 ${batchCount} ${kind==='image'?'张图片':'条视频'}`}<ArrowUpRight size={17}/></button><p className="microcopy">{needsReference?'提交后参考图将发送至火山方舟。':'提交后文字描述将发送至火山方舟。'}上传与编辑不产生生成费用。</p><div className="composer-budget"><Cloud size={13}/><span>{resourceErrors.usage||`今日估算 ¥${usage.spent_today_cny.toFixed(2)} / ¥${usage.budget_cny.toFixed(0)}`}</span><span>非实际账单</span></div></div>
+    <div className="generation-footer">{submitError&&<p className="field-error" role="alert">{submitError}</p>}{resourceErrors.models&&<p className="field-error">{resourceErrors.models}</p>}<button className="generate-button" disabled={busy||!ready||uploading||!!selectionError||!connected} onClick={()=>void submit()}>{busy?<Loader2 size={18} className="spin"/>:<Sparkles size={18}/>} {busy?'正在提交…':`生成 ${batchCount} ${kind==='image'?'张图片':'条视频'}`}<ArrowUpRight size={17}/></button><p className="microcopy">{(requiresReference||needsReference&&refAsset)?'确认后，描述和所选参考图将发送至火山方舟。':'确认后仅发送文字描述，不会发送已保留的参考图。'}上传与编辑不产生生成费用。</p><div className="composer-budget"><Cloud size={13}/><span>{resourceErrors.usage||`今日估算 ¥${usage.spent_today_cny.toFixed(2)} / ¥${usage.budget_cny.toFixed(0)}`}</span><span>非实际账单</span></div></div>
   </fieldset>;
   return <div className={`app-shell view-${view}`}>
-    <aside className="rail"><button className="nav-brand" title="物料间" onClick={()=>navigate('home')}><span className="brand-mark"><i/><i/><i/><i/></span><span>物料间<small>电商 AI 创作工作台</small></span></button><button className="nav-create" onClick={()=>navigate('home')}><Plus size={17}/>开始创作</button><div className="rail-items">
+    <aside className="rail"><button className="nav-brand" title="物料间" onClick={()=>navigate('projects')}><span className="brand-mark"><i/><i/><i/><i/></span><span>物料间<small>电商 AI 创作工作台</small></span></button><button className="nav-create" onClick={()=>navigate('home')}><Plus size={17}/>开始创作</button><div className="rail-items">
+      <button className={view==='projects'?'rail-item current':'rail-item'} onClick={()=>navigate('projects')}><LayoutGrid size={18}/><span>项目首页</span></button>
       <button className={view==='home'?'rail-item current':'rail-item'} onClick={()=>navigate('home')}><LayoutGrid size={18}/><span>快捷工作台</span></button>
-      <button className={view==='creative'?'rail-item current':'rail-item'} onClick={()=>navigate('creative')}><Sparkles size={18}/><span>引导创作</span></button>
+      <button className={view==='creative'?'rail-item current':'rail-item'} onClick={()=>navigate('creative')}><Sparkles size={18}/><span>导演台</span></button>
       <button className={view==='library'?'rail-item current':'rail-item'} onClick={()=>navigate('library')}><FolderOpen size={18}/><span>素材库</span></button>
       <button className="rail-item" onClick={()=>setTaskDrawer(true)}><Clock3 size={18}/><span>任务中心</span>{activeTasks.length>0&&<i>{activeTasks.length}</i>}</button>
     </div><div className="nav-project"><span>排版工具</span><button onClick={()=>navigate('canvas')}><Layers size={15}/>继续排版<ArrowUpRight size={13}/></button></div><div className="rail-bottom"><span className="local-avatar">我</span><span>我的创作空间<small>素材与草稿存储于本机</small></span></div></aside>
     <div className="app-main">
-      <header className="topbar"><div className="wordmark">{view==='home'?'快捷工作台':view==='creative'?'引导创作':view==='library'?'素材库':'排版编辑'}</div><div className="breadcrumb">电商内容创作</div><div className="header-right"><span className={`connection ${connected?'online':''}`}><i/>{connected?'服务已连接':ready?'连接暂时中断':'正在连接服务'}</span><button className="task-top" onClick={()=>setTaskDrawer(true)}><Clock3 size={15}/>任务中心{activeTasks.length>0&&<b>{activeTasks.length}</b>}</button><span className="avatar">我</span></div></header>
+      <header className="topbar"><div className="wordmark">{view==='projects'?'项目首页':view==='home'?'快捷工作台':view==='creative'?'导演台':view==='library'?'素材库':'排版编辑'}</div><div className="breadcrumb">电商内容创作</div><div className="header-right"><StudioThemeToggle/><span className={`connection ${connected?'online':''}`}><i/>{connected?'服务已连接':ready?'连接暂时中断':'正在连接服务'}</span><button className="task-top" onClick={()=>setTaskDrawer(true)}><Clock3 size={15}/>任务中心{activeTasks.length>0&&<b>{activeTasks.length}</b>}</button><span className="avatar">我</span></div></header>
       {(view==='home'||view==='canvas')&&<div className="projectbar"><div className="project-name"><span className="project-icon"><Layers size={17}/></span><input disabled={!ready} aria-label="项目名称" value={project.name} onChange={e=>mutate(p=>({...p,name:e.target.value}),false)}/><ChevronDown size={14}/><span className="save-status">{saveState==='已保存到本机'?<Check size={12}/>:saveState==='保存中…'?<Loader2 size={12} className="spin"/>:<span className="small-dot"/>}{saveState}</span></div><div className="project-actions"><button className="secondary" disabled={!ready} onClick={()=>void saveProject()}><Save size={14}/>保存草稿</button>{blocked.current&&<button className="secondary" onClick={()=>{draftRef.current=null;blocked.current=false;dirty.current++;void saveProject();}}>另存为新草稿</button>}{view==='canvas'?<button className="primary" disabled={exporting} onClick={()=>void exportPng()}>{exporting?<Loader2 size={15} className="spin"/>:<Download size={15}/>}导出画布<ChevronDown size={12}/></button>:<button className="secondary" onClick={()=>navigate('canvas')}><Layers size={14}/>排版编辑</button>}</div></div>}
       {saveError&&<div className="persistent-notice" role="alert"><span>{saveError}</span><button className="secondary" onClick={()=>{if(blocked.current){draftRef.current=null;blocked.current=false;dirty.current++;}void saveProject();}}>{blocked.current?'另存为新草稿':'重试保存'}</button></div>}
       {notice&&<div className="toast" role="status"><span>{notice}</span><button aria-label="关闭提示" onClick={()=>setNotice('')}><X size={15}/></button></div>}
       <div className="workspace">
         {view==='canvas'&&<aside className="creation-panel"><div className="asset-panel-content"><button className="secondary" onClick={()=>navigate('home')}>返回工作台</button><button className="upload-zone" onClick={()=>openUpload('canvas')}>{uploading?<Loader2 size={24} className="spin"/>:<Upload size={24}/>}<strong>上传排版素材</strong><span>JPG / PNG / WebP · 最大 20MB</span></button><label className="searchbox"><Search size={14}/><input placeholder="搜索素材或 SKU" value={query} onChange={e=>setQuery(e.target.value)}/></label><p className="microcopy">点击图片预览，点 ＋ 加入排版画布。</p>{gallery(true)}</div></aside>}
         <main className="editor-main">
-          {view==='creative'?<CreativeSpace onWorkbench={()=>{creativeDirty.current=false;setView('home');}} onDirtyChange={onCreativeDirtyChange}/>:view==='home'?<Home assetsError={resourceErrors.assets} onRefresh={()=>void refresh()} assets={assets} activeCount={activeTasks.length} connected={connected} loading={!ready} kind={kind} onPreview={setPreview} onReference={selectReference} onEdit={addAsset} onLibrary={()=>setView('library')} onTasks={()=>setTaskDrawer(true)}>{generationForm}</Home>:view==='library'?<><div className="library-heading"><div><span className="section-kicker">ASSET LIBRARY</span><h1>让每一次创作，都有迹可循。</h1><p>{assets.length} 份本机素材，随时回到画布。</p></div><button className="secondary" disabled={!marked.size||exporting} onClick={()=>void exportSelected()}><Download size={14}/>打包导出{marked.size?` (${marked.size})`:''}</button></div><div className="library-filters">{[['all','全部素材'],['image','图片'],['video','视频'],['upload','上传原图']].map(([id,label])=><button className={assetTab===id?'selected':''} onClick={()=>setAssetTab(id)} key={id}>{label}</button>)}<label className="searchbox"><Search size={14}/><input placeholder="搜索素材" value={query} onChange={e=>setQuery(e.target.value)}/></label></div><div className="library-scroll">{resourceErrors.assets&&<div className="persistent-notice" role="alert"><span>{resourceErrors.assets}</span><button className="secondary" onClick={()=>void refresh()}>重新读取</button></div>}{gallery()}</div></>:<>
+          {view==='projects'?<ProjectHome assets={assets} onCreateProject={createCreativeProject} onOpenProject={openCreativeProject} onStartGeneration={startGeneration} onWorkbench={()=>navigate('home')}/>:view==='creative'?<CreativeSpace initialProjectId={creativeProjectId} createRequest={creativeCreateNonce} onWorkbench={()=>{creativeDirty.current=false;changeView('home');}} onDirtyChange={onCreativeDirtyChange}/>:view==='home'?<Home assetsError={resourceErrors.assets} onRefresh={()=>void refresh()} assets={assets} activeCount={activeTasks.length} connected={connected} loading={!ready} kind={kind} onPreview={setPreview} onReference={selectReference} onEdit={addAsset} onLibrary={()=>changeView('library')} onTasks={()=>setTaskDrawer(true)}>{generationForm}</Home>:view==='library'?<><div className="library-heading"><div><span className="section-kicker">ASSET LIBRARY</span><h1>让每一次创作，都有迹可循。</h1><p>{assets.length} 份本机素材，随时回到画布。</p></div><button className="secondary" disabled={!marked.size||exporting} onClick={()=>void exportSelected()}><Download size={14}/>打包导出{marked.size?` (${marked.size})`:''}</button></div><div className="library-filters">{[['all','全部素材'],['image','图片'],['video','视频'],['upload','上传原图']].map(([id,label])=><button className={assetTab===id?'selected':''} onClick={()=>setAssetTab(id)} key={id}>{label}</button>)}<label className="searchbox"><Search size={14}/><input placeholder="搜索素材" value={query} onChange={e=>setQuery(e.target.value)}/></label></div><div className="library-scroll">{resourceErrors.assets&&<div className="persistent-notice" role="alert"><span>{resourceErrors.assets}</span><button className="secondary" onClick={()=>void refresh()}>重新读取</button></div>}{gallery()}</div></>:<>
             <div className="canvas-heading"><div><span className="section-kicker">LAYOUT EDITOR</span><h1>排版编辑<span>为商品图添加文案与布局。</span></h1></div><span className="canvas-size-label">{project.canvas.width} × {project.canvas.height} px</span></div>
             <div className="canvas-stage" onClick={()=>setSelected(null)}><div className="floating-tools" onClick={e=>e.stopPropagation()}><IconButton label="选择与移动" active onClick={()=>undefined}><MousePointer2 size={18}/></IconButton><i/><IconButton label="添加文字" onClick={()=>addElement('text')}><Type size={18}/></IconButton><IconButton label="添加色块" onClick={()=>addElement('shape')}><Square size={17}/></IconButton><IconButton label="添加图片" onClick={()=>openUpload('canvas')}><ImageIcon size={18}/></IconButton><i/><IconButton label="撤销" disabled={!undo.length} onClick={undoEdit}><Undo2 size={17}/></IconButton></div>
               <div className="canvas-paper" style={{aspectRatio:`${project.canvas.width}/${project.canvas.height}`,transform:`scale(${zoom})`}} onClick={e=>e.stopPropagation()}>

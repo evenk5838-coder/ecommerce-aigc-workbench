@@ -1,0 +1,282 @@
+{
+  "director": {
+    "project_id": "prj_ad212fa105334f539855",
+    "project": {
+      "name": "样例项目",
+      "status": "script_confirmed"
+    },
+    "facts": {
+      "brief": {
+        "subject": "单瓶精华液",
+        "quantity": 1
+      },
+      "ready": true
+    },
+    "current": {
+      "stage": "delivery",
+      "script": {
+        "script_id": "scr_4d5a1f8e87f54451a9cf",
+        "version": 1,
+        "source": "manual",
+        "confirmed_at": 1792993371.607332
+      },
+      "confirmation": {
+        "confirmed": true,
+        "valid": true,
+        "status": "active",
+        "object_version": 1,
+        "confirmed_at": 1792993371.6093178,
+        "invalidated_at": null,
+        "reason": null
+      }
+    },
+    "stages": [
+      {
+        "key": "requirements",
+        "label": "需求",
+        "status": "done",
+        "visible": true,
+        "actions": [
+          "edit_brief"
+        ]
+      },
+      {
+        "key": "script",
+        "label": "脚本与镜头计划",
+        "status": "done",
+        "visible": true,
+        "actions": [
+          "regenerate_script",
+          "edit_shot_plan"
+        ]
+      },
+      {
+        "key": "storyboard",
+        "label": "分镜画面与审核",
+        "status": "done",
+        "visible": true,
+        "actions": []
+      },
+      {
+        "key": "video",
+        "label": "视频生成",
+        "status": "done",
+        "visible": true,
+        "actions": [
+          "quote_generation",
+          "confirm_generation"
+        ]
+      },
+      {
+        "key": "delivery",
+        "label": "成片交付",
+        "status": "done",
+        "visible": true,
+        "actions": []
+      }
+    ],
+    "allowed_actions": [
+      "edit_brief",
+      "regenerate_script",
+      "edit_shot_plan",
+      "quote_generation",
+      "confirm_generation"
+    ],
+    "warnings": [],
+    "counts": {
+      "scripts": 1,
+      "shots": 2,
+      "takes": 2,
+      "films": 1
+    }
+  },
+  "storyboard_review": {
+    "storyboard_id": "sb_819da87dff664213bf99",
+    "status": "approved",
+    "confirmation": {
+      "confirmation_id": "cfm_eef750037d1a496f81f9",
+      "status": "active",
+      "object_type": "storyboard",
+      "object_id": "sb_819da87dff664213bf99",
+      "object_version": 1,
+      "reused": false
+    }
+  },
+  "shot_list": [
+    {
+      "shot_id": "shot_097024214e8540aea357",
+      "project_id": "prj_ad212fa105334f539855",
+      "script_version_id": "scr_4d5a1f8e87f54451a9cf",
+      "seq": 1,
+      "duration_s": 5,
+      "description": "镜1",
+      "motion": null,
+      "status": "ready",
+      "revision": 1,
+      "storyboard": {
+        "storyboard_id": "sb_819da87dff664213bf99",
+        "version": 1,
+        "asset_id": "asset_95a3ac49ed894724ba7d",
+        "status": "approved",
+        "approved": true
+      },
+      "storyboard_versions": 1
+    },
+    {
+      "shot_id": "shot_8bc1be3a9465422993e4",
+      "project_id": "prj_ad212fa105334f539855",
+      "script_version_id": "scr_4d5a1f8e87f54451a9cf",
+      "seq": 2,
+      "duration_s": 5,
+      "description": "镜2",
+      "motion": null,
+      "status": "ready",
+      "revision": 1,
+      "storyboard": {
+        "storyboard_id": "sb_25bbe5ad47e14219a811",
+        "version": 1,
+        "asset_id": "asset_95a3ac49ed894724ba7d",
+        "status": "approved",
+        "approved": true
+      },
+      "storyboard_versions": 1
+    }
+  ],
+  "project_status": {
+    "project_id": "prj_ad212fa105334f539855",
+    "mode": "done",
+    "current_stage": "delivery",
+    "shots": [
+      {
+        "shot_id": "shot_097024214e8540aea357",
+        "seq": 1,
+        "duration_s": 5,
+        "description": "镜1",
+        "storyboard": {
+          "storyboard_id": "sb_819da87dff664213bf99",
+          "version": 1,
+          "asset_id": "asset_95a3ac49ed894724ba7d",
+          "status": "approved",
+          "approved": true
+        },
+        "take": {
+          "take_id": "take_17c8ed031f6542ec8d2e",
+          "task_id": "task_63bc83035d034e8eb3a0",
+          "status": "succeeded",
+          "asset_id": "asset_f7fc4122343447669e37",
+          "actual_duration_ms": 2000
+        },
+        "takes": 1
+      },
+      {
+        "shot_id": "shot_8bc1be3a9465422993e4",
+        "seq": 2,
+        "duration_s": 5,
+        "description": "镜2",
+        "storyboard": {
+          "storyboard_id": "sb_25bbe5ad47e14219a811",
+          "version": 1,
+          "asset_id": "asset_95a3ac49ed894724ba7d",
+          "status": "approved",
+          "approved": true
+        },
+        "take": {
+          "take_id": "take_e3f22cef97b046a88c2a",
+          "task_id": "task_0217b901b87f4cd2a34b",
+          "status": "succeeded",
+          "asset_id": "asset_f7fc4122343447669e37",
+          "actual_duration_ms": 2000
+        },
+        "takes": 1
+      }
+    ],
+    "allowed_actions": [
+      "edit_brief",
+      "regenerate_script",
+      "edit_shot_plan",
+      "quote_generation",
+      "confirm_generation"
+    ],
+    "warnings": [],
+    "films": [
+      {
+        "film_id": "flm_686f7d07609f47c88bd0",
+        "version": 1,
+        "status": "ready",
+        "asset_id": "asset_3d02636672bc42c388c5",
+        "duration_ms": 4000,
+        "partial": false
+      }
+    ]
+  },
+  "film": {
+    "film_id": "flm_686f7d07609f47c88bd0",
+    "project_id": "prj_ad212fa105334f539855",
+    "version": 1,
+    "status": "ready",
+    "asset_id": "asset_3d02636672bc42c388c5",
+    "duration_ms": 4000,
+    "partial": false,
+    "items": [
+      {
+        "take_id": "take_17c8ed031f6542ec8d2e",
+        "shot_id": "shot_097024214e8540aea357",
+        "asset_id": "asset_f7fc4122343447669e37",
+        "status": "succeeded",
+        "duration_ms": 2000,
+        "actual_duration_ms": 2000
+      },
+      {
+        "take_id": "take_e3f22cef97b046a88c2a",
+        "shot_id": "shot_8bc1be3a9465422993e4",
+        "asset_id": "asset_f7fc4122343447669e37",
+        "status": "succeeded",
+        "duration_ms": 2000,
+        "actual_duration_ms": 2000
+      }
+    ],
+    "missing_shots": [],
+    "planned_duration_s": 10
+  },
+  "export": {
+    "export_id": "exp_699de75bc25141cfb9c1",
+    "project_id": "prj_ad212fa105334f539855",
+    "file_name": "prj_ad212fa105334f539855-cfb9c1.zip",
+    "bytes": 5252,
+    "includes": [
+      "film",
+      "clips",
+      "storyboards",
+      "manifest"
+    ],
+    "download_url": "/api/exports/exp_699de75bc25141cfb9c1/file",
+    "films_included": 1,
+    "clips_included": 2,
+    "storyboards_included": 2,
+    "missing": [],
+    "note": "导出不重新生成；缺失项已在 manifest.missing 标注"
+  },
+  "structure_template": {
+    "template_id": "stpl_4936b15aafb24b5a870c",
+    "name": "两镜快节奏",
+    "version": 1,
+    "latest_version": 1,
+    "snapshot": [
+      {
+        "seq": 1,
+        "role": "镜1",
+        "duration_s": 5,
+        "motion": null,
+        "rhythm": null
+      },
+      {
+        "seq": 2,
+        "role": "镜2",
+        "duration_s": 5,
+        "motion": null,
+        "rhythm": null
+      }
+    ],
+    "note": "模板只含结构，不含商品事实与素材"
+  }
+}

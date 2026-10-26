@@ -14,12 +14,7 @@ const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((
 export function inspectScopeInput(value: unknown): ProductionInspection {
   if (!isRecord(value) || (value.mode !== 'full' && value.mode !== 'clips') || !isUniqueIds(value.shot_ids)) return bad('请选择生成模式及不重复的镜头。');
   if (!isRecord(value.specs) || !['model_id', 'ratio', 'resolution'].every(key => isText((value.specs as Record<string, unknown>)[key]))) return bad('请完整选择模型、比例和清晰度。');
-  if (value.overrides !== undefined) {
-    if (!isRecord(value.overrides)) return bad('镜头覆盖参数格式不正确。');
-    for (const [id, override] of Object.entries(value.overrides)) {
-      if (!value.shot_ids.includes(id) || !isRecord(override) || !isPositiveInteger(override.duration_s) || Object.keys(override).some(key => key !== 'duration_s')) return bad('只能覆盖本次选中镜头的整数时长。');
-    }
-  }
+  if (value.overrides !== undefined && (!isRecord(value.overrides) || Object.keys(value.overrides).length)) return bad('当前后端不支持临时覆盖镜头时长，请先保存镜头时长再报价。');
   return good();
 }
 
@@ -36,7 +31,7 @@ export function inspectScope(value: unknown, expected?: ScopeInput, nowMs = Date
     ids.push(shot.shot_id); cost += shot.estimate_cny; duration += shot.duration_s;
   }
   if (!isUniqueIds(ids) || !Number.isFinite(cost) || !Number.isSafeInteger(duration)) return bad('报价镜头重复，或金额、时长超出有效范围。');
-  if (!isMoney(value.total_estimate_cny) || Math.abs(value.total_estimate_cny - cost) > 0.000001) return bad('合计报价与逐镜明细不一致，请重新报价。');
+  if (!isMoney(value.total_estimate_cny) || Math.abs(value.total_estimate_cny - Math.round(cost * 10000) / 10000) > 0.000001) return bad('合计报价与逐镜明细不一致，请重新报价。');
   if (!isPositiveInteger(value.planned_film_duration_s) || value.planned_film_duration_s !== duration) return bad('计划总时长与逐镜明细不一致。');
   if (!isRecord(value.side_effects) || value.side_effects.tasks_created !== 0 || value.side_effects.model_called !== false) return bad('服务端未确认本次仅报价，请先核对任务。');
   if (value.project_id !== undefined && !isText(value.project_id)) return bad('报价的项目编号无效。');
@@ -73,7 +68,7 @@ export function inspectApproval(quote: ScopeQuote, approval: unknown, nowMs = Da
 export const usableApproval = (quote: ScopeQuote, approval: ScopeApproval, nowMs = Date.now(), confirmedAtMs?: number): boolean => inspectApproval(quote, approval, nowMs, confirmedAtMs).ok;
 
 export function inspectSubmission(value: unknown, quote: ScopeQuote): ProductionInspection {
-  if (!isRecord(value) || !isText(value.batch_id) || value.mode !== quote.mode || value.sequential !== true || value.auto_film !== (quote.mode === 'full')) return bad('任务回执的模式或执行方式与确认内容不一致。');
+  if (!isRecord(value) || !isText(value.batch_id) || value.mode !== quote.mode || value.sequential !== true || (value.auto_film !== (quote.mode === 'full') && !(value.idempotent_replay === true && value.auto_film === undefined))) return bad('任务回执的模式或执行方式与确认内容不一致。');
   if (value.idempotent_replay !== undefined && typeof value.idempotent_replay !== 'boolean') return bad('任务回执幂等状态不明确。');
   if (value.scope_id !== undefined && value.scope_id !== quote.scope_id) return bad('任务回执不属于当前报价。');
   if (!Array.isArray(value.tasks) || !value.tasks.every(task => isRecord(task) && isText(task.shot_id) && isText(task.task_id) && (task.take_id === undefined || isText(task.take_id)))) return bad('任务回执缺少镜头与任务编号映射。');

@@ -18,7 +18,7 @@ const imageModel: Model = {
 const videoModel: Model = {
   ...imageModel, id: 'doubao-seedance-1-0-pro-fast-251015', name: '视频模型', kind: 'video',
   lifecycle: { status: 'eos_scheduled', eos_at: '2026-11-24T14:00:00+08:00' },
-  capabilities: { input_modes: ['image_to_video'], ratios: ['9:16', '16:9', '1:1'], resolutions: ['480p', '720p', '1080p'],
+  capabilities: { input_modes: ['image_to_video', 'text_to_video'], ratios: ['9:16', '16:9', '1:1'], resolutions: ['480p', '720p', '1080p'],
     duration_s: [5, 10], duration_policy: { kind: 'range', min: 2, max: 12, step: 1, allowed: null } },
 };
 const imageOptions: GenerationOptions = {
@@ -52,7 +52,7 @@ describe('cloud generation requests', () => {
   it('builds video parameters without leaking local inference or image-only fields', () => {
     expect(buildGenerationInput({ ...imageOptions, kind: 'video', modelId: videoModel.id, model: videoModel, ratio: '9:16' })).toEqual({
       kind: 'video', model_id: 'doubao-seedance-1-0-pro-fast-251015', input_asset_id: reference.id,
-      params: { prompt: '保留商品，更换背景', duration: 5, ratio: '9:16', resolution: '720p', generate_audio: false },
+      params: { prompt: '保留商品，更换背景', generation_mode: 'image_to_video', duration: 5, ratio: '9:16', resolution: '720p', generate_audio: false },
     });
     expect(() => buildGenerationInput({ ...imageOptions, kind: 'video', modelId: videoModel.id, model: videoModel, ratio: '9:16', reference: undefined })).toThrow('视频首帧图片');
     expect(() => buildGenerationInput({ ...imageOptions, kind: 'video', modelId: videoModel.id, model: videoModel, ratio: '9:16', duration: 13 })).toThrow('2–12');
@@ -61,7 +61,7 @@ describe('cloud generation requests', () => {
   it.each([3, 6, 12])('sends the exact supported %i-second duration and chosen resolution', duration => {
     const request = buildGenerationInput({ ...imageOptions, kind: 'video', modelId: videoModel.id, model: videoModel,
       ratio: '16:9', duration, resolution: '1080p' });
-    expect(request.params).toEqual({ prompt: '保留商品，更换背景', duration, ratio: '16:9', resolution: '1080p', generate_audio: false });
+    expect(request.params).toEqual({ prompt: '保留商品，更换背景', generation_mode: 'image_to_video', duration, ratio: '16:9', resolution: '1080p', generate_audio: false });
   });
 
   it('rejects invalid duration or unsupported video selections without substitution', () => {
@@ -72,6 +72,29 @@ describe('cloud generation requests', () => {
     expect(() => buildGenerationInput({ ...options, ratio: '3:4' })).toThrow('画面比例');
     expect(() => buildGenerationInput({ ...options, resolution: '4k' })).toThrow('清晰度');
     expect(() => buildGenerationInput({ ...options, model: { ...videoModel, capabilities: { ...videoModel.capabilities, duration_policy: undefined } } })).toThrow('时长能力未配置');
+  });
+
+  it('binds explicit text-to-video and drops a retained reference without validating or leaking it', () => {
+    const options: GenerationOptions = { ...imageOptions, kind: 'video', videoMode: 'text_to_video', modelId: videoModel.id,
+      model: videoModel, ratio: '9:16', prompt: '白瓷瓶，柔和自然光，镜头缓缓推进' };
+    const request = buildGenerationInput(options);
+    expect(request).toEqual({ kind: 'video', model_id: videoModel.id, input_asset_id: null,
+      params: { prompt: options.prompt, generation_mode: 'text_to_video', duration: 5, ratio: '9:16', resolution: '720p', generate_audio: false } });
+    expect(buildGenerationInput({ ...options, reference: undefined })).toEqual(request);
+    expect(buildGenerationInput({ ...options, reference: { ...reference, kind: 'video', size: 40 * 1024 * 1024 } })).toEqual(request);
+    expect(JSON.stringify(request)).not.toContain(reference.id);
+    expect(() => buildGenerationInput({ ...options, prompt: '  ' })).toThrow('生成描述');
+  });
+
+  it('requires a valid first frame only for image-to-video and never silently changes mode', () => {
+    const options: GenerationOptions = { ...imageOptions, kind: 'video', videoMode: 'image_to_video', modelId: videoModel.id, model: videoModel, ratio: '9:16' };
+    expect(buildGenerationInput(options).input_asset_id).toBe(reference.id);
+    for (const invalid of [undefined, { ...reference, kind: 'video' as const }, { ...reference, mime: 'text/plain' }, { ...reference, size: 10 * 1024 * 1024 + 1 }]) {
+      expect(() => buildGenerationInput({ ...options, reference: invalid })).toThrow();
+    }
+    const firstFrameOnly: Model = { ...videoModel, capabilities: { ...videoModel.capabilities, input_modes: ['image_to_video'] } };
+    expect(() => buildGenerationInput({ ...options, videoMode: 'text_to_video', model: firstFrameOnly })).toThrow('文生视频');
+    expect(() => buildGenerationInput({ ...options, model: { ...videoModel, capabilities: { ...videoModel.capabilities, input_modes: undefined } } })).toThrow('视频方式');
   });
 
   it('sends an explicit supported image size and blocks ratio/size disagreement', () => {

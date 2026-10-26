@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-26",
+  "scope": "frontend UI and offline contract verification only",
+  "paid_calls": 0,
+  "business_writes_executed": 0,
+  "browser": "Tabbit/Playwright",
+  "qa_origin": "http://127.0.0.1:5192",
+  "production_origin": "http://127.0.0.1:5184",
+  "checks": {
+    "modes": [
+      "text_to_image has no reference input",
+      "image_to_image has reference input",
+      "text_to_video has no reference input and submit is blocked for current backend gap",
+      "image_to_video has first-frame input"
+    ],
+    "theme": "light/dark toggled",
+    "responsive_workbench": [
+      {
+        "width": 1440,
+        "documentScrollWidth": 1440
+      },
+      {
+        "width": 768,
+        "documentScrollWidth": 768
+      },
+      {
+        "width": 390,
+        "documentScrollWidth": 390
+      }
+    ],
+    "director_mock": [
+      "requirements only visible at first",
+      "script step visible after simulated server advancement, brief form hidden",
+      "storyboard step visible; generation and delivery sections hidden"
+    ],
+    "verification": "18 files, 422 tests; typecheck/lint/build/diff/credential-pattern scan passed"
+  },
+  "evidence_boundaries": {
+    "home": "read-only real project-list request; no fabricated project cards",
+    "workbench": "real read-only model metadata; assets/tasks/drafts responses isolated for UI checks; no generation",
+    "director": "all API responses intercepted using explicit QA data; no real assistant/script/image/video request",
+    "writes": "all non-GET calls intercepted; existing autosave attempt blocked; production localStorage and business DB not cleared",
+    "test_adjustments": [
+      "first mode test hit a known template-exit confirm; scratch page retried with explicit dialog handler",
+      "two Playwright locator mismatches corrected; final checks passed"
+    ]
+  },
+  "pending": [
+    "text-to-video backend B0",
+    "current-version confirmation invalidation and execution guards B1/B2",
+    "delivery actions, template browsing and history interfaces B3-B6",
+    "real end-to-end generation and manual acceptance"
+  ]
+}

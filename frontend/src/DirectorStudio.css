@@ -1,0 +1,54 @@
+/* Progressive director: navigation changes the viewed step, never the server's approval. */
+.app-shell [hidden]{display:none!important}
+.app-shell .creative-space{padding:28px 30px 40px;background-image:radial-gradient(var(--studio-line) .8px,transparent .8px);background-size:22px 22px;min-height:100%}
+.app-shell .creative-space .cs-shell{max-width:1540px;margin:auto;background:transparent}
+.app-shell .creative-space .cs-heading{padding-bottom:20px;margin-bottom:0;align-items:center}
+.app-shell .creative-space .cs-heading h1{font-size:25px;letter-spacing:-.7px;margin:9px 0}
+.app-shell .creative-space .cs-heading p{font-size:12px}
+.app-shell .creative-space .cs-layout{display:block}
+.app-shell .creative-space .cs-projects{position:static;width:100%;margin:8px 0 24px;padding:22px;border-radius:16px}
+.app-shell .creative-space .cs-project-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;max-height:240px;overflow:auto}
+.app-shell .creative-space .cs-project-list button{padding:15px}
+.app-shell .creative-space .cs-create{max-width:600px;margin-bottom:16px}
+.app-shell .creative-space .cs-project-heading{padding:14px 0;border-bottom:0;align-items:center}
+.app-shell .creative-space .cs-project-heading h2{font-size:17px;margin:5px 0}
+.app-shell .creative-space .cs-project-heading>.cs-button{font-size:11px;min-height:34px}
+.app-shell .creative-space .cs-main{min-width:0}
+.ds-progress{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 24px}
+.ds-progress button{display:flex;align-items:center;gap:9px;border:1px solid var(--studio-line);border-radius:24px;padding:8px 13px;background:var(--studio-panel);color:var(--studio-muted);font-size:11px;min-height:38px;cursor:pointer}
+.ds-progress button>span{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--studio-soft);font-size:9px}
+.ds-progress button.active{background:var(--studio-accent-soft);border-color:var(--studio-accent);color:var(--studio-accent-ink)}
+.ds-progress button.active>span{background:var(--studio-accent);color:var(--studio-on-accent)}
+.ds-progress .ds-overview{margin-left:auto}
+.ds-workspace{display:grid;grid-template-columns:290px minmax(0,1fr);gap:44px;align-items:start;min-height:650px}
+.ds-assistant{position:sticky;top:14px;background:var(--studio-panel);border:1px solid var(--studio-line);border-radius:20px;overflow:hidden;min-height:610px;display:flex;flex-direction:column}
+.ds-assistant>header{display:flex;gap:10px;align-items:center;padding:20px;border-bottom:1px solid var(--studio-line)}
+.ds-assistant>header>small{margin-left:auto;color:var(--studio-muted);font-size:10px}
+.ds-assistant>header>strong{font-size:14px}
+.ds-assistant-icon{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--studio-accent);color:var(--studio-on-accent)}
+.ds-assistant-copy{padding:24px 20px;line-height:1.85}
+.ds-assistant-copy>small{font-size:10px;color:var(--studio-muted)}
+.ds-assistant-copy>h3{font-size:14px;margin:9px 0}
+.ds-assistant-copy>p{font-size:12px;color:var(--studio-muted);overflow-wrap:anywhere}
+.ds-guidance{padding-top:25px;margin-top:25px;border-top:1px solid var(--studio-line)}
+.ds-guidance h4{font-size:14px;line-height:1.8;font-weight:600}
+.ds-guidance p{font-size:12px;line-height:1.9;color:var(--studio-muted);margin:14px 0 0}
+.ds-assistant-foot{font-size:10px;line-height:1.8;margin:auto 20px 20px;padding-top:30px;color:var(--studio-muted)}
+.app-shell .creative-space .ds-assistant .cs-ai{margin:0 14px;padding:15px;display:flex;flex-direction:column;gap:12px;border:1px solid var(--studio-line);border-radius:12px;background:var(--studio-soft)}
+.ds-assistant .cs-ai p{font-size:10px;line-height:1.8}.ds-assistant .cs-ai h3{font-size:12px;margin:0 0 9px;display:flex;gap:7px}.ds-assistant .cs-ai label{font-size:11px}.ds-assistant .cs-ai textarea{width:100%;min-height:88px;font:inherit;padding:10px;border-radius:7px;border:1px solid var(--studio-line);margin-top:9px;resize:vertical}.ds-assistant .cs-ai .cs-button{width:100%;justify-content:center}.ds-assistant .cs-ai .cs-muted{font-size:10px}
+.ds-current-content{min-width:0;max-width:1050px;width:100%;margin:0 auto;padding-bottom:20px}
+.ds-stage-caption{display:flex;align-items:center;gap:9px;margin:5px 0 18px;color:var(--studio-muted);font-size:11px;letter-spacing:.3px}
+.ds-stage-caption>span{height:6px;width:6px;background:var(--studio-accent);border-radius:50%}.ds-stage-caption>strong{font-weight:500}.ds-stage-caption>small{margin-left:auto;font-size:10px}
+.app-shell .creative-space .ds-current-content .cs-card,.app-shell .creative-space .ds-current-content .pf-section{padding:30px;border-radius:18px;border:1px solid var(--studio-line);background:var(--studio-panel);margin:0 0 20px;box-shadow:0 12px 35px #00000005}
+.app-shell .creative-space .ds-current-content .cs-section-title{margin-bottom:24px}.app-shell .creative-space .ds-current-content .cs-section-title h2{font-size:20px;letter-spacing:-.4px;line-height:1.5}
+.app-shell .creative-space .ds-current-content .cs-step{background:var(--studio-accent-soft);color:var(--studio-accent-ink)}
+.app-shell .creative-space .ds-current-content .cs-field-grid{gap:20px}.app-shell .creative-space .ds-current-content .cs-fields label{font-size:12px;line-height:1.7;color:var(--studio-text)}
+.app-shell .creative-space .ds-current-content :is(.cs-fields input,.cs-fields textarea,.cs-fields select){padding:12px;border-radius:9px;line-height:1.65;font-size:13px}
+.app-shell .creative-space .ds-current-content .cs-card-footer{padding-top:24px;margin-top:24px;align-items:center}.app-shell .creative-space .ds-current-content .cs-card-footer p{font-size:11px;line-height:1.8;max-width:320px}
+.app-shell .creative-space .ds-current-content .cs-history{padding:18px 22px}.app-shell .creative-space .ds-current-content .cs-history h2{font-size:14px}.app-shell .creative-space .ds-current-content .cs-history .cs-section-title{margin-bottom:14px}
+.ds-template-tools{border:1px solid var(--studio-line);border-radius:12px;background:var(--studio-panel);padding:15px;margin-top:22px}.ds-template-tools>summary{cursor:pointer;font-size:12px;color:var(--studio-muted)}.ds-template-tools[open]>summary{padding-bottom:18px}
+.app-shell .creative-space .ds-current-content .production-flow{padding:0;background:transparent}.app-shell .creative-space .ds-current-content .pf-section-heading{align-items:flex-start;gap:14px}.app-shell .creative-space .ds-current-content .pf-section-heading h3{font-size:19px;line-height:1.5}
+.app-shell .creative-space .cs-footer{margin:32px 0 0;text-align:center;font-size:10px}
+@media(max-width:1250px){.ds-workspace{grid-template-columns:255px minmax(0,1fr);gap:24px}.app-shell .creative-space{padding:24px}.app-shell .creative-space .ds-current-content .cs-card,.app-shell .creative-space .ds-current-content .pf-section{padding:24px}}
+@media(max-width:1000px){.ds-workspace{grid-template-columns:215px minmax(0,1fr);gap:18px}.ds-assistant>header{padding:16px}.ds-assistant>header>small{display:none}.ds-assistant-copy{padding:20px 16px}.app-shell .creative-space .ds-current-content .cs-field-grid{grid-template-columns:1fr}.app-shell .creative-space .ds-current-content .cs-section-title{align-items:start;flex-direction:column;gap:9px}.app-shell .creative-space .ds-current-content .cs-card-footer{align-items:stretch;flex-direction:column}.app-shell .creative-space .ds-current-content .cs-card-footer p{max-width:none}}
+@media(max-width:760px){.app-shell .creative-space{padding:20px 16px}.app-shell .creative-space .cs-heading{align-items:flex-start;flex-direction:column;gap:16px}.app-shell .creative-space .cs-heading h1{font-size:22px}.ds-workspace{display:flex;flex-direction:column;gap:20px;min-height:0}.ds-assistant{position:static;width:100%;min-height:0;border-radius:14px}.ds-assistant-copy{padding:16px 18px}.ds-assistant-copy>small,.ds-assistant-copy>h3,.ds-assistant-copy>p{display:none}.ds-guidance{border:0;margin:0;padding:0}.ds-guidance h4{font-size:13px}.ds-guidance p{font-size:11px;margin-top:7px}.ds-assistant-foot{display:none}.app-shell .creative-space .ds-assistant .cs-ai{margin-bottom:16px}.ds-assistant>header{padding:12px 18px}.ds-assistant>header>small{display:block}.ds-progress{gap:6px;margin:8px 0 18px}.ds-progress button{font-size:10px;padding:6px 9px}.ds-progress .ds-overview{margin-left:0}.app-shell .creative-space .ds-current-content .cs-card,.app-shell .creative-space .ds-current-content .pf-section{padding:20px;border-radius:14px}.app-shell .creative-space .ds-current-content .cs-section-title h2{font-size:18px}.ds-current-content{padding:0}.app-shell .creative-space .cs-project-heading{align-items:flex-start;gap:10px}.app-shell .creative-space .cs-project-heading h2{font-size:16px}.app-shell .creative-space .cs-projects{padding:18px}.app-shell .creative-space .cs-project-list{grid-template-columns:1fr}}

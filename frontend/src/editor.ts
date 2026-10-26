@@ -1,4 +1,26 @@
-import type { Asset, Layer, Project, TaskInput } from './types';
+import type { Asset, GenerationSettings, Layer, Project, TaskInput } from './types';
+import { getImagePrompt } from './generation';
+import { getVideoPrompt } from './generation-modes';
+
+export const DEFAULT_GENERATION: GenerationSettings = {
+  kind: 'image', imageMode: 'text_to_image', videoMode: 'image_to_video', purpose: 'white',
+  imagePrompt: getImagePrompt('text_to_image', 'white'), videoPrompt: getVideoPrompt('image_to_video'),
+  imageRatio: '1:1', videoRatio: '9:16', imageReference: null, videoReference: null,
+  batchCount: 1, duration: 5, videoResolution: '720p',
+};
+
+/** Missing legacy video mode is always first-frame; a stored image must never imply text mode. */
+export function restoreGenerationSettings(raw: Partial<GenerationSettings> | null | undefined): GenerationSettings {
+  const value = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+  return {
+    ...DEFAULT_GENERATION, ...value,
+    kind: value.kind === 'video' ? 'video' : 'image',
+    imageMode: value.imageMode === 'image_to_image' ? 'image_to_image' : 'text_to_image',
+    videoMode: value.videoMode === 'text_to_video' ? 'text_to_video' : 'image_to_video',
+    imageReference: typeof value.imageReference === 'string' && value.imageReference ? value.imageReference : null,
+    videoReference: typeof value.videoReference === 'string' && value.videoReference ? value.videoReference : null,
+  };
+}
 
 export function metadata(asset: Asset): Record<string, unknown> {
   try { return JSON.parse(asset.meta_json || '{}') as Record<string, unknown>; } catch { return {}; }

@@ -89,27 +89,27 @@ describe('shots and storyboards', () => {
     await expect(api.listShots('p1')).rejects.toMatchObject({ code: 'PRODUCTION_RESPONSE_INVALID' }); await expect(api.listShots('p1')).rejects.toMatchObject({ code: 'PRODUCTION_RESPONSE_INVALID' });
   });
   it('keeps CRUD explicit and does not infer missing acknowledgements', async () => {
-    const { api, fetcher } = fixture(response({ project_id: 'p1', shots: [shot()] }), response({ project_id: 'p1', order: ['s1'] }), response({ shot_id: 's1', deleted: true }));
-    await api.createShots('p1', { script_id: 'scr1', shots: [{ seq: 1, duration_s: 5, description: '细节' }] }); await api.reorderShots('p1', { order: ['s1'] }); await api.deleteShot('s1');
+    const { api, fetcher } = fixture(response({ project_id: 'p1', shot_ids: ['s1'], count: 1 }), response({ project_id: 'p1', order: ['s1'] }), response({ project_id: 'p1', deleted: 's1' }));
+    await api.createShots('p1', { script_id: 'scr1', shots: [{ seq: 1, duration_s: 5, description: '细节', model_id:'video', prompt:'browser only', input_asset_id:'browser-ref' }] }); expect(body(fetcher.mock.calls[0])).toEqual({script_id:'scr1', model_id:'video', shots:[{seq:1,duration_s:5,description:'细节'}]}); await api.reorderShots('p1', { order: ['s1'] }); await api.deleteShot('s1');
     expect(fetcher).toHaveBeenCalledTimes(3); expect(() => api.reorderShots('p1', { order: ['s1', 's1'] })).toThrow('不重复');
   });
   it('does not approve or create another storyboard automatically', async () => {
-    const { api, fetcher } = fixture(response({ shot_id: 's1', storyboard_id: 'sb1', version: 1, task_id: 't1', estimated_cost_cny: 0.12 }), response({ storyboard_id: 'sb1', version: 1, status: 'approved' }), response({ storyboard_id: 'sb1', version: 1, status: 'rejected' }));
+    const { api, fetcher } = fixture(response({ shot_id: 's1', storyboard_id: 'sb1', version: 1, task_id: 't1', estimated_cost_cny: 0.12 }), response({ storyboard_id: 'sb1', status: 'approved', confirmation: {confirmation_id: 'c1', status: 'active', object_type: 'storyboard', object_id: 'sb1', object_version: 1, reused: false} }), response({ storyboard_id: 'sb1', status: 'rejected', reason: '瓶身比例不对' }));
     await api.createStoryboard('s1', { model_id: 'image', size: '2048x2048', prompt: '商品细节', input_asset_id: 'a1' }); expect(fetcher).toHaveBeenCalledTimes(1);
     await api.approveStoryboard('sb1'); expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(() => api.rejectStoryboard('sb1', '')).toThrow('拒绝原因'); await api.rejectStoryboard('sb1', '瓶身比例不对'); expect(body(fetcher.mock.calls[2])).toEqual({ reason: '瓶身比例不对' });
+    expect(() => api.rejectStoryboard('sb1', '')).toThrow('拒绝原因'); await api.rejectStoryboard('sb1', '瓶身比例不对'); expect(body(fetcher.mock.calls[0])).toMatchObject({ confirm: true }); expect(fetcher.mock.calls[1][0]).toBe('/api/storyboards/sb1/review'); expect(body(fetcher.mock.calls[1])).toEqual({ approve: true }); expect(body(fetcher.mock.calls[2])).toEqual({ approve: false, reason: '瓶身比例不对' });
   });
 });
 
 describe('actual outputs and reusable structure', () => {
   it('never fills missing actual durations or film history from plans', async () => {
-    const { api } = fixture(response({ project_id: 'p1', mode: 'clips', shots: [{ shot_id: 's1', status: 'succeeded', asset_id: 'a1' }], batch: null, film: null }), response({ film_id: 'f1', status: 'ready', planned_duration_s: 5, asset_id: 'a2' }));
-    const status = await api.getStatus('p1'); expect(status.shots[0].actual_duration_ms).toBeUndefined(); expect(status.films).toBeUndefined();
+    const { api } = fixture(response({ project_id: 'p1', mode: 'done', current_stage: 'delivery', allowed_actions: [], warnings: [], shots: [{ shot_id: 's1', seq: 1, duration_s: 5, description: '细节', storyboard: null, take: {take_id:'t1', status: 'succeeded', asset_id: 'a1'}, takes: 1 }], films: [] }), response({ film_id: 'f1', status: 'ready', planned_duration_s: 5, asset_id: 'a2' }));
+    const status = await api.getStatus('p1'); expect(status.shots[0].actual_duration_ms).toBeUndefined(); expect(status.films).toEqual([]); expect(status.batch).toBeUndefined();
     const film = await api.getFilm('f1'); expect(film.actual_duration_ms).toBeUndefined(); expect(film.planned_duration_s).toBe(5);
   });
   it('reads film history; obtaining a file URL does not send a request', async () => {
     const { api, fetcher } = fixture(response({ items: [{ film_id: 'f1', project_id: 'p1', status: 'ready', actual_duration_ms: 5090 }] }));
-    expect((await api.listFilms('p1')).items[0].actual_duration_ms).toBe(5090); expect(filmFileUrl('film a')).toBe('/api/films/film%20a/file'); expect(api.filmFileUrl('f1')).toBe('/api/films/f1/file'); expect(fetcher).toHaveBeenCalledTimes(1);
+    expect((await api.listFilms('p1')).items[0].actual_duration_ms).toBe(5090); expect(filmFileUrl({ asset_id: 'asset a' })).toBe('/api/assets/asset%20a/file'); expect(api.filmFileUrl({ asset_id: 'a1' })).toBe('/api/assets/a1/file'); expect(() => filmFileUrl({asset_id:null})).toThrow('尚无可下载'); expect(fetcher).toHaveBeenCalledTimes(1);
   });
   it('does not silently allow partial composition', async () => {
     const { api, fetcher } = fixture(response({ film_id: 'f1', version: 1, status: 'composing', partial: true }));
@@ -117,14 +117,14 @@ describe('actual outputs and reusable structure', () => {
   });
   it('uses explicit template versions and excludes product fields', async () => {
     const snapshot = [{ seq: 1, role: '开场', duration_s: 4, motion: '推近', rhythm: '快' }];
-    const { api, fetcher } = fixture(response({ items: [{ template_id: 'st1', name: '快节奏', latest_version: 2 }] }), response({ template_id: 'st1', name: '快节奏', version: 2, snapshot }), response({ template_id: 'st1', version: 3 }), response({ project_id: 'p1', created_shots: 1, requires: ['brief', 'assets'], model_revalidation: { ok: true, notes: [] } }));
+    const { api, fetcher } = fixture(response({ items: [{ template_id: 'st1', name: '快节奏', latest_version: 2 }] }), response({ template_id: 'st1', name: '快节奏', version: 2, snapshot }), response({ template_id: 'st1', version: 3 }), response({ project_id: 'p1', template_id: 'st1', template_version: 3, created_shots: [{shot_id:'s1',seq:1,duration_s:4,role:'开场'}], requires: ['brief', 'assets'], model_revalidation: { ok: true, note: '已校验' } }));
     await api.listStructureTemplates(); await api.getStructureTemplate('st1', 2); await api.createStructureTemplate({ name: '新版', snapshot });
     expect((await api.applyStructure('p1', { template_id: 'st1', version: 3 })).requires).toEqual(['brief', 'assets']);
     expect(fetcher.mock.calls[1][0]).toBe('/api/structure-templates/st1?version=2'); expect(body(fetcher.mock.calls[3])).toEqual({ template_id: 'st1', version: 3 });
     expect(() => api.createStructureTemplate({ name: 'bad', snapshot: [{ ...snapshot[0], prompt: '商品事实' }] as never })).toThrow('不保存商品');
   });
   it('exports selected outputs without regenerating', async () => {
-    const { api, fetcher } = fixture(response({ export_id: 'e1', status: 'ready', asset_id: 'a1', file_name: 'project.zip' }));
+    const { api, fetcher } = fixture(response({ export_id: 'e1', project_id: 'p1', download_url: '/api/exports/e1/file', file_name: 'project.zip', bytes: 100, includes: ['clips','manifest'], films_included: 0, clips_included: 1, storyboards_included: 0, missing: [] }));
     expect((await api.exportProject('p1', { include: ['clips', 'manifest'] })).file_name).toBe('project.zip'); expect(fetcher).toHaveBeenCalledTimes(1); expect(fetcher.mock.calls[0][0]).toBe('/api/projects/p1/export'); expect(body(fetcher.mock.calls[0])).toEqual({ include: ['clips', 'manifest'] });
   });
 });
