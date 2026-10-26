@@ -104,6 +104,14 @@ CREATE TABLE IF NOT EXISTS films(
   items_json TEXT, duration_ms INTEGER, asset_id TEXT, partial INTEGER DEFAULT 0,
   created_at REAL, UNIQUE(project_id, version));
 
+CREATE TABLE IF NOT EXISTS structure_templates(
+  id TEXT PRIMARY KEY, name TEXT, latest_version INTEGER DEFAULT 1,
+  status TEXT DEFAULT 'active', created_at REAL, updated_at REAL);
+
+CREATE TABLE IF NOT EXISTS structure_template_versions(
+  id TEXT PRIMARY KEY, template_id TEXT, version INTEGER, snapshot_json TEXT,
+  created_at REAL, UNIQUE(template_id, version));
+
 CREATE TABLE IF NOT EXISTS confirmations(
   id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
   object_version INTEGER, status TEXT DEFAULT 'active', reason TEXT,

@@ -7,7 +7,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from .. import director, projects, scope, shots
+from .. import assembly, director, projects, scope, shots
 
 router = APIRouter(prefix="/api", tags=["creative"])
 
@@ -251,3 +251,64 @@ def project_status(project_id: str):
 def retry_take(take_id: str):
     """只重试用户选定的失败镜头；成功的镜头不重做。"""
     return scope.retry_take(take_id)
+
+
+# ---------------- S5-S6：成片 / 结构模板 / 导出 ----------------
+class FilmIn(BaseModel):
+    take_ids: list[str] | None = None
+    confirm_partial: bool = False
+
+
+class StructureIn(BaseModel):
+    name: str
+    snapshot: list[dict]
+
+
+class ApplyStructureIn(BaseModel):
+    template_id: str
+    version: int | None = None
+
+
+@router.post("/projects/{project_id}/films")
+def compose_film(project_id: str, body: FilmIn | None = None):
+    """合成成片：纯拼接不裁剪；缺镜默认拒绝，需显式 confirm_partial。"""
+    b = body or FilmIn()
+    return assembly.compose(project_id, b.take_ids, b.confirm_partial)
+
+
+@router.get("/films/{film_id}")
+def get_film(film_id: str):
+    return assembly.get_film(film_id)
+
+
+@router.get("/projects/{project_id}/films")
+def list_films(project_id: str):
+    rows = assembly.db.query("SELECT id FROM films WHERE project_id=? ORDER BY version DESC",
+                             (project_id,))
+    return {"items": [assembly.get_film(r["id"]) for r in rows]}
+
+
+@router.post("/structure-templates")
+def save_structure_template(body: StructureIn):
+    return assembly.save_template(body.name, body.snapshot)
+
+
+@router.post("/projects/{project_id}/structure-templates")
+def save_project_as_template(project_id: str, body: dict):
+    return assembly.save_from_project(project_id, (body or {}).get("name") or "结构模板")
+
+
+@router.get("/structure-templates/{template_id}")
+def get_structure_template(template_id: str, version: int | None = None):
+    return assembly.get_template(template_id, version)
+
+
+@router.post("/projects/{project_id}/apply-structure")
+def apply_structure(project_id: str, body: ApplyStructureIn):
+    return assembly.apply_template(project_id, body.template_id, body.version)
+
+
+@router.post("/projects/{project_id}/export")
+def export_project(project_id: str, body: dict | None = None):
+    include = (body or {}).get("include")
+    return assembly.export_project(project_id, include)

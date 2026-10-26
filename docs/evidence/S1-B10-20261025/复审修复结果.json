@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 13:18:42",
+  "date": "2026-10-26 13:23:20",
   "scope": "S1 复审修复：R1 未开通闸门 + R2 历史参数兼容",
   "isolation": {
     "fresh_db": true,
@@ -45,7 +45,7 @@
       "case": "已开通模型正常入队",
       "ok": true,
       "detail": {
-        "task": "task_b71fe7324…",
+        "task": "task_e40b3fab4…",
         "status": "queued"
       }
     },
