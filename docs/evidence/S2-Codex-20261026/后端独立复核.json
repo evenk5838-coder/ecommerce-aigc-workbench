@@ -1,0 +1,215 @@
+{
+  "revision": "5a2c7efb6039f810df11079e83e2e20d749ea92b",
+  "executed_at": "2026-10-26T02:45:19.874910+00:00",
+  "source_manifest": "/private/tmp/s2-review-5a2c7ef-4rpgte9o/source-manifest.json",
+  "source_hashes_unchanged": true,
+  "provided_suites": [
+    {
+      "script": "tools_s1_fix_tests.py",
+      "exit_code": 0,
+      "total": 18,
+      "passed": 18,
+      "db": "/private/tmp/s2-review-5a2c7ef-4rpgte9o/s1-fix-izvq7m4f/app.db"
+    },
+    {
+      "script": "tools_s2_projects_tests.py",
+      "exit_code": 0,
+      "total": 13,
+      "passed": 13,
+      "db": "/private/tmp/s2-review-5a2c7ef-4rpgte9o/s2-t4nvaazu/app.db"
+    }
+  ],
+  "creative_routes": [
+    {
+      "path": "/api/projects",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/projects",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/projects/{project_id}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/projects/{project_id}",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/projects/{project_id}/scripts",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/projects/{project_id}/scripts/manual",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/projects/{project_id}/scripts",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/scripts/{script_id}",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/scripts/{script_id}",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/scripts/{script_id}/confirm",
+      "methods": [
+        "POST"
+      ]
+    }
+  ],
+  "independent_results": [
+    {
+      "case": "brief_change_stale_not_restored",
+      "finding_confirmed": true,
+      "patch_stale": [
+        "script_confirm",
+        "shot_plan_confirm"
+      ],
+      "get_project": {
+        "project_id": "prj_892d312a07ac429ba7fa",
+        "name": "stale restoration",
+        "brief": {
+          "subject": "两件套装",
+          "quantity": 2
+        },
+        "status": "script_confirmed",
+        "structure_template_id": null,
+        "structure_template_version": null,
+        "created_at": 1792982719.797169,
+        "updated_at": 1792982719.810001,
+        "script_count": 1,
+        "latest_script": {
+          "script_id": "scr_363831572c4442f0902f",
+          "version": 1,
+          "source": "manual",
+          "confirmed_at": 1792982719.804322
+        }
+      },
+      "get_script": {
+        "script_id": "scr_363831572c4442f0902f",
+        "version": 1,
+        "confirmed_at": 1792982719.804322,
+        "content": {
+          "summary": "old brief script"
+        }
+      }
+    },
+    {
+      "case": "base_version_check_not_atomic",
+      "finding_confirmed": true,
+      "method": "deterministic interleaving at first _next_version return; no threads",
+      "both_requested_base_version": 1,
+      "request_B_version": 2,
+      "request_A_version": 3,
+      "conflict_409_returned": false,
+      "versions": [
+        {
+          "version": 3,
+          "content": {
+            "summary": "A based on v1"
+          }
+        },
+        {
+          "version": 2,
+          "content": {
+            "summary": "B based on v1"
+          }
+        },
+        {
+          "version": 1,
+          "content": {
+            "summary": "v1"
+          }
+        }
+      ]
+    },
+    {
+      "case": "version_allocation_not_atomic",
+      "finding_confirmed": true,
+      "method": "deterministic interleaving during version allocation; no threads",
+      "error": {
+        "type": "IntegrityError",
+        "message": "UNIQUE constraint failed: script_versions.project_id, script_versions.version"
+      },
+      "retained_versions": 2
+    },
+    {
+      "case": "inflight_generation_has_no_brief_version_binding",
+      "finding_confirmed": true,
+      "returned_script": {
+        "script_id": "scr_f7123852d2da4b57a1f6",
+        "version": 1,
+        "content": {
+          "summary": "针对旧需求单瓶的脚本",
+          "shots": [],
+          "parse_ok": true
+        },
+        "source": "assistant",
+        "llm_usage": {
+          "input_tokens": 1,
+          "output_tokens": 1
+        },
+        "assistant_unavailable": false
+      },
+      "current_brief": {
+        "subject": "两件套装",
+        "quantity": 2
+      },
+      "stale_in_result": null,
+      "stale_in_get_project": null
+    },
+    {
+      "case": "runtime_unavailable_does_not_return_unavailable_envelope",
+      "finding_confirmed": true,
+      "escaped_error": {
+        "code": "ASSISTANT_TIMEOUT",
+        "http": 504
+      },
+      "manual_fallback_still_usable": true
+    }
+  ],
+  "independent_db": "/private/tmp/s2-review-5a2c7ef-4rpgte9o/s2-independent-ko6hz1er/app.db",
+  "isolation": {
+    "business_db_opened": false,
+    "env_read": false,
+    "network_sent": 0,
+    "paid_calls": 0,
+    "real_llm_calls": 0,
+    "worker_started": false,
+    "guards": {
+      "socket_attempts": 0,
+      "thread_start_attempts": 0,
+      "outside_db_attempts": 0
+    }
+  },
+  "limits": [
+    "No ASGI/HTTP transport exercised; direct Python handlers/services only.",
+    "Version races are deterministic interleaving reproductions, not a concurrent load test.",
+    "LLM content and runtime timeout are explicit substitutes; no real DeepSeek quality claim.",
+    "Provided suites pass but do not test persisted stale restoration or overlapping edit/write schedules."
+  ]
+}

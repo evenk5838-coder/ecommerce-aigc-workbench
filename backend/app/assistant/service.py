@@ -145,9 +145,19 @@ def role_map(role: str) -> str:
     return {"user": "user", "assistant": "assistant"}.get(role, "system")
 
 
+def _stage_context(project_id: str) -> dict | None:
+    """读取导演台就绪度（只读、无模型调用）。项目不存在时返回 None。"""
+    try:
+        from .. import director
+        return director.readiness(project_id)
+    except Exception:  # noqa: BLE001  项目不存在/未迁移时不影响对话
+        return None
+
+
 def messages_for_model(session: dict, project_id: str | None, message: str,
                        facts: dict | None = None,
-                       context: dict | None = None) -> list[dict]:
+                       context: dict | None = None,
+                       stage: dict | None = None) -> list[dict]:
     stored = get_brief(project_id)["brief"] if project_id else {}
     return [
         {"role": "system", "content": _SYSTEM_PROMPT},
@@ -157,6 +167,15 @@ def messages_for_model(session: dict, project_id: str | None, message: str,
             "brief": stored,
             "facts": _facts_context(facts or {"templates": {}, "assets": {}}),
             # 用户在本轮明确指定的素材/类型：**报价必须使用**，不得自行改选
+            "stage": {
+                "current": (stage or {}).get("current"),
+                "facts_ready": ((stage or {}).get("facts") or {}).get("ready"),
+                "allowed_actions": (stage or {}).get("allowed_actions") or [],
+                "warnings": (stage or {}).get("warnings") or [],
+                "rule": ("只围绕 current.stage 引导；已保存/已确认的信息不要重复询问；"
+                         "你的建议是草案（draft），不得声称已保存或已确认；"
+                         "采用草案必须由用户在界面确认后调用保存接口"),
+            },
             "context_hint": {
                 "selected_asset_id": (context or {}).get("selected_asset_id"),
                 "kind": (context or {}).get("kind"),
@@ -599,7 +618,10 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
         _set_asset_source(facts, selected, "user_selected")
         _save_facts(sid, facts)          # 先落库：模型本轮就能在上下文里看到
         ctx_in["selected_asset_id"] = selected
-    messages = messages_for_model(sess, project, message, facts, context=ctx_in)
+    # 导演台上下文：当前阶段 / 已保存事实 / 版本与确认状态 / 允许动作（不调用模型）
+    stage_ctx = _stage_context(project) if project else None
+    messages = messages_for_model(sess, project, message, facts,
+                                  context=ctx_in, stage=stage_ctx)
     append_message(sid, "user", message)
     ctx = {"session_id": sid, "project_id": project, "intent": sess.get("intent")}
 

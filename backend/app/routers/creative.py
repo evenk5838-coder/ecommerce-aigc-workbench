@@ -7,7 +7,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from .. import projects
+from .. import director, projects
 
 router = APIRouter(prefix="/api", tags=["creative"])
 
@@ -36,6 +36,12 @@ class ScriptEditIn(BaseModel):
 
 class ConfirmIn(BaseModel):
     confirm: bool = True
+
+
+class DraftIn(BaseModel):
+    kind: str                      # brief | script
+    content: dict
+    base_version: int | None = None
 
 
 @router.post("/projects")
@@ -93,3 +99,15 @@ def edit_script(script_id: str, body: ScriptEditIn):
 @router.post("/scripts/{script_id}/confirm")
 def confirm_script(script_id: str, body: ConfirmIn | None = None):
     return projects.confirm_script(script_id, bool((body or ConfirmIn()).confirm))
+
+
+@router.get("/projects/{project_id}/director")
+def director_readiness(project_id: str):
+    """导演台就绪度：当前阶段 / 确认是否有效 / 失效原因 / 允许动作。**不调用模型**。"""
+    return director.readiness(project_id)
+
+
+@router.post("/projects/{project_id}/adopt-draft")
+def adopt_draft(project_id: str, body: DraftIn):
+    """采用助手草案（只写库，**不重复调用 LLM**）。"""
+    return projects.adopt_draft(project_id, body.kind, body.content, body.base_version)

@@ -76,6 +76,12 @@ CREATE TABLE IF NOT EXISTS projects(
   structure_template_id TEXT, structure_template_version INTEGER,
   created_at REAL, updated_at REAL);
 
+CREATE TABLE IF NOT EXISTS confirmations(
+  id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
+  object_version INTEGER, status TEXT DEFAULT 'active', reason TEXT,
+  created_at REAL, invalidated_at REAL,
+  UNIQUE(object_type, object_id, object_version));
+
 CREATE TABLE IF NOT EXISTS script_versions(
   id TEXT PRIMARY KEY, project_id TEXT, version INTEGER, content_json TEXT,
   source TEXT, session_id TEXT, confirmed_at REAL, created_at REAL,
@@ -107,6 +113,7 @@ CREATE INDEX IF NOT EXISTS idx_assistant_usage ON assistant_usage(session_id, cr
 CREATE INDEX IF NOT EXISTS idx_assistant_messages ON assistant_messages(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_assistant_sessions_project ON assistant_sessions(project_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_script_versions ON script_versions(project_id, version);
+CREATE INDEX IF NOT EXISTS idx_confirmations ON confirmations(project_id, object_type, status);
 """
 
 

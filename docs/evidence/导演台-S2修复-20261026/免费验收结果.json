@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-26 13:18:40",
+  "scope": "S2 修复 + 渐进式导演台（确认持久化 / 版本并发 / 就绪度 / 助手上下文）",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "provider": "Unavailable / FixedReply",
+    "real_llm_calls": 0
+  },
+  "paid_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 10,
+  "passed": 10,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "确认写入 confirmations（绑定版本）",
+      "ok": true,
+      "detail": {
+        "status": "active",
+        "rows": 1,
+        "valid": true
+      }
+    },
+    {
+      "case": "新版本不继承确认（confirmed_at 不等于有效）",
+      "ok": true,
+      "detail": {
+        "old_valid": true,
+        "new_valid": false,
+        "new_reason": "never_confirmed"
+      }
+    },
+    {
+      "case": "改 brief → 确认失效**持久化**（含原因与时间）",
+      "ok": true,
+      "detail": {
+        "valid": false,
+        "reason": "upstream_brief_changed",
+        "stale": [
+          "script_confirm"
+        ]
+      }
+    },
+    {
+      "case": "base_version 过期 → 409 SCRIPT_VERSION_CONFLICT",
+      "ok": true,
+      "detail": {
+        "code": "SCRIPT_VERSION_CONFLICT",
+        "http": 409
+      }
+    },
+    {
+      "case": "5 线程并发写脚本：版本连续且不重复",
+      "ok": true,
+      "detail": {
+        "versions": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "errors": []
+      }
+    },
+    {
+      "case": "就绪度逐步推进：需求→脚本→（确认后）镜头；未到步骤不出现",
+      "ok": true,
+      "detail": {
+        "steps": [
+          "requirements",
+          "script",
+          "storyboard"
+        ],
+        "visible_after_brief": [
+          "requirements",
+          "script"
+        ]
+      }
+    },
+    {
+      "case": "打开项目/切换步骤不调用模型、不建任务",
+      "ok": true,
+      "detail": {
+        "tasks": 0,
+        "usage_unchanged": true
+      }
+    },
+    {
+      "case": "助手上下文含当前阶段/允许动作，并约束不重复询问",
+      "ok": true,
+      "detail": {
+        "stage": "storyboard",
+        "actions": [
+          "edit_brief",
+          "regenerate_script",
+          "edit_shot_plan"
+        ]
+      }
+    },
+    {
+      "case": "采用草案：只写库、不重复调用 LLM、不覆盖未提及字段",
+      "ok": true,
+      "detail": {
+        "script_version": 1,
+        "brief_merged": true,
+        "llm_calls": 0
+      }
+    },
+    {
+      "case": "助手不可用时保留手工完成路径",
+      "ok": true,
+      "detail": {
+        "assistant_unavailable": true,
+        "manual_ok": true
+      }
+    }
+  ],
+  "disclaimer": "全部为隔离免费验证；未调用真实模型，未生成图片/视频。"
+}

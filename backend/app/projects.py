@@ -13,7 +13,7 @@ import json
 import os
 from typing import Any
 
-from . import db, templates
+from . import db
 from .errors import err
 
 BRIEF_FIELDS = ("subject", "quantity", "selling_points", "forbidden_elements",
@@ -80,12 +80,12 @@ def update_project(project_id: str, name: str | None = None,
         new = {**old, **_clean_brief(brief)}
         if new != old:
             patch["brief_json"] = db.dumps(new)
-            # brief 变化 → 脚本确认与分镜计划确认失效（只标记，不自动改状态）
+            # brief 变化 → **持久化失效**下游确认（不删除历史确认记录）
+            from . import director
+            affected = director.invalidate_after_upstream_change(
+                project_id=project_id, change="brief")
             stale = ["script_confirm"]
-            confirmed = db.query(
-                "SELECT COUNT(*) c FROM script_versions WHERE project_id=? "
-                "AND confirmed_at IS NOT NULL", (project_id,))[0]["c"]
-            if confirmed:
+            if affected.get("shot_plan"):
                 stale.append("shot_plan_confirm")
     db.update("projects", project_id, patch)
     return {**_project_view(get_project(project_id)), "stale": stale}
@@ -122,17 +122,32 @@ def _next_version(project_id: str) -> int:
 
 
 def add_script(project_id: str, content: dict, source: str = "manual",
-               session_id: str | None = None) -> dict:
+               session_id: str | None = None,
+               base_version: int | None = None) -> dict:
+    """新增脚本版本。
+
+    **版本分配与并发校验在同一事务内完成**（BEGIN IMMEDIATE），避免两个请求拿到同一个
+    version 或覆盖他人写入；`base_version` 指客户端所见的项目最新版本，不一致 → 409。
+    """
     get_project(project_id)
     if not isinstance(content, dict):
         raise err("VALIDATION_FAILED", "脚本 content 必须是对象")
-    ver = _next_version(project_id)
     sid = db.new_id("scr")
-    db.insert("script_versions", {
-        "id": sid, "project_id": project_id, "version": ver,
-        "content_json": db.dumps(content), "source": source,
-        "session_id": session_id, "confirmed_at": None, "created_at": db.now()})
-    db.update("projects", project_id, {"status": "scripting"})
+    with db.transaction() as c:
+        row = c.execute("SELECT COALESCE(MAX(version),0) v FROM script_versions "
+                        "WHERE project_id=?", (project_id,)).fetchone()
+        latest = int(row["v"])
+        if base_version is not None and int(base_version) != latest:
+            raise err("SCRIPT_VERSION_CONFLICT",
+                      f"脚本已更新：项目当前最新 v{latest}，提交 v{base_version}",
+                      detail={"current_version": latest, "base_version": base_version})
+        ver = latest + 1
+        c.execute(
+            "INSERT INTO script_versions(id, project_id, version, content_json, source, "
+            "session_id, confirmed_at, created_at) VALUES(?,?,?,?,?,?,?,?)",
+            (sid, project_id, ver, db.dumps(content), source, session_id, None, db.now()))
+        c.execute("UPDATE projects SET status=?, updated_at=? WHERE id=?",
+                  ("scripting", db.now(), project_id))
     return _script_view(db.get("script_versions", sid))
 
 
@@ -156,27 +171,27 @@ def edit_script(script_id: str, content: dict, base_version: int | None = None) 
     row = db.get("script_versions", script_id)
     if not row:
         raise err("SCRIPT_NOT_FOUND", f"脚本不存在：{script_id}")
-    # 乐观并发：base_version 指"客户端所见的**项目最新**版本"
-    latest = _next_version(row["project_id"]) - 1
-    if base_version is not None and int(base_version) != latest:
-        raise err("SCRIPT_VERSION_CONFLICT",
-                  f"脚本已更新：项目当前最新 v{latest}，提交 v{base_version}",
-                  detail={"current_version": latest, "base_version": base_version})
     return add_script(row["project_id"], content, source="manual",
-                      session_id=row.get("session_id"))
+                      session_id=row.get("session_id"), base_version=base_version)
 
 
 def confirm_script(script_id: str, confirm: bool = True) -> dict:
+    """确认脚本 → **持久化确认记录**（绑定 script_id + version）。"""
+    from . import director
+
     row = db.get("script_versions", script_id)
     if not row:
         raise err("SCRIPT_NOT_FOUND", f"脚本不存在：{script_id}")
     if not confirm:
         raise err("VALIDATION_FAILED", "确认动作需 confirm=true")
     now = db.now()
+    cfm = director.confirm_object(row["project_id"], "script", script_id,
+                                 int(row["version"]))
     db.update("script_versions", script_id, {"confirmed_at": now})
     db.update("projects", row["project_id"], {"status": "script_confirmed"})
     return {"script_id": script_id, "version": row["version"],
-            "confirmed_at": now, "unlocked": ["storyboard_plan"]}
+            "confirmed_at": now, "confirmation": cfm,
+            "unlocked": ["storyboard_plan"]}
 
 
 def _script_view(row: dict) -> dict:
@@ -256,3 +271,26 @@ def _parse_script(text: str) -> dict:
             pass
     return {"summary": raw, "shots": [], "parse_ok": False,
             "degraded_reason": "model_output_not_structured"}
+
+
+# ---------------- 采用助手草案（**不调用模型**） ----------------
+def adopt_draft(project_id: str, kind: str, content: dict,
+                base_version: int | None = None) -> dict:
+    """把助手产出的草案**落库**。仅写库，不产生任何模型调用。
+
+    - kind="brief"  → 合并进项目 brief（不覆盖未提及字段）
+    - kind="script" → 新增脚本版本（可带 base_version 做并发校验）
+    """
+    get_project(project_id)
+    if kind == "brief":
+        out = update_project(project_id, brief=content)
+        return {"kind": "brief", "project_id": project_id, "brief": out["brief"],
+                "stale": out["stale"], "llm_called": False}
+    if kind == "script":
+        script = add_script(project_id, content, source="assistant",
+                            base_version=base_version)
+        return {"kind": "script", "script_id": script["script_id"],
+                "version": script["version"], "content": script["content"],
+                "llm_called": False}
+    raise err("VALIDATION_FAILED", f"未知草案类型：{kind}",
+              detail={"allowed": ["brief", "script"]})

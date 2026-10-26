@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 10:13:23",
+  "date": "2026-10-26 13:18:41",
   "scope": "S2 项目 / brief / 脚本",
   "isolation": {
     "fresh_db": true,
@@ -11,14 +11,14 @@
   "paid_calls": 0,
   "generation_tasks_executed": 0,
   "total": 13,
-  "passed": 13,
-  "failed": 0,
+  "passed": 12,
+  "failed": 1,
   "cases": [
     {
       "case": "新建项目 + 写入 brief",
       "ok": true,
       "detail": {
-        "project_id": "prj_79308eb326…",
+        "project_id": "prj_20ed0e8603…",
         "status": "draft"
       }
     },
@@ -51,7 +51,7 @@
       "case": "助手不可用时可手工写脚本并确认（不阻断流程）",
       "ok": true,
       "detail": {
-        "script": "scr_cd787739…",
+        "script": "scr_6b12c6b6…",
         "version": 1
       }
     },
@@ -103,14 +103,8 @@
     },
     {
       "case": "改 brief → 返回 stale 标记（确认作废但不删历史）",
-      "ok": true,
-      "detail": {
-        "stale": [
-          "script_confirm",
-          "shot_plan_confirm"
-        ],
-        "history_confirm_kept": true
-      }
+      "ok": false,
+      "error": "['script_confirm']"
     },
     {
       "case": "不存在的项目/脚本 → 404",
