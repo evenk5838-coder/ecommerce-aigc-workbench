@@ -14,6 +14,7 @@ from __future__ import annotations
 import io
 import json
 import sys
+import time
 import tempfile
 import traceback
 import zipfile
@@ -57,6 +58,16 @@ def _png() -> bytes:
     return buf.getvalue()
 
 
+def _tiny_mp4(ff: str, tmp: Path, seconds: int = 2) -> bytes:
+    """用 ffmpeg 现场生成一段真实小视频（供真实拼接使用）。"""
+    import subprocess
+    p = tmp / f"tiny-{seconds}-{int(time.time()*1000)}.mp4"
+    subprocess.run([ff, "-y", "-f", "lavfi", "-i",
+                    f"color=c=0x9aa7c7:s=320x240:d={seconds}:r=24",
+                    "-pix_fmt", "yuv420p", str(p)], capture_output=True, check=True)
+    return p.read_bytes()
+
+
 def setup() -> Path:
     tmp = Path(tempfile.mkdtemp(prefix="s56-"))
     config.DB_PATH = tmp / "app.db"
@@ -64,7 +75,10 @@ def setup() -> Path:
     config.ASSETS.mkdir(parents=True, exist_ok=True)
     db.init_db()
     ASSET["sb"] = storage.save_bytes(_png(), "image", "upload")["id"]
-    ASSET["clip"] = storage.save_bytes(_png(), "video", "cloud_generated")["id"]
+    ff = assembly._ffmpeg()
+    if not ff:
+        raise RuntimeError("测试需要 ffmpeg 生成真实片段")
+    ASSET["clip"] = storage.save_bytes(_tiny_mp4(ff, tmp, 2), "video", "cloud_generated")["id"]
     return tmp
 
 
@@ -97,7 +111,7 @@ def project_with_takes(n: int = 2, succeed: int | None = None) -> str:
         if i < ok:
             db.update("shot_takes", t["take_id"],
                       {"status": "succeeded", "asset_id": ASSET["clip"],
-                       "duration_ms": 5000})
+                       "duration_ms": 2000})
         else:
             db.update("shot_takes", t["take_id"], {"status": "failed"})
     return pid
@@ -123,9 +137,9 @@ def run() -> int:
         f = assembly.compose(pid, confirm_partial=True)
         assert f["status"] == "partial" and f["partial"] is True
         assert len(f["missing_shots"]) == 1
-        # 计划时长 vs 实测时长分字段
+        # 计划时长(2×5s) vs 实测时长(2s×1 段) 分字段，且不相等
         assert f["planned_duration_s"] == 10, f["planned_duration_s"]
-        assert f["actual_duration_ms"] == 5000, f["actual_duration_ms"]
+        assert f["actual_duration_ms"] and f["actual_duration_ms"] > 1500, f["actual_duration_ms"]
         return {"status": f["status"], "missing": len(f["missing_shots"]),
                 "planned_s": f["planned_duration_s"], "actual_ms": f["actual_duration_ms"]}
     case("显式 confirm_partial → partial 成片（列出缺镜 + 计划/实测分开）",
@@ -135,7 +149,9 @@ def run() -> int:
         pid = project_with_takes(2, succeed=2)
         f1 = assembly.compose(pid)
         assert f1["status"] == "ready" and f1["partial"] is False
-        assert f1["actual_duration_ms"] == 10000, f1["actual_duration_ms"]
+        assert f1["actual_duration_ms"] and 3500 <= f1["actual_duration_ms"] <= 4500, \
+            f"两段 2s 拼接应约 4000ms，实际 {f1['actual_duration_ms']}"
+        assert f1.get("asset_id"), "成片未落素材库"
         f2 = assembly.compose(pid)
         assert f2["version"] == f1["version"] + 1, (f1["version"], f2["version"])
         old = assembly.get_film(f1["film_id"])

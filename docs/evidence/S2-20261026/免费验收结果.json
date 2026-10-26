@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-26 13:24:28",
+  "date": "2026-10-26 13:31:16",
   "scope": "S2 项目 / brief / 脚本",
   "isolation": {
     "fresh_db": true,
@@ -18,7 +18,7 @@
       "case": "新建项目 + 写入 brief",
       "ok": true,
       "detail": {
-        "project_id": "prj_60a9d68375…",
+        "project_id": "prj_1319c25576…",
         "status": "draft"
       }
     },
@@ -51,7 +51,7 @@
       "case": "助手不可用时可手工写脚本并确认（不阻断流程）",
       "ok": true,
       "detail": {
-        "script": "scr_b0dcdecc…",
+        "script": "scr_8c1c8f59…",
         "version": 1
       }
     },
