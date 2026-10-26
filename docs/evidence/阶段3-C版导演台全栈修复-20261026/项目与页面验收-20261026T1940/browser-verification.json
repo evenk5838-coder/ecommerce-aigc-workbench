@@ -1,0 +1,33 @@
+{
+  "environment": "Vite 5192 to isolated API 8193, full backend routes with FixedReplyProvider, no real provider keys or workers",
+  "backend_code": "5c22a56 during browser QA; d73a1e4 subsequently verified by 33 isolated tests and loaded on 8100",
+  "project_id": "prj_fd373d5deaf846f498cf",
+  "verified": [
+    "director landing before project entry, no automatic project drawer or create form",
+    "UI-created project opens canvas",
+    "conversation auto-saves real script in isolated SQLite",
+    "user confirms script once",
+    "conversation saves shot-plan proposal; user applies two shots",
+    "manual script edit survives conversation recovery",
+    "reopened project retains conversation, script and two shots",
+    "return button opens director landing",
+    "delete cancellation preserves project",
+    "homepage delete survives reload",
+    "director delete survives reload; API readback 410",
+    "410 missing-project and 409 busy-delete UI handling via injected actual error contract",
+    "homepage scrollTop=909, clientHeight=612, scrollHeight=1521 at 1025x684",
+    "light/dark UI, 390px body/document widths exactly390",
+    "video footer only generation button; text-to-video/image-to-video remain explicit"
+  ],
+  "actual_generation_calls": 0,
+  "tasks_after_browser_qa": 0,
+  "limitations": [
+    "fixed model replies validate wiring, not real model output quality",
+    "node business generation configuration persistence not included; layout persistence covered separately",
+    "no new real image/video generation or final full-product acceptance"
+  ],
+  "qa_corrections": [
+    "first error injection used wrong detail envelope; failed assertion retained in work history; corrected to error envelope and passed",
+    "Tabbit task reset lost active attachment; reacquired through fresh read-only UI and confirmed saved state before any further mutation"
+  ]
+}

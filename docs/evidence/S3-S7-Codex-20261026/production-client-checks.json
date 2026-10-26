@@ -1,0 +1,63 @@
+{
+  "recorded_at": "2026-10-26T11:51:24.215136+08:00",
+  "scope": "S3–S6 production frontend client, types and pure guards",
+  "worktree": "/Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台",
+  "base_commit_at_recording": "8c6ec8bc4d1cf4ba513b5ae9604d87d4b0c7e4ae",
+  "evidence_kind": "previously executed offline checks; this evidence-writing step does not rerun them",
+  "checks": [
+    {
+      "command": "./node_modules/.bin/vitest run src/creative/production-api.test.ts src/creative/production-guards.test.ts",
+      "cwd": "/Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend",
+      "exit_code": 0,
+      "test_files": 2,
+      "tests_passed": 49,
+      "tests_failed": 0,
+      "runner_start_time_reported": "11:47:05",
+      "tool_output_chunk_id": "a629b1"
+    },
+    {
+      "command": "./node_modules/.bin/eslint src/creative/production-api.ts src/creative/production-types.ts src/creative/production-guards.ts src/creative/production-api.test.ts src/creative/production-guards.test.ts --max-warnings 0",
+      "cwd": "/Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend",
+      "exit_code": 0,
+      "tool_output_chunk_id": "d385da"
+    },
+    {
+      "command": "./node_modules/.bin/tsc --noEmit -p tsconfig.json",
+      "cwd": "/Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend",
+      "exit_code": 0,
+      "tool_output_chunk_id": "8a5fee"
+    }
+  ],
+  "coverage": [
+    "explicit quote/confirm/submit requests, no automatic chained operations",
+    "bound project + original request + quote hash/content + real approval receipt",
+    "complete finite nonnegative item/total quote, exact shot/order/task mapping, expiration",
+    "unimplemented 404/405/501 distinguished from real resource errors",
+    "write timeouts/network/5xx/invalid acknowledgement remain result unknown with no automatic retry",
+    "real revisions; cross-project data rejected; selected failed-shot guard",
+    "missing actual output duration remains absent; never derived from plan",
+    "structure template pinned version and allowed structural fields; export never regenerates"
+  ],
+  "isolation": {
+    "mock_fetch_only": true,
+    "real_http_requests": 0,
+    "model_calls": 0,
+    "paid_calls": 0,
+    "business_db_access": false,
+    "env_or_keys_read": false,
+    "backend_or_worker_started": false
+  },
+  "limits": [
+    "Client contract readiness only; S3–S6 live backend generation/composition/export is not verified.",
+    "No browser acceptance is included in these 49 checks.",
+    "CRUD/history response shapes missing from the draft contract were explicitly sent to Pi via root for confirmation.",
+    "Current file hashes are recorded now; the checks above were run once earlier, not repeated during evidence writing."
+  ],
+  "files_sha256_at_recording": {
+    "frontend/src/creative/production-types.ts": "6522ac389c1a1db811cc5deca8c5409f67466c2f4a4b302b36d1f2ac8865eceb",
+    "frontend/src/creative/production-api.ts": "272081a5730644b90a1cb55b48a88089db6bb168fcda206d1268166bb46c7d93",
+    "frontend/src/creative/production-api.test.ts": "2c622320ddecc97182b7e2667bb0c222e10fed8f61774f965774cf6423e699e4",
+    "frontend/src/creative/production-guards.ts": "a15d6e125cdfe306d6db1da86e51166e044432aa956f8c9a3a0b36c637775bf7",
+    "frontend/src/creative/production-guards.test.ts": "3eab248526e0907cffb8e1d4b257659e5caa0363a749d24aeb728ad0f1b53dfd"
+  }
+}

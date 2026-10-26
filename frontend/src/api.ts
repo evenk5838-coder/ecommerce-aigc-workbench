@@ -1,12 +1,12 @@
-import type { Asset, Draft, Model, SystemStatus, Task, TaskInput } from './types';
+import type { Asset, Draft, Model, SystemStatus, Task, TaskEstimate, TaskInput } from './types';
 
 export class ApiError extends Error {
-  constructor(public code: string, message: string, public status: number) { super(message); }
+  constructor(public code: string, message: string, public status: number, public detail?: unknown) { super(message); }
 }
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(`/api${path}`, { ...init, signal: AbortSignal.timeout(25000) });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new ApiError(body.error?.code || 'HTTP_ERROR', body.error?.message || `请求失败（${response.status}）`, response.status);
+  if (!response.ok) throw new ApiError(body.error?.code || 'HTTP_ERROR', body.error?.message || `请求失败（${response.status}）`, response.status, body.error?.detail);
   return body as T;
 }
 const json = (method: string, body: unknown): RequestInit => ({ method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -16,6 +16,7 @@ export const api = {
   assets: () => request<{ items: Asset[] }>('/assets?limit=200'),
   tasks: () => request<{ items: Task[] }>('/tasks?limit=200'),
   task: (id: string) => request<Task>(`/tasks/${encodeURIComponent(id)}`),
+  estimateTask: (body: TaskInput) => request<TaskEstimate>('/tasks/estimate', json('POST', body)),
   createTask: (body: TaskInput) => request<{ task_id: string }>('/tasks', json('POST', body)),
   createBatch: (name: string, items: TaskInput[]) => request<{ batch_id: string; task_ids: string[] }>('/batches', json('POST', { name, items })),
   cancelTask: (id: string) => request<{ result: string; message?: string; cloud_canceled?: boolean }>(`/tasks/${encodeURIComponent(id)}/cancel`, { method: 'POST' }),

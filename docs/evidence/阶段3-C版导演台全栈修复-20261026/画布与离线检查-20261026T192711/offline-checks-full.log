@@ -1,0 +1,127 @@
+Independent frontend checks 2026-10-26T19:11:49.594769
+/Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend
+
+$ npm test
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend
+
+
+ Test Files  24 passed (24)
+      Tests  543 passed (543)
+   Start at  19:11:49
+   Duration  674ms (import 36%, tests 35%, transform 25%, worker 5%)
+
+
+EXIT_CODE=0
+
+$ npm run typecheck
+
+> ecommerce-local-studio@0.1.0 typecheck
+> tsc --noEmit
+
+src/creative/canvas-layout-sync.test.ts(41,66): error TS2353: Object literal may only specify known properties, and 'unexpected' does not exist in type 'FreeCanvasLayout'.
+
+EXIT_CODE=2
+
+$ npm run lint
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+
+
+EXIT_CODE=0
+
+$ npm run build -- --outDir /private/tmp/ecom-c-final-build-20261026
+
+> ecommerce-local-studio@0.1.0 build
+> tsc --noEmit && vite build --outDir /private/tmp/ecom-c-final-build-20261026
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1640 modules transformed.
+
+(!) outDir /private/tmp/ecom-c-final-build-20261026 is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../../../../private/tmp/ecom-c-final-build-20261026/index.html                   0.60 kB │ gzip:   0.45 kB
+../../../../../../../private/tmp/ecom-c-final-build-20261026/assets/index-CS-Acef8.css  186.28 kB │ gzip:  35.22 kB
+../../../../../../../private/tmp/ecom-c-final-build-20261026/assets/index-SknXrObV.js   571.56 kB │ gzip: 179.72 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.44s
+
+EXIT_CODE=0
+
+
+FINAL RECHECK after draft retention + completed Canvas edits 2026-10-26T19:19:13.446219
+
+$ npm test
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 /Users/niannian/.codex/worktrees/assistant-frontend/电商工作平台/frontend
+
+
+ Test Files  25 passed (25)
+      Tests  551 passed (551)
+   Start at  19:19:14
+   Duration  978ms (tests 45%, import 30%, transform 21%, worker 5%)
+
+    Isolate  25 workers spawned · ~125ms startup each (spawn + environment, per file)
+             at least ~322ms faster with isolate: false — reuses workers across files instead of one per file
+
+
+EXIT_CODE=0
+
+$ npm run typecheck
+
+> ecommerce-local-studio@0.1.0 typecheck
+> tsc --noEmit
+
+
+EXIT_CODE=0
+
+$ npm run lint
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+
+
+EXIT_CODE=0
+
+$ npm run build -- --outDir /private/tmp/ecom-c-final-build-20261026
+
+> ecommerce-local-studio@0.1.0 build
+> tsc --noEmit && vite build --outDir /private/tmp/ecom-c-final-build-20261026
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1641 modules transformed.
+
+(!) outDir /private/tmp/ecom-c-final-build-20261026 is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../../../../private/tmp/ecom-c-final-build-20261026/index.html                   0.60 kB │ gzip:   0.45 kB
+../../../../../../../private/tmp/ecom-c-final-build-20261026/assets/index-CS-Acef8.css  186.28 kB │ gzip:  35.22 kB
+../../../../../../../private/tmp/ecom-c-final-build-20261026/assets/index-BXzj8pML.js   572.93 kB │ gzip: 180.29 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.97s
+
+EXIT_CODE=0

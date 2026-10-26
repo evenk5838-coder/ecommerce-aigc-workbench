@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-26",
+  "preview": "http://127.0.0.1:5184",
+  "backend_baseline": "5a2c7ef",
+  "automated": {
+    "typecheck": "passed by build",
+    "build": "passed",
+    "lint": "passed",
+    "offline_tests": 259,
+    "test_files": 9
+  },
+  "browser": {
+    "widths": [
+      390,
+      768,
+      1280,
+      1440
+    ],
+    "horizontal_overflow": false,
+    "s2_service": "isolated source copy on 8186, fresh database, unavailable provider, no worker",
+    "checks": [
+      "project create",
+      "brief explicit save",
+      "unavailable assistant manual fallback",
+      "manual version1 save and exact confirmation",
+      "append version2 without overwrite",
+      "refresh restores selected project and content",
+      "unsaved navigation dismissal preserves input",
+      "409 preserves local edits and displays latest version3",
+      "explicit comparison saves version4",
+      "image 1K/2K labels and ratio diagrams",
+      "quantity4 changes generate button",
+      "no unsupported4K option"
+    ],
+    "runtime_errors": [],
+    "business_db_writes": 0,
+    "real_model_calls": 0,
+    "notes": [
+      "All project/script writes went to isolated temporary service.",
+      "Other mutation requests were blocked; workbench draft autosave can intentionally receive QA_WRITE_BLOCKED.",
+      "Two locator timeouts during hot updates and label spacing were corrected after reading current UI."
+    ]
+  },
+  "screenshots_sha256": {
+    "creative-1440.png": "7a8a4384e16aaad49b245e82e56f5a9c8d939ed46355ca890f1be0b213c9dc5d",
+    "creative-390.png": "d9d12cb13864c18ba8f33613ca3870e5b1a0ca3536bc8b5db57cec189a95f6de",
+    "script-1440.png": "35cf2578964764e20cfd185dc86378e14c04dc92206673775903bb6bea29cc3e",
+    "image-settings-390.png": "dabc11e8918aa426a7fe840ed8164f1290fd33e5b7a854021a8cd75c71eab1c2"
+  },
+  "still_pending": [
+    "Real DeepSeek script quality",
+    "Backend persisted confirmation validity",
+    "Backend atomic script version allocation",
+    "More image presets beyond current whitelist",
+    "S3 and later production workflow"
+  ]
+}

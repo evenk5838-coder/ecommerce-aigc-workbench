@@ -1,25 +1,25 @@
-import type { Asset, TaskInput } from './types';
+import type { Asset, ImageMode, VideoMode, Model, TaskInput } from './types';
+import { validateGenerationMode } from './generation-modes';
+import { getDefaultImageSize, getImageSizesForRatio, getSupportedRatios, getSupportedResolutions, validateModelSelection, validateVideoDuration } from './capabilities';
 
-export type ImageMode = 'text_to_image' | 'image_to_image';
+export type { ImageMode, VideoMode, GenerationMode } from './types';
 export type ImagePurpose = 'white' | 'scene' | 'custom';
 
 export interface GenerationOptions {
   kind: 'image' | 'video';
   imageMode: ImageMode;
+  /** Omitted by legacy callers: retain their first-frame behavior. */
+  videoMode?: VideoMode;
   modelId: string;
   prompt: string;
   reference?: Asset;
   ratio: string;
   duration: number;
+  /** Keep old call sites source-compatible; missing runtime metadata blocks submission. */
+  model?: Model;
+  resolution?: string;
+  imageSize?: string;
 }
-
-const imageSizes: Record<string, string> = {
-  '1:1': '2048x2048',
-  '3:4': '1728x2304',
-  '4:3': '2304x1728',
-  '9:16': '1536x2688',
-  '16:9': '2688x1536',
-};
 
 const preserveReference = '以参考图中实际出现的商品为准，保留所有商品及其数量、相对位置、形状比例、材质、颜色、品牌标识和包装文字，不增加或删除商品。';
 
@@ -36,7 +36,7 @@ export function getImagePrompt(mode: ImageMode, purpose: ImagePurpose): string {
 
 function requireImage(reference: Asset | undefined, label: string): Asset {
   if (!reference?.id) throw new Error(`请先选择或上传${label}`);
-  if (reference.kind !== 'image' || !reference.mime.startsWith('image/')) {
+  if (reference.kind !== 'image' || typeof reference.mime !== 'string' || !reference.mime.startsWith('image/')) {
     throw new Error(`${label}必须是图片，请重新选择`);
   }
   if (!Number.isFinite(reference.size) || reference.size <= 0) {
@@ -54,23 +54,37 @@ export function buildGenerationInput(options: GenerationOptions): Omit<TaskInput
   const prompt = options.prompt.trim();
   if (!prompt) throw new Error('请先填写生成描述');
   if (!modelId.trim()) throw new Error('请先选择可用模型');
-  if (!Object.prototype.hasOwnProperty.call(imageSizes, ratio)) throw new Error('请选择支持的画面比例');
+  const model = options.model;
+  const modelError = validateModelSelection(model, kind);
+  if (modelError) throw new Error(modelError);
+  if (model?.id !== modelId) throw new Error('模型信息与所选模型不一致，请刷新后重新选择');
+  if (!getSupportedRatios(model).includes(ratio)) throw new Error('当前模型不支持所选画面比例，请重新选择');
 
   if (kind === 'video') {
-    const image = requireImage(reference, '视频首帧图片');
-    if (duration !== 5 && duration !== 10) throw new Error('视频时长请选择 5 秒或 10 秒');
+    const mode = options.videoMode ?? 'image_to_video';
+    const modeError = validateGenerationMode(model, mode);
+    if (modeError) throw new Error(modeError);
+    const inputAssetId = mode === 'image_to_video' ? requireImage(reference, '视频首帧图片').id : null;
+    const durationError = validateVideoDuration(model, duration);
+    if (durationError) throw new Error(durationError);
+    const resolution = options.resolution ?? '720p';
+    if (!getSupportedResolutions(model).includes(resolution)) throw new Error('当前模型不支持所选视频清晰度，请重新选择');
     return {
-      kind, model_id: modelId, input_asset_id: image.id,
-      params: { prompt, duration, ratio, resolution: '720p', generate_audio: false },
+      kind, model_id: modelId, input_asset_id: inputAssetId,
+      params: { prompt, generation_mode: mode, duration, ratio, resolution, generate_audio: false },
     };
   }
 
   if (imageMode !== 'text_to_image' && imageMode !== 'image_to_image') {
     throw new Error('请选择文生图或图生图');
   }
+  const modeError = validateGenerationMode(model, imageMode);
+  if (modeError) throw new Error(modeError);
+  const size = options.imageSize ?? getDefaultImageSize(model, ratio);
+  if (!size || !getImageSizesForRatio(model, ratio).includes(size)) throw new Error('当前图片尺寸不支持所选比例，请重新选择输出规格');
   const inputAssetId = imageMode === 'image_to_image' ? requireImage(reference, '参考图').id : null;
   return {
     kind, model_id: modelId, input_asset_id: inputAssetId,
-    params: { prompt, generation_mode: imageMode, size: imageSizes[ratio] },
+    params: { prompt, generation_mode: imageMode, size },
   };
 }

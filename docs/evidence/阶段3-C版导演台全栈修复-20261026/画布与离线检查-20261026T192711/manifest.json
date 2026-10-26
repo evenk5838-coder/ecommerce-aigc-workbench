@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-26T19:27:11.693166+08:00",
+  "immutable_snapshot": true,
+  "scope": "C frontend candidate: canvas browser QA and archived offline checks only",
+  "frontend_baseline_commit": "eef9212ca2ac1baa86bb7ebeb5eaf1de3e9c3dd4",
+  "backend_qa_commit": "5c22a56",
+  "uncommitted_candidate": true,
+  "offline_final": {
+    "test_files": 25,
+    "tests": 551,
+    "passed": 551,
+    "failed": 0,
+    "typecheck": 0,
+    "lint": 0,
+    "build": 0,
+    "source": "offline-checks-final.log"
+  },
+  "browser": {
+    "qa_only": true,
+    "fixed_provider": true,
+    "real_generation_calls": 0,
+    "project_id": "prj_0909e624fd72444ebab7",
+    "checks": {
+      "settingsScrollWorks": true,
+      "keepLocalUsesFreshRevision": true,
+      "mobileNoHorizontalOverflow": true,
+      "revisionConflictPreservesLocal": true,
+      "settingsClickDoesNotPan": true,
+      "scaleTogether": true,
+      "useServerChoiceDoesNotOverwrite": true,
+      "serverRestoresAfterTestCacheRemoval": true,
+      "dragTogether": true
+    }
+  },
+  "source_evidence": [
+    {
+      "source": "/tmp/ecom-c-canvas-qa/desktop-conflict-choice.png",
+      "archive": "canvas/desktop-conflict-choice.png",
+      "sha256": "20a481f3b000f505a765846e19cfd9ae7286223730a83047ca622a32252059cc",
+      "bytes": 131592
+    },
+    {
+      "source": "/tmp/ecom-c-canvas-qa/desktop-scaled-dragged.png",
+      "archive": "canvas/desktop-scaled-dragged.png",
+      "sha256": "eb6d903a33f94467713ed6d5f07987a519585db618272cd3b8ed1786e87e5477",
+      "bytes": 124847
+    },
+    {
+      "source": "/tmp/ecom-c-canvas-qa/evidence.json",
+      "archive": "canvas/evidence.json",
+      "sha256": "7cdcc18351bbb9b429b8a325f6e4fdd2947149989fa4062b17371b662d6c55d4",
+      "bytes": 24448
+    },
+    {
+      "source": "/tmp/ecom-c-canvas-qa/evidence.receipt.json",
+      "archive": "canvas/evidence.receipt.json",
+      "sha256": "bd9392b1f6eaf5ada4d22db5763eb59bd02728bcfb367132b697838c63e71cd3",
+      "bytes": 16101
+    },
+    {
+      "source": "/tmp/ecom-c-canvas-qa/mobile-390-fit.png",
+      "archive": "canvas/mobile-390-fit.png",
+      "sha256": "92e751ae59b7fc7e353f04a776ff64472bea60b29cde812104622e0cd1441360",
+      "bytes": 63143
+    },
+    {
+      "source": "/tmp/ecom-c-final-checks-20261026.log",
+      "archive": "offline-checks-full.log",
+      "sha256": "ffd8b4147ab4bdec76bb9aad93992f37bb4c5a2bd7adc35a313692ebb1976acb",
+      "bytes": 3999
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "canvas/desktop-conflict-choice.png",
+      "bytes": 131592,
+      "sha256": "20a481f3b000f505a765846e19cfd9ae7286223730a83047ca622a32252059cc"
+    },
+    {
+      "file": "canvas/desktop-scaled-dragged.png",
+      "bytes": 124847,
+      "sha256": "eb6d903a33f94467713ed6d5f07987a519585db618272cd3b8ed1786e87e5477"
+    },
+    {
+      "file": "canvas/evidence.json",
+      "bytes": 24448,
+      "sha256": "7cdcc18351bbb9b429b8a325f6e4fdd2947149989fa4062b17371b662d6c55d4"
+    },
+    {
+      "file": "canvas/evidence.receipt.json",
+      "bytes": 16101,
+      "sha256": "bd9392b1f6eaf5ada4d22db5763eb59bd02728bcfb367132b697838c63e71cd3"
+    },
+    {
+      "file": "canvas/mobile-390-fit.png",
+      "bytes": 63143,
+      "sha256": "92e751ae59b7fc7e353f04a776ff64472bea60b29cde812104622e0cd1441360"
+    },
+    {
+      "file": "offline-checks-final.log",
+      "bytes": 1989,
+      "sha256": "72158185626dd23d906461caeba17489a9bc5a45b6a8cb4898d74d10441a5c47"
+    },
+    {
+      "file": "offline-checks-full.log",
+      "bytes": 3999,
+      "sha256": "ffd8b4147ab4bdec76bb9aad93992f37bb4c5a2bd7adc35a313692ebb1976acb"
+    },
+    {
+      "file": "qa-isolation-manifest.json",
+      "bytes": 717,
+      "sha256": "84189c0543aa3c81e6a4b36bd7c29415bef0e1255bf9d898d98753113914481b"
+    },
+    {
+      "file": "source-fingerprints.json",
+      "bytes": 11072,
+      "sha256": "f20b11945cd087d9220e16c1e81d552eac693ba5fe2c9f95d86a82a50acc6df2"
+    },
+    {
+      "file": "交付说明.md",
+      "bytes": 6295,
+      "sha256": "bfccb91290e484c8a5af1d8f4ef59d0071c8c357ef3ca2f56ad3271f2f782832"
+    }
+  ],
+  "pending": [
+    "new real-provider end-to-end acceptance",
+    "full canvas node business config/reference binding persistence",
+    "parent browser evidence for home/delete/theme/director flow",
+    "final human review"
+  ]
+}

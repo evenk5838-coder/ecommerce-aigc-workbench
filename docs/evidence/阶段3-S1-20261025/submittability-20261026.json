@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-26",
+  "change": "Honor backend submittability in model selection and estimates",
+  "checks": {
+    "build": "passed",
+    "lint": "passed",
+    "tests_passed": 176,
+    "test_files": 6,
+    "diff_check": "passed"
+  },
+  "browser": {
+    "origin": "http://localhost:5184",
+    "models": "real backend",
+    "duration_options": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "unopened_models_disabled": true,
+    "real_image_estimate": {
+      "cost_cny": 0.12,
+      "confirmation_enabled": true
+    },
+    "injected_estimate": {
+      "cost_cny": 0.12,
+      "submittable": false,
+      "blocked_reasons": [
+        "MODEL_NOT_OPENED"
+      ],
+      "confirmation_enabled": false
+    },
+    "runtime_errors": [],
+    "task_or_batch_posts": 0,
+    "paid_model_calls": 0
+  },
+  "pending": [
+    "Real generation at 3/6/12 seconds",
+    "Backend retry override validation edge case"
+  ]
+}

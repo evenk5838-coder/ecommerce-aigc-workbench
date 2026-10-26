@@ -1,0 +1,46 @@
+{
+  "tasks": {
+    "status": 200,
+    "body": {
+      "items": []
+    }
+  },
+  "deleted_project": {
+    "status": 410,
+    "body": {
+      "error": {
+        "code": "PROJECT_DELETED",
+        "message": "该项目已删除，素材和历史任务仍保留。",
+        "detail": {
+          "project_id": "prj_fd373d5deaf846f498cf",
+          "deleted_at": 1793014392.828187
+        }
+      }
+    }
+  },
+  "isolation": {
+    "status": 200,
+    "body": {
+      "qa_only": true,
+      "provider": "FixedReplyProvider",
+      "real_model_capability": false,
+      "source_commit": "5c22a56",
+      "pid": 72030,
+      "port": 8193,
+      "host": "127.0.0.1",
+      "runner": "/private/tmp/ecom-qa-director-8193-20261026/runner.py",
+      "database": "/private/tmp/ecom-qa-director-8193-20261026/data/app.db",
+      "assets": "/private/tmp/ecom-qa-director-8193-20261026/data/assets",
+      "real_keys_loaded": false,
+      "dotenv_loaded": false,
+      "network_connect_blocked": true,
+      "worker_enabled": false,
+      "real_generation_enabled": false,
+      "fixtures": {
+        "director_project": "prj_2f8b750f300e4ea1bd05",
+        "delete_candidate": "prj_95ae7f76c1b54dfc88d8",
+        "deleted_project": "prj_a86075f84ea94082b009"
+      }
+    }
+  }
+}

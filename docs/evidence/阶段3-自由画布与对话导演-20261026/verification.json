@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-26",
+  "branch": "codex/assistant-frontend-v1",
+  "frontend_baseline": "b793b61",
+  "backend_reviewed_baseline": "ee7c790",
+  "check_type": "frontend unit/static/build and isolated browser fixtures",
+  "engineering": {
+    "test_files": 22,
+    "tests_passed": 481,
+    "typecheck": "pass",
+    "lint": "pass",
+    "build": "pass",
+    "diff_check": "pass",
+    "credential_pattern_scan": "pass; not a full security audit",
+    "warnings": [
+      "Production JS chunk remains larger than 500 kB."
+    ]
+  },
+  "browser": {
+    "inspectorScrollReset": true,
+    "mobile": {
+      "width": 390,
+      "doc": 390,
+      "body": 390
+    },
+    "browserErrors": [],
+    "layoutOnly": [
+      "version",
+      "projectId",
+      "viewport",
+      "positions"
+    ],
+    "realProviderCalls": 0,
+    "fixture": true,
+    "independentImageNodeSettings": true,
+    "scriptWriteAndConfirmOnly": [
+      "PATCH /api/scripts/scr_qa_v1",
+      "POST /api/scripts/scr_qa_v2/confirm"
+    ],
+    "home": {
+      "content": 1124,
+      "overflow": "auto",
+      "height": 588
+    },
+    "restored": {
+      "top": 231.878,
+      "left": 298.666
+    },
+    "realBusinessWrites": 0,
+    "drag": {
+      "after": {
+        "top": 231.878,
+        "left": 298.666
+      },
+      "before": {
+        "top": 160.734,
+        "left": 186.868
+      }
+    },
+    "zoom": "59%"
+  },
+  "live_read_only": {
+    "endpoint": "GET /api/assistant/status",
+    "provider": "deepseek",
+    "state": "connected_verified",
+    "available": true,
+    "scope": "Connection status only; no chat or provider invocation."
+  },
+  "no_real_provider_calls": true,
+  "no_real_business_writes": true,
+  "internal_test_ready": false,
+  "pending": [
+    "Backend conversational director proposals persisted as actual project/script/shot artifacts",
+    "Server persistence and versioning for node generation settings; independently scoped video model settings",
+    "Frontend consumes new frozen contracts; full real end-to-end creation, recovery, export and human review within approved budget"
+  ],
+  "screenshots": "Isolated fixture data; no generated output or production test claims."
+}

@@ -1,0 +1,20 @@
+{
+  "frontend_parent": "3e3b760",
+  "backend_parent": "d73a1e4",
+  "frontend_tests": 551,
+  "test_files": 25,
+  "typecheck": true,
+  "lint": true,
+  "build": true,
+  "diff_check": true,
+  "selected_secret_pattern_scan": true,
+  "live_url": "http://127.0.0.1:8100/",
+  "live_assets": [
+    "index-DRWNmqxy.js",
+    "index-CS-Acef8.css"
+  ],
+  "live_project_count": 1,
+  "live_write_requests": 0,
+  "real_model_calls_this_turn": 0,
+  "limitation": "Model/browser flow uses fixed replies. Not full-product or model-quality acceptance."
+}

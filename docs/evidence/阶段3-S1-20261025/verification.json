@@ -1,0 +1,61 @@
+{
+  "stage": "S1 frontend implemented, ready for human UI review",
+  "date": "2026-10-25",
+  "preview": "http://127.0.0.1:5184/",
+  "backend": "http://127.0.0.1:8100/",
+  "checks": {
+    "typecheck": "passed as part of npm run build",
+    "build": "passed",
+    "lint": "passed",
+    "unit_tests": {
+      "passed": 107,
+      "files": 5
+    },
+    "git_diff_check": "passed"
+  },
+  "browser": {
+    "widths": [
+      390,
+      768,
+      1280,
+      1440
+    ],
+    "horizontal_overflow": false,
+    "real_free_estimate_requests": 1,
+    "real_estimate_success_confirmation_enabled": true,
+    "generation_task_posts": 0,
+    "paid_calls": 0,
+    "chat": "mocked; explicit adoption and null-result fallback checked",
+    "estimate_failure": "mocked 503; confirmation disabled; Escape returns to unchanged input",
+    "video_duration_options": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "video_ratios": [
+      "9:16",
+      "16:9",
+      "1:1"
+    ],
+    "runtime_errors_observed": []
+  },
+  "limitations": [
+    "Guided creation has an honest status page only; project, script, storyboard and composition APIs not yet connected.",
+    "Real DeepSeek polish quality and new-duration actual video generation were not tested in this frontend round.",
+    "This is a development preview on an independent branch, not the existing frontend served by port 8100."
+  ],
+  "screenshots_sha256": {
+    "workbench-390.png": "6c86234408f1eb7f44d262eeb5d19647351321b6d018acec2827b8fb8faf7080",
+    "workbench-1440.png": "3a8b9a1aadabec467c6726cc71628a1cd67444f2fe8c2025a05f02bc891030b3",
+    "estimate-error-390.png": "8c8fabbbb1a55adbe8b80398913d17a71b947fba93a40672b1de51477374b3ee",
+    "creative-390.png": "aabf135bccf4af64aa962020f868b1c7646027b24f92cd0f3ddd2b873be72761"
+  }
+}
