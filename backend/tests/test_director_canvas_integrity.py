@@ -106,6 +106,29 @@ class DirectorCanvasIntegrity(unittest.TestCase):
         self.assertEqual(canvas.get_canvas(self.pid)["edges"],[])
         self.assertEqual(db.query("SELECT * FROM canvas_states"),[])
 
+    def test_layout_only_cards_do_not_conflict_with_chat_baseline(self):
+        baseline = director_chat._workflow_revision(self.pid)
+        canvas.patch_canvas(self.pid, {"nodes": [{"node_id": "display", "type": "script",
+            "position": {"x": 30, "y": 40}, "config": {}}]})
+        self.assertEqual(baseline, director_chat._workflow_revision(self.pid))
+        canvas.patch_canvas(self.pid, {"nodes": [{"node_id": "display",
+            "position": {"x": 90, "y": 120}}]})
+        self.assertEqual(baseline, director_chat._workflow_revision(self.pid))
+        self.chat(expected_workflow_revision=baseline)
+
+    def test_real_canvas_configuration_and_bindings_still_conflict(self):
+        script = projects.add_script(self.pid, {"summary": "confirmed facts"})
+        baseline = director_chat._workflow_revision(self.pid)
+        canvas.patch_canvas(self.pid, {"nodes": [{"node_id": "bound", "type": "script",
+            "binding": {"script_id": script["script_id"]}, "config": {}}]})
+        self.assertNotEqual(baseline, director_chat._workflow_revision(self.pid))
+        self.failure("WORKFLOW_REVISION_CONFLICT", lambda: self.chat(expected_workflow_revision=baseline))
+        baseline = director_chat._workflow_revision(self.pid)
+        canvas.patch_canvas(self.pid, {"nodes": [{"node_id": "prompt", "type": "image",
+            "config": {"prompt": "new real creative setting"}}]})
+        self.assertNotEqual(baseline, director_chat._workflow_revision(self.pid))
+        self.failure("WORKFLOW_REVISION_CONFLICT", lambda: self.chat(expected_workflow_revision=baseline))
+
     def test_position_only_preserves_image_type_binding_config(self):
         script=projects.add_script(self.pid,{"summary":"script"})
         canvas.patch_canvas(self.pid,{"nodes":[{"node_id":"n1","type":"image", "position":{"x":1,"y":2},

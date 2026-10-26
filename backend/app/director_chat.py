@@ -444,6 +444,11 @@ def _workflow_revision(project_id: str, connection=None) -> int:
         ("canvas_nodes", "node_id,type,config_json,binding_json,config_revision")):
         key = "id" if table == "projects" else "project_id"
         state[table] = read(f"SELECT {columns} FROM {table} WHERE {key}=? ORDER BY 1", (project_id,))
+        if table == "canvas_nodes":
+            # Empty, unbound display cards are layout only. Adding one must not
+            # invalidate a chat baseline; real bindings/config edits still do.
+            state[table] = [row for row in state[table]
+                            if db.loads(row["config_json"]) or db.loads(row["binding_json"])]
     raw = json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return int(hashlib.sha256(raw.encode()).hexdigest()[:13], 16)
 

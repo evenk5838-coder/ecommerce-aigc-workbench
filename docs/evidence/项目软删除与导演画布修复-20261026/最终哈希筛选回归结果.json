@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-26",
+  "command": "/private/tmp/ecom-local-probe-20261022/venv/bin/python -m unittest discover -s backend/tests -v",
+  "exit_code": 0,
+  "total": 33,
+  "passed": 33,
+  "failed": 0,
+  "duration_seconds": 2.864,
+  "suites": {
+    "test_project_deletion": 10,
+    "test_director_canvas_integrity": 23
+  },
+  "final_added_cases": [
+    "test_layout_only_cards_do_not_conflict_with_chat_baseline",
+    "test_real_canvas_configuration_and_bindings_still_conflict"
+  ],
+  "evidence_boundary": "Isolated temporary SQLite and stub providers. No actual model request, business-database mutation or browser end-to-end acceptance. The previous 31-case evidence remains a historical result, not an additional 31 distinct cases."
+}
