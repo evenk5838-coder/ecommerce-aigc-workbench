@@ -1,0 +1,214 @@
+{
+  "date": "2026-10-26 13:27:13",
+  "approved": {
+    "max_calls": 4,
+    "max_cny": 2.0
+  },
+  "isolation": {
+    "temp_db": true,
+    "business_db": "只读复制参考图",
+    "worker": "未启动（脚本同步执行）"
+  },
+  "steps": [
+    {
+      "step": "project_script_shots",
+      "project_id": "prj_9d2a27d870374e24a70a",
+      "shots": 2
+    },
+    {
+      "step": "storyboards",
+      "items": [
+        {
+          "shot_id": "shot_2afe234c16764c19ae20",
+          "storyboard_id": "sb_dce3727c9903497ca5b4",
+          "asset_id": "asset_571a32833eb4493981d0",
+          "cost": 0.12
+        },
+        {
+          "shot_id": "shot_5357b4d7b952414ea57a",
+          "storyboard_id": "sb_9a86f299a3ce44e394f2",
+          "asset_id": "asset_52c62e58a60d48cbbc29",
+          "cost": 0.12
+        }
+      ]
+    },
+    {
+      "step": "scope",
+      "mode": "full",
+      "estimate_cny": 0.9072,
+      "batch_id": "batch_b36a96c53e8d4705b4ff",
+      "tasks": 2
+    },
+    {
+      "step": "clips",
+      "items": [
+        {
+          "shot_id": "shot_2afe234c16764c19ae20",
+          "take_id": "take_7bbe8a590973431b9fbe",
+          "task_id": "task_c885ef5320f646e2bb36",
+          "status": "succeeded",
+          "latency_ms": 32965,
+          "cost_cny": 0.436,
+          "output_asset_id": "asset_f301946aded24c7e9149",
+          "width": 704,
+          "height": 1248,
+          "duration_ms": 5040,
+          "error_code": null,
+          "error_message": null,
+          "wall_ms": 41966
+        },
+        {
+          "shot_id": "shot_5357b4d7b952414ea57a",
+          "take_id": "take_cd437883740a4d3aa082",
+          "task_id": "task_0266fcb5c2c34d568765",
+          "status": "succeeded",
+          "latency_ms": 34897,
+          "cost_cny": 0.436,
+          "output_asset_id": "asset_fe600d45cb204ab3ae82",
+          "width": 704,
+          "height": 1248,
+          "duration_ms": 5040,
+          "error_code": null,
+          "error_message": null,
+          "wall_ms": 39042
+        }
+      ]
+    },
+    {
+      "step": "film",
+      "film_id": "flm_fab628b5a8b946ae8cf2",
+      "version": 1,
+      "status": "ready",
+      "partial": false,
+      "missing_shots": [],
+      "planned_duration_s": 10,
+      "actual_duration_ms": 10080,
+      "asset_id": "asset_6e5586148cdd42cd8ad6",
+      "clip_count": 2,
+      "note": "纯拼接，不裁剪/变速/补帧",
+      "file": {
+        "film_id": "flm_fab628b5a8b946ae8cf2",
+        "project_id": "prj_9d2a27d870374e24a70a",
+        "version": 1,
+        "status": "ready",
+        "asset_id": "asset_6e5586148cdd42cd8ad6",
+        "duration_ms": 10080,
+        "partial": false,
+        "items": [
+          {
+            "take_id": "take_7bbe8a590973431b9fbe",
+            "shot_id": "shot_2afe234c16764c19ae20",
+            "asset_id": "asset_f301946aded24c7e9149",
+            "status": "succeeded",
+            "duration_ms": 5040,
+            "actual_duration_ms": 5040
+          },
+          {
+            "take_id": "take_cd437883740a4d3aa082",
+            "shot_id": "shot_5357b4d7b952414ea57a",
+            "asset_id": "asset_fe600d45cb204ab3ae82",
+            "status": "succeeded",
+            "duration_ms": 5040,
+            "actual_duration_ms": 5040
+          }
+        ],
+        "missing_shots": [],
+        "planned_duration_s": 10
+      }
+    },
+    {
+      "step": "export",
+      "file_name": "prj_9d2a27d870374e24a70a-export.zip",
+      "bytes": 3364239,
+      "includes": [
+        "film",
+        "clips",
+        "storyboards",
+        "manifest"
+      ]
+    }
+  ],
+  "passed": true,
+  "calls": [
+    {
+      "kind": "image",
+      "model": "doubao-seedream-5-0-flash-260915",
+      "reserved_cny": 0.12,
+      "started_at": 1792992433.0454998,
+      "ok": null,
+      "task_id": "task_2c87e47ee7134695b298",
+      "status": "succeeded",
+      "latency_ms": 20897,
+      "cost_cny": 0.12,
+      "output_asset_id": "asset_571a32833eb4493981d0",
+      "width": 2048,
+      "height": 2048,
+      "duration_ms": null,
+      "error_code": null,
+      "error_message": null,
+      "wall_ms": 20953
+    },
+    {
+      "kind": "image",
+      "model": "doubao-seedream-5-0-flash-260915",
+      "reserved_cny": 0.12,
+      "started_at": 1792992454.1928551,
+      "ok": null,
+      "task_id": "task_6d1ca299179a462b86e4",
+      "status": "succeeded",
+      "latency_ms": 17722,
+      "cost_cny": 0.12,
+      "output_asset_id": "asset_52c62e58a60d48cbbc29",
+      "width": 2048,
+      "height": 2048,
+      "duration_ms": null,
+      "error_code": null,
+      "error_message": null,
+      "wall_ms": 17757
+    },
+    {
+      "kind": "video",
+      "model": "doubao-seedance-1-0-pro-fast-251015",
+      "reserved_cny": 0.4536,
+      "started_at": 1792992472.0091,
+      "ok": null,
+      "task_id": "task_c885ef5320f646e2bb36",
+      "status": "succeeded",
+      "latency_ms": 32965,
+      "cost_cny": 0.436,
+      "output_asset_id": "asset_f301946aded24c7e9149",
+      "width": 704,
+      "height": 1248,
+      "duration_ms": 5040,
+      "error_code": null,
+      "error_message": null,
+      "wall_ms": 41966
+    },
+    {
+      "kind": "video",
+      "model": "doubao-seedance-1-0-pro-fast-251015",
+      "reserved_cny": 0.4536,
+      "started_at": 1792992513.977659,
+      "ok": null,
+      "task_id": "task_0266fcb5c2c34d568765",
+      "status": "succeeded",
+      "latency_ms": 34897,
+      "cost_cny": 0.436,
+      "output_asset_id": "asset_fe600d45cb204ab3ae82",
+      "width": 704,
+      "height": 1248,
+      "duration_ms": 5040,
+      "error_code": null,
+      "error_message": null,
+      "wall_ms": 39042
+    }
+  ],
+  "usage": {
+    "calls": 4,
+    "calls_cap": 4,
+    "reserved_cny": 1.1472,
+    "actual_cost_cny": 1.112,
+    "cap_cny": 2.0
+  },
+  "note": "费用为应用侧估算，非供应商账单；未自动重试。"
+}

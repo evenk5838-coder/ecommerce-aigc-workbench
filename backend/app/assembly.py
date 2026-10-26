@@ -22,19 +22,85 @@ from .errors import err
 
 # ---------------- 时长探测 ----------------
 def probe_duration_ms(path: Path) -> int | None:
-    """用 ffprobe 探测实际时长（毫秒）；不可用时返回 None（如实标注，不猜）。"""
-    exe = _ffprobe()
-    if not exe or not path.exists():
+    """探测实际时长（毫秒）。优先 imageio_ffmpeg 元数据，其次 ffprobe，最后解析 ffmpeg 输出。
+
+    都无法获取时返回 None（**如实标注未知，不猜**）。
+    """
+    if not path.exists():
         return None
+    # 1) imageio_ffmpeg 元数据
     try:
-        out = subprocess.run(
-            [exe, "-v", "error", "-show_entries", "format=duration",
-             "-of", "default=nw=1:nk=1", str(path)],
-            capture_output=True, text=True, timeout=20)
-        val = (out.stdout or "").strip()
-        return int(float(val) * 1000) if val else None
+        import imageio_ffmpeg
+        gen = imageio_ffmpeg.read_frames(str(path))
+        meta = next(gen)
+        gen.close()
+        dur = meta.get("duration")
+        if dur:
+            return int(float(dur) * 1000)
     except Exception:  # noqa: BLE001
-        return None
+        pass
+    # 2) ffprobe
+    exe = _ffprobe()
+    if exe and Path(exe).exists():
+        try:
+            out = subprocess.run(
+                [exe, "-v", "error", "-show_entries", "format=duration",
+                 "-of", "default=nw=1:nk=1", str(path)],
+                capture_output=True, text=True, timeout=20)
+            val = (out.stdout or "").strip()
+            if val:
+                return int(float(val) * 1000)
+        except Exception:  # noqa: BLE001
+            pass
+    # 3) 解析 ffmpeg -i 输出
+    ff = _ffmpeg()
+    if ff:
+        try:
+            r = subprocess.run([ff, "-i", str(path)], capture_output=True, timeout=30)
+            text = (r.stderr or b"").decode("utf-8", "ignore")
+            import re
+            m = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", text)
+            if m:
+                h, mi, s2 = int(m.group(1)), int(m.group(2)), float(m.group(3))
+                return int((h * 3600 + mi * 60 + s2) * 1000)
+        except Exception:  # noqa: BLE001
+            pass
+    return None
+
+
+def concat_clips(paths: list[Path], out_path: Path) -> tuple[bool, str | None]:
+    """ffmpeg 纯拼接（顺序，不裁剪/变速/补帧）。
+
+    优先 `-c copy`（无损快速）；编码不一致时回退统一转码。
+    """
+    ff = _ffmpeg()
+    if not ff:
+        return False, "ffmpeg_not_found"
+    if not paths:
+        return False, "no_clips"
+    list_file = out_path.with_suffix(".txt")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    list_file.write_text("".join(f"file '{p}'\n" for p in paths), encoding="utf-8")
+    attempts = (
+        ["-y", "-f", "concat", "-safe", "0", "-i", str(list_file), "-c", "copy", str(out_path)],
+        ["-y", "-f", "concat", "-safe", "0", "-i", str(list_file),
+         "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac",
+         "-movflags", "+faststart", str(out_path)],
+    )
+    last = None
+    try:
+        for args in attempts:
+            try:
+                r = subprocess.run([ff, *args], capture_output=True, timeout=600)
+            except Exception as e:  # noqa: BLE001
+                last = f"{type(e).__name__}: {e}"
+                continue
+            if r.returncode == 0 and out_path.exists() and out_path.stat().st_size > 0:
+                return True, None
+            last = (r.stderr or b"")[-400:].decode("utf-8", "ignore")
+        return False, last
+    finally:
+        list_file.unlink(missing_ok=True)
 
 
 def _ffprobe() -> str | None:
@@ -103,17 +169,45 @@ def compose(project_id: str, take_ids: list[str] | None = None,
                            (project_id,))[0]["v"]) + 1
     film_id = db.new_id("flm")
     status = "partial" if missing else "ready"
+    planned_s = sum(s["duration_s"] for s in row_shots)
+
+    # ---- 真实拼接（纯拼接，不裁剪）----
+    clip_paths = [_asset_file(t["asset_id"]) for t in picked]
+    out_tmp = config.ASSETS / "films" / f"{film_id}.mp4"
+    ok, err_detail = concat_clips([p for p in clip_paths if p.exists()], out_tmp)
+    asset_id = None
+    concat_error = None
+    if ok:
+        from . import storage
+        asset = storage.save_bytes(out_tmp.read_bytes(), "video", "assembly",
+                                   meta={"film_id": film_id, "version": version,
+                                         "clips": [t["id"] for t in picked],
+                                         "no_trim": True})
+        asset_id = asset["id"]
+        probed = probe_duration_ms(_asset_file(asset_id))
+        if probed:
+            total_ms = probed
+        out_tmp.unlink(missing_ok=True)
+    else:
+        status = "failed"
+        concat_error = (err_detail or "")[:300]
+
     db.insert("films", {"id": film_id, "project_id": project_id, "version": version,
                         "status": status, "items_json": db.dumps(
                             {"items": items, "missing": missing,
-                             "planned_duration_s": sum(s["duration_s"] for s in row_shots)}),
-                        "duration_ms": total_ms or None, "asset_id": None,
+                             "planned_duration_s": planned_s,
+                             "concat_error": concat_error}),
+                        "duration_ms": total_ms or None, "asset_id": asset_id,
                         "partial": 1 if missing else 0, "created_at": db.now()})
+    if status == "failed":
+        raise err("ASSEMBLY_FAILED", "成片拼接失败（片段或编码问题）",
+                  detail={"film_id": film_id, "error": concat_error,
+                          "film_status": "failed"})
     return {"film_id": film_id, "version": version, "status": status,
             "partial": bool(missing), "missing_shots": missing,
-            "planned_duration_s": sum(s["duration_s"] for s in row_shots),
+            "planned_duration_s": planned_s,
             "actual_duration_ms": total_ms or None,
-            "clip_count": len(items),
+            "asset_id": asset_id, "clip_count": len(items),
             "note": "纯拼接，不裁剪/变速/补帧"}
 
 
