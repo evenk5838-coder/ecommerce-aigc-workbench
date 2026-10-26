@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 
 from . import config, db, director, projects, shots
 from .assistant import provider as prov
@@ -74,26 +75,30 @@ def _tool_state(project_id: str) -> dict:
         "brief": r["facts"]["brief"],
         "current_stage": r["current"]["stage"],
         "script": ({"script_id": script[0]["id"], "version": script[0]["version"],
-                    "confirmed": bool(script[0]["confirmed_at"])} if script else None),
+                    "content": db.loads(script[0]["content_json"]) or {},
+                    "confirmed": bool(r["current"]["confirmation"].get("valid"))} if script else None),
         "shots": [{"shot_id": s["id"], "seq": s["seq"], "duration_s": s["duration_s"],
                    "description": s["description"]} for s in shots],
         "allowed_actions": r["allowed_actions"],
+        "draft_proposals": [dict(kind=x["kind"], version=x["version"], proposal_id=x["id"],
+                                 content=db.loads(x["content_json"]) or {})
+            for x in db.query("SELECT * FROM director_proposals WHERE project_id=? AND status='draft' "
+                              "ORDER BY created_at DESC LIMIT 3", (project_id,))],
     }
 
 
 def _save_proposal(project_id: str, kind: str, content: dict, *,
                    target_id: str | None = None, target_version: int | None = None,
                    session_id: str | None = None, request_id: str | None = None) -> dict:
-    rows = db.query("SELECT COALESCE(MAX(version),0) v FROM director_proposals "
-                    "WHERE project_id=? AND kind=?", (project_id, kind))
-    ver = int(rows[0]["v"]) + 1
     pid = db.new_id("prop")
-    db.insert("director_proposals", {
-        "id": pid, "project_id": project_id, "kind": kind, "version": ver,
-        "content_json": db.dumps(content), "target_id": target_id,
-        "target_version": target_version, "status": "draft",
-        "source_session_id": session_id, "source_request_id": request_id,
-        "created_at": db.now(), "applied_at": None})
+    with db.transaction() as c:
+        ver = int(c.execute("SELECT COALESCE(MAX(version),0) v FROM director_proposals "
+                            "WHERE project_id=? AND kind=?", (project_id, kind)).fetchone()["v"]) + 1
+        c.execute("INSERT INTO director_proposals(id,project_id,kind,version,content_json,target_id,"
+                  "target_version,status,source_session_id,source_request_id,created_at,applied_at) "
+                  "VALUES(?,?,?,?,?,?,?,'draft',?,?,?,NULL)",
+                  (pid,project_id,kind,ver,db.dumps(content),target_id,target_version,
+                   session_id,request_id,db.now()))
     return {"proposal_id": pid, "kind": kind, "version": ver,
             "target_id": target_id, "target_version": target_version}
 
@@ -110,6 +115,13 @@ def _clean_brief(raw: dict) -> dict:
             if isinstance(v, bool) or not isinstance(v, int) or v <= 0:
                 raise err("VALIDATION_FAILED", "quantity 必须为正整数",
                           detail={"field": "quantity", "got": v})
+        if k in ("subject", "target_platform", "style", "notes") and not isinstance(v, str):
+            raise err("VALIDATION_FAILED", f"{k} 必须是字符串")
+        if k == "target_duration_s" and (isinstance(v, bool) or not isinstance(v, int) or v <= 0):
+            raise err("VALIDATION_FAILED", "target_duration_s 必须是正整数")
+        if k in ("selling_points", "forbidden_elements") and not (
+                isinstance(v, str) or isinstance(v, list) and all(isinstance(x, str) for x in v)):
+            raise err("VALIDATION_FAILED", f"{k} 必须是字符串或字符串数组")
         out[k] = v
     if not out:
         raise err("VALIDATION_FAILED", "brief 提案为空或字段均非法",
@@ -217,10 +229,15 @@ def execute_tool(name: str, args: dict, ctx: dict) -> dict:
 
 # ---------------- 预算闸门（每次 LLM 请求前） ----------------
 def _estimate_call_cost(messages: list[dict], max_out_tokens: int = 400) -> float:
-    chars = sum(len(str(m.get("content") or "")) for m in messages)
-    in_tokens = int(chars / 1.6) + 200
-    usd = in_tokens / 1e6 * 0.30 + max_out_tokens / 1e6 * 1.20
-    return round(usd * 7.2, 6)
+    # Include tool schemas and tool-call arguments, not only message.content.
+    payload = {"messages": messages, "tools": [vars(t) for t in PROJECT_TOOLS]}
+    in_tokens = len(json.dumps(payload, ensure_ascii=False)) + 200
+    return _token_cost(in_tokens, max_out_tokens)
+
+
+def _token_cost(input_tokens: int, output_tokens: int) -> float:
+    # Application-side estimate; deliberately not presented as the provider's bill.
+    return round((input_tokens * 0.30 + output_tokens * 1.20) / 1e6 * 7.2, 6)
 
 
 def check_budget(session_id: str, estimated_cny: float) -> dict:
@@ -277,184 +294,186 @@ def _receipt(project_id: str, client_request_id: str) -> dict | None:
     return rows[0] if rows else None
 
 
+def _history(project_id: str) -> list[dict]:
+    """Bounded project memory; the complete transcript remains available through messages()."""
+    rows = db.query("SELECT user_text,reply_text,structured_json FROM director_turns "
+                    "WHERE project_id=? ORDER BY created_at DESC,id DESC LIMIT 8", (project_id,))
+    result = []
+    remaining = 12000
+    for row in rows:
+        user, reply = row["user_text"], row["reply_text"]
+        artifacts = (db.loads(row["structured_json"]) or {}).get("artifacts") or []
+        assistant = reply + ("\n已保存草案回执：" + db.dumps(artifacts) if artifacts else "")
+        if len(user) + len(assistant) > remaining:
+            break
+        remaining -= len(user) + len(assistant)
+        result[0:0] = [{"role": "user", "content": user}, {"role": "assistant", "content": assistant}]
+    return result
+
+
+@projects.project_guard()
 def chat(project_id: str, body: dict, provider=None) -> dict:  # noqa: ANN001
     from .assistant import service as asst
-
     projects.get_project(project_id)
     message = (body.get("message") or "").strip()
-    if not message:
-        raise err("VALIDATION_FAILED", "message 不能为空")
     crid = (body.get("client_request_id") or "").strip()
-    if not crid:
-        raise err("VALIDATION_FAILED", "client_request_id 必填（用于幂等与断线恢复）")
-
+    if not message or not crid:
+        raise err("VALIDATION_FAILED", "message 和 client_request_id 必填")
     ph = _payload_hash(body)
+    # Replay first: a completed request remains valid even when newer work changed the baseline.
     prior = _receipt(project_id, crid)
     if prior:
         if prior["payload_hash"] != ph:
-            raise err("IDEMPOTENCY_CONFLICT",
-                      "同一 client_request_id 提交了不同内容",
-                      detail={"client_request_id": crid})
-        if prior["status"] == "pending":
-            raise err("DIRECTOR_REQUEST_PENDING", "该请求仍在处理中，请稍后查询回执",
-                      detail={"client_request_id": crid})
+            raise err("IDEMPOTENCY_CONFLICT", "同一 client_request_id 提交了不同内容")
         if prior["response_json"]:
             return {**json.loads(prior["response_json"]), "idempotent_replay": True}
-        raise err("DIRECTOR_REQUEST_PENDING", "请求未完成，请查询回执",
-                  detail={"client_request_id": crid, "status": prior["status"]})
-
+        code = "DIRECTOR_REQUEST_PENDING" if prior["status"] == "pending" else "DIRECTOR_REQUEST_FAILED"
+        raise err(code, "请求仍在处理" if prior["status"] == "pending" else "上次请求未完成，请查看已保存草案后使用新的请求编号",
+                  detail={"client_request_id": crid, "status": prior["status"], "error_code": prior["error_code"]})
+    expected = body.get("expected_workflow_revision")
+    current = _workflow_revision(project_id)
+    if expected is not None and (isinstance(expected, bool) or not isinstance(expected, int) or expected != current):
+        raise err("WORKFLOW_REVISION_CONFLICT", "项目内容已变化，请刷新后继续",
+                  detail={"current_workflow_revision": current})
     sess = _session_for(project_id, body.get("session_id"))
     rid = db.new_id("dreq")
     db.insert("director_requests", {"id": rid, "project_id": project_id,
-                                    "client_request_id": crid, "payload_hash": ph,
-                                    "status": "pending", "turn_id": None,
-                                    "created_at": db.now(), "updated_at": db.now()})
-
-    p = provider or prov.get_provider()
-    if not p.available():
-        db.update("director_requests", rid, {"status": "failed",
-                                            "error_code": "ASSISTANT_UNAVAILABLE",
-                                            "updated_at": db.now()})
-        raise err("ASSISTANT_UNAVAILABLE", "导演暂时不可用（未配置语言模型）",
-                  detail={"client_request_id": crid})
-
-    state = _tool_state(project_id)
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "context", "content": {"project": state,
-                                        "selected_asset_ids": body.get("selected_asset_ids") or []}},
-        {"role": "user", "content": message},
-    ]
-
-    est = _estimate_call_cost(messages)
-    check_budget(sess["id"], est)              # **LLM 调用前**预算检查
-
-    ctx = {"project_id": project_id, "session_id": sess["id"], "request_id": crid}
-    artifacts: list[dict] = []
-    tool_results: list[dict] = []
+              "client_request_id": crid, "payload_hash": ph, "status": "pending",
+              "created_at": db.now(), "updated_at": db.now()})
+    artifacts, tool_results = [], []
+    usage = {"input_tokens": 0, "output_tokens": 0, "cost_cny": 0.0}
+    estimates = 0.0
     reply = ""
-    res = None
     try:
-        for _round in range(2):
-            res = p.chat(messages, PROJECT_TOOLS, tool_results or None)
+        p = provider or prov.get_provider()
+        if not p.available():
+            raise err("ASSISTANT_UNAVAILABLE", "导演暂时不可用（未配置语言模型）")
+        max_out = max(1, min(int(os.getenv("ASSISTANT_MAX_TOKENS") or "400"), 4096))
+        messages_in = [{"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "context", "content": {"project": _tool_state(project_id),
+                "selected_asset_ids": body.get("selected_asset_ids") or []}},
+            *_history(project_id), {"role": "user", "content": message}]
+        ctx = {"project_id": project_id, "session_id": sess["id"], "request_id": crid}
+        executed = 0
+        for round_index in range(2):
+            estimate = _estimate_call_cost(messages_in, max_out)
+            check_budget(sess["id"], estimate)  # Every provider request, including tool continuation.
+            estimates += estimate
+            try:
+                res = p.chat(messages_in, PROJECT_TOOLS, tool_results or None, max_tokens=max_out)
+            except Exception:
+                # A timeout does not prove zero spend. Reserve the estimate and expose that uncertainty.
+                asst.record_usage(sess["id"], "llm", provider=p.name, model=p.model,
+                    cost_cny=estimate, note=f"director:{project_id}:request_unknown_estimate")
+                raise
+            inp, outp = int(res.input_tokens or 0), int(res.output_tokens or 0)
+            cost = _token_cost(inp, outp)
+            asst.record_usage(sess["id"], "llm", provider=p.name, model=p.model,
+                input_tokens=inp, output_tokens=outp, tool_calls=0, cost_cny=cost,
+                note=f"director:{project_id}:round:{round_index + 1}")
+            usage["input_tokens"] += inp
+            usage["output_tokens"] += outp
+            usage["cost_cny"] = round(usage["cost_cny"] + cost, 6)
             reply = res.reply or reply
             calls = res.tool_calls or []
             if not calls:
                 break
-            for tc in calls[:config.DIRECTOR_MAX_TOOL_CALLS]:
+            entries = []
+            for tc in calls:
                 try:
-                    out = execute_tool(tc.name, tc.arguments, ctx)
-                    entry = {"tool": tc.name, "ok": True, "result": out}
-                    if out.get("proposal_id"):
-                        artifacts.append({
-                            "type": out["kind"], "proposal_id": out["proposal_id"],
-                            "proposal_version": out["version"],
-                            "target_id": out.get("target_id"),
-                            "target_version": out.get("target_version"),
-                            "persistence": "saved", "confirmed": False})
-                except Exception as e:  # noqa: BLE001
-                    entry = {"tool": tc.name, "ok": False,
-                             "error": {"code": getattr(e, "code", "TOOL_ERROR"),
-                                       "message": str(getattr(e, "message", e))[:200]}}
-                tool_results.append(entry)
-            messages = [*messages, {"role": "assistant", "content": reply or None,
-                                    "tool_calls": [{"id": tc.id or f"call_{i}",
-                                                    "type": "function",
-                                                    "function": {"name": tc.name,
-                                                                 "arguments": json.dumps(tc.arguments, ensure_ascii=False)}}
-                                                   for i, tc in enumerate(calls[:config.DIRECTOR_MAX_TOOL_CALLS])]},
-                        *[{"role": "tool", "tool_call_id": tc.id or f"call_{i}",
-                           "name": e["tool"],
-                           "content": json.dumps(e.get("result") if e["ok"] else e["error"],
-                                                 ensure_ascii=False)}
-                          for i, (tc, e) in enumerate(zip(calls[:config.DIRECTOR_MAX_TOOL_CALLS],
-                                                          tool_results[-len(calls[:config.DIRECTOR_MAX_TOOL_CALLS]):]))]]
-    except Exception as e:  # noqa: BLE001
-        db.update("director_requests", rid, {"status": "failed",
-                                            "error_code": getattr(e, "code", "DIRECTOR_ERROR"),
-                                            "error_message": str(getattr(e, "message", e))[:200],
-                                            "updated_at": db.now()})
+                    if executed >= config.DIRECTOR_MAX_TOOL_CALLS:
+                        raise err("TOOL_FORBIDDEN", "本轮工具执行次数已达上限")
+                    executed += 1
+                    result = execute_tool(tc.name, tc.arguments, ctx)
+                    entry = {"tool": tc.name, "ok": True, "result": result}
+                    if result.get("proposal_id"):
+                        artifacts.append({"type": result["kind"], "proposal_id": result["proposal_id"],
+                            "proposal_version": result["version"], "target_id": result.get("target_id"),
+                            "target_version": result.get("target_version"), "persistence": "saved", "confirmed": False})
+                except Exception as e:
+                    entry = {"tool": tc.name, "ok": False, "error": {
+                        "code": getattr(e, "code", "TOOL_ERROR"), "message": str(getattr(e, "message", e))[:200]}}
+                entries.append(entry)
+            tool_results.extend(entries)
+            messages_in.extend([{"role": "assistant", "content": res.reply or None,
+                "tool_calls": [{"id": tc.id or f"call_{round_index}_{i}", "type": "function",
+                    "function": {"name": tc.name, "arguments": json.dumps(tc.arguments, ensure_ascii=False)}}
+                    for i, tc in enumerate(calls)]},
+                *[{"role": "tool", "tool_call_id": tc.id or f"call_{round_index}_{i}", "name": entry["tool"],
+                   "content": db.dumps(entry.get("result") if entry["ok"] else entry["error"])}
+                  for i, (tc, entry) in enumerate(zip(calls, entries))]])
+        ready = director.readiness(project_id)
+        actions = _actions_for(project_id, ready)
+        reply_type = "proposal_ready" if artifacts else ("clarify" if "？" in reply or "?" in reply else "message")
+        turn_id = db.new_id("dturn")
+        response = {"session_id": sess["id"], "request_id": crid, "request_status": "completed",
+            "reply": reply, "reply_type": reply_type, "artifacts": artifacts, "actions": actions,
+            "current": ready["current"], "allowed_actions": ready["allowed_actions"],
+            "usage": {**usage, "estimated_cny": round(estimates, 6), "note": "费用为应用侧估算，非供应商账单"},
+            "tool_calls": tool_results,
+            "budget": {"per_call_limit_cny": config.DIRECTOR_MAX_COST_PER_CALL_CNY,
+                       "session_limit_cny": config.DIRECTOR_MAX_SESSION_COST_CNY},
+            "note": "草案自动保存但未确认；生成图片/视频需用户显式操作"}
+        with db.transaction() as c:
+            c.execute("INSERT INTO director_turns(id,project_id,session_id,request_id,user_text,reply_text,"
+                      "reply_type,structured_json,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                      (turn_id,project_id,sess["id"],crid,message,reply,reply_type,
+                       db.dumps({"artifacts": artifacts, "actions": actions}),db.now()))
+            response["workflow_revision"] = _workflow_revision(project_id, c)
+            c.execute("UPDATE director_requests SET status='completed',turn_id=?,response_json=?,updated_at=? WHERE id=?",
+                      (turn_id,db.dumps(response),db.now(),rid))
+        return response
+    except Exception as e:
+        db.update("director_requests", rid, {"status": "failed", "error_code": getattr(e,"code","DIRECTOR_ERROR"),
+                  "error_message": str(getattr(e,"message",e))[:200], "updated_at": db.now()})
         raise
 
-    usage = {"input_tokens": int(getattr(res, "input_tokens", 0) or 0),
-             "output_tokens": int(getattr(res, "output_tokens", 0) or 0)}
-    cost = round(usage["input_tokens"] / 1e6 * 0.30 * 7.2
-                 + usage["output_tokens"] / 1e6 * 1.20 * 7.2, 6)
-    asst.record_usage(sess["id"], "llm", provider=p.name, model=p.model,
-                      input_tokens=usage["input_tokens"],
-                      output_tokens=usage["output_tokens"],
-                      tool_calls=len(tool_results), cost_cny=cost,
-                      note=f"director:{project_id}")
 
-    ready = director.readiness(project_id)
-    actions = _actions_for(project_id, ready)
-    reply_type = "proposal_ready" if artifacts else (
-        "clarify" if "？" in reply or "?" in reply else "message")
-
-    turn_id = db.new_id("dturn")
-    out = {
-        "session_id": sess["id"], "request_id": crid, "request_status": "completed",
-        "reply": reply, "reply_type": reply_type,
-        "artifacts": artifacts, "actions": actions,
-        "current": ready["current"], "allowed_actions": ready["allowed_actions"],
-        "workflow_revision": _workflow_revision(project_id),
-        "usage": {**usage, "cost_cny": cost, "estimated_cny": est,
-                  "note": "费用为应用侧估算，非供应商账单"},
-        "tool_calls": tool_results,
-        "budget": {"per_call_limit_cny": config.DIRECTOR_MAX_COST_PER_CALL_CNY,
-                   "session_limit_cny": config.DIRECTOR_MAX_SESSION_COST_CNY},
-        "note": "草案已自动保存，但未确认；生成图片/视频需用户显式操作",
-    }
-    db.insert("director_turns", {"id": turn_id, "project_id": project_id,
-                                 "session_id": sess["id"], "request_id": crid,
-                                 "user_text": message, "reply_text": reply,
-                                 "reply_type": reply_type,
-                                 "structured_json": db.dumps(
-                                     {"artifacts": artifacts, "actions": actions}),
-                                 "created_at": db.now()})
-    db.update("director_requests", rid, {"status": "completed", "turn_id": turn_id,
-                                        "response_json": db.dumps(out),
-                                        "updated_at": db.now()})
-    return out
-
-
-def _workflow_revision(project_id: str) -> int:
-    """项目工作流修订号：脚本/镜头/提案变化即递增（用于并发校验）。"""
-    n_scripts = db.query("SELECT COUNT(*) c FROM script_versions WHERE project_id=?",
-                         (project_id,))[0]["c"]
-    n_shots = db.query("SELECT COUNT(*) c FROM shots WHERE project_id=?", (project_id,))[0]["c"]
-    n_props = db.query("SELECT COUNT(*) c FROM director_proposals WHERE project_id=?",
-                       (project_id,))[0]["c"]
-    n_turns = db.query("SELECT COUNT(*) c FROM director_turns WHERE project_id=?",
-                       (project_id,))[0]["c"]
-    return int(n_scripts + n_shots + n_props + n_turns)
+def _workflow_revision(project_id: str, connection=None) -> int:
+    """Opaque JS-safe equality token. Includes edits and confirmations, not just row counts."""
+    def read(sql, args):
+        return [dict(row) for row in connection.execute(sql,args)] if connection else db.query(sql,args)
+    state = {}
+    for table, columns in (
+        ("projects", "id,name,brief_json,status,updated_at"),
+        ("script_versions", "id,version,content_json,confirmed_at"),
+        ("shots", "id,seq,description,motion,duration_s,revision"),
+        ("director_proposals", "id,version,status,content_json"),
+        ("director_turns", "id"),
+        ("confirmations", "id,status,object_version"),
+        ("canvas_nodes", "node_id,type,config_json,binding_json,config_revision")):
+        key = "id" if table == "projects" else "project_id"
+        state[table] = read(f"SELECT {columns} FROM {table} WHERE {key}=? ORDER BY 1", (project_id,))
+    raw = json.dumps(state, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    return int(hashlib.sha256(raw.encode()).hexdigest()[:13], 16)
 
 
 def _actions_for(project_id: str, ready: dict) -> list[dict]:
-    """根据**真实 DB 状态**生成下一步动作（不信任模型文本）。"""
-    actions: list[dict] = []
-    latest = db.query("SELECT * FROM script_versions WHERE project_id=? ORDER BY version DESC LIMIT 1",
-                      (project_id,))
+    """Current executable actions only; never reuse historical turn suggestions."""
+    actions = []
+    latest = db.query("SELECT * FROM script_versions WHERE project_id=? ORDER BY version DESC LIMIT 1", (project_id,))
     if latest:
-        s = latest[0]
-        if not s["confirmed_at"]:
-            actions.append({"type": "confirm_script", "target_id": s["id"],
-                            "target_version": s["version"], "requires_user_action": True})
-        else:
-            plan = db.query("SELECT * FROM director_proposals WHERE project_id=? AND kind='shot_plan' "
-                            "AND status='draft' ORDER BY version DESC LIMIT 1", (project_id,))
-            if plan:
-                actions.append({"type": "apply_shot_plan", "proposal_id": plan[0]["id"],
-                                "proposal_version": plan[0]["version"],
-                                "requires_user_action": True})
-    brief_prop = db.query("SELECT * FROM director_proposals WHERE project_id=? AND kind='brief' "
-                          "AND status='draft' ORDER BY version DESC LIMIT 1", (project_id,))
-    if brief_prop:
-        actions.append({"type": "apply_brief", "proposal_id": brief_prop[0]["id"],
-                        "proposal_version": brief_prop[0]["version"],
-                        "requires_user_action": True})
+        script = latest[0]
+        valid = director.current_confirmation("script",script["id"],script["version"]).get("valid")
+        if not valid:
+            actions.append({"type":"confirm_script","target_id":script["id"],
+                "target_version":script["version"],"requires_user_action":True})
+        elif not db.query("SELECT 1 FROM shots WHERE project_id=? LIMIT 1", (project_id,)):
+            plans = db.query("SELECT * FROM director_proposals WHERE project_id=? AND kind='shot_plan' "
+                             "ORDER BY version DESC LIMIT 1", (project_id,))
+            if (plans and plans[0]["status"] == "draft"
+                    and plans[0]["target_id"] == script["id"]
+                    and plans[0]["target_version"] == script["version"]):
+                plan = plans[0]
+                actions.append({"type":"apply_shot_plan","proposal_id":plan["id"],
+                    "proposal_version":plan["version"],"requires_user_action":True})
+    briefs = db.query("SELECT * FROM director_proposals WHERE project_id=? AND kind='brief' "
+                      "ORDER BY version DESC LIMIT 1", (project_id,))
+    if briefs and briefs[0]["status"] == "draft":
+        actions.append({"type":"apply_brief","proposal_id":briefs[0]["id"],
+            "proposal_version":briefs[0]["version"],"requires_user_action":True})
     if "quote_generation" in ready["allowed_actions"]:
-        actions.append({"type": "quote_generation", "requires_user_action": True})
+        actions.append({"type":"quote_generation","requires_user_action":True})
     return actions
 
 
@@ -468,9 +487,9 @@ def messages(project_id: str, cursor: str | None = None, limit: int = 30) -> dic
         row = db.get("director_turns", cursor)
         if not row or row["project_id"] != project_id:
             raise err("VALIDATION_FAILED", "cursor 非法")
-        sql += " AND created_at < ?"
-        args.append(row["created_at"])
-    sql += " ORDER BY created_at DESC LIMIT ?"
+        sql += " AND (created_at < ? OR (created_at = ? AND id < ?))"
+        args.extend([row["created_at"],row["created_at"],row["id"]])
+    sql += " ORDER BY created_at DESC,id DESC LIMIT ?"
     args.append(max(1, min(limit, 100)))
     rows = db.query(sql, args)
     items = [{"turn_id": r["id"], "request_id": r["request_id"],
@@ -478,11 +497,18 @@ def messages(project_id: str, cursor: str | None = None, limit: int = 30) -> dic
               "reply_type": r["reply_type"],
               "structured": db.loads(r["structured_json"]) or {},
               "created_at": r["created_at"]} for r in rows]
-    return {"items": items, "next_cursor": rows[-1]["id"] if rows else None,
+    ready = director.readiness(project_id)
+    sessions = db.query("SELECT t.session_id FROM director_turns t JOIN assistant_sessions s ON s.id=t.session_id "
+                        "WHERE t.project_id=? AND s.project_id=? ORDER BY t.created_at DESC,t.id DESC LIMIT 1",
+                        (project_id,project_id))
+    return {"project_id": project_id, "session_id": sessions[0]["session_id"] if sessions else None,
+            "workflow_revision": _workflow_revision(project_id), "actions": _actions_for(project_id,ready),
+            "items": items, "next_cursor": rows[-1]["id"] if rows else None,
             "has_more": len(rows) == max(1, min(limit, 100))}
 
 
 def request_receipt(project_id: str, client_request_id: str) -> dict:
+    projects.get_project(project_id)
     row = _receipt(project_id, client_request_id)
     if not row:
         raise err("DIRECTOR_REQUEST_NOT_FOUND", "没有该请求的回执",
@@ -510,55 +536,95 @@ def proposals(project_id: str, kind: str | None = None) -> dict:
                        "applied_at": r["applied_at"]} for r in rows]}
 
 
+@projects.project_guard()
 def apply_proposal(project_id: str, proposal_id: str, expected_version: int | None,
                    client_request_id: str | None) -> dict:
-    """用户应用提案。**不创建任何生成任务**。"""
+    """Persist application and its replay receipt atomically; no generation or implicit confirmation."""
+    projects.get_project(project_id)
     row = db.get("director_proposals", proposal_id)
     if not row or row["project_id"] != project_id:
         raise err("PROPOSAL_NOT_FOUND", f"提案不存在：{proposal_id}")
-    if expected_version is not None and int(expected_version) != int(row["version"]):
-        raise err("PROPOSAL_VERSION_CONFLICT",
-                  f"提案已更新：当前 v{row['version']}，提交 v{expected_version}",
-                  detail={"current_version": row["version"]})
-    content = db.loads(row["content_json"]) or {}
+    if expected_version is not None and (isinstance(expected_version, bool)
+            or not isinstance(expected_version, int) or expected_version != row["version"]):
+        raise err("PROPOSAL_VERSION_CONFLICT", "提案版本不匹配", detail={"current_version": row["version"]})
+    receipt_key = "apply:" + (client_request_id or proposal_id)
+    fingerprint = "apply:" + proposal_id + ":" + str(row["version"])
+    prior = _receipt(project_id, receipt_key)
+    if prior:
+        if prior["payload_hash"] != fingerprint:
+            raise err("IDEMPOTENCY_CONFLICT", "同一应用请求编号用于不同提案")
+        if prior["response_json"]:
+            return {**db.loads(prior["response_json"]), "idempotent_replay": True}
     if row["status"] != "draft":
-        return {"proposal_id": proposal_id, "status": row["status"],
-                "applied": False, "note": "提案已应用或已被取代"}
-
-    applied: dict = {"proposal_id": proposal_id, "kind": row["kind"], "applied": True}
-    if row["kind"] == "brief":
-        out = projects.update_project(project_id, brief=content)
-        applied.update({"brief": out["brief"], "stale": out["stale"]})
-    elif row["kind"] == "script":
-        # 脚本在 propose_script 时已落库；这里只做确认入口提示，不复制版本
-        s = db.get("script_versions", row["target_id"]) if row["target_id"] else None
-        if not s:
-            raise err("PROPOSAL_NOT_APPLICABLE", "脚本草案已不存在")
-        applied.update({"script_id": s["id"], "version": s["version"],
-                        "confirmed": bool(s["confirmed_at"]),
-                        "note": "脚本已保存；请调用 /api/scripts/{id}/confirm 确认"})
-    elif row["kind"] == "shot_plan":
-        latest = db.query("SELECT * FROM script_versions WHERE project_id=? "
-                          "ORDER BY version DESC LIMIT 1", (project_id,))
-        if not latest or latest[0]["id"] != row["target_id"] \
-                or int(latest[0]["version"]) != int(row["target_version"] or 0):
-            raise err("PROPOSAL_NOT_APPLICABLE",
-                      "脚本已更新，该镜头计划基于旧版本，请重新生成",
-                      detail={"proposal_script_version": row["target_version"],
-                              "current_script_version": latest[0]["version"] if latest else None})
-        if not latest[0]["confirmed_at"]:
-            raise err("SCRIPT_NOT_CONFIRMED", "请先确认脚本，再应用镜头计划")
-        existing = db.query("SELECT COUNT(*) c FROM shots WHERE project_id=?", (project_id,))[0]["c"]
-        if existing:
-            raise err("PROPOSAL_NOT_APPLICABLE",
-                      "项目已有镜头；调整镜头请通过镜头接口操作，避免静默替换")
-        out = shots.add_shots(project_id, latest[0]["id"], content["shots"])
-        applied.update({"shot_ids": out["shot_ids"], "count": out["count"]})
-    else:
-        raise err("PROPOSAL_NOT_APPLICABLE", f"未知提案类型：{row['kind']}")
-
-    db.update("director_proposals", proposal_id,
-              {"status": "applied", "applied_at": db.now()})
-    applied["workflow_revision"] = _workflow_revision(project_id)
+        receipts = db.query("SELECT response_json FROM director_requests WHERE project_id=? "
+                            "AND payload_hash=? AND status='completed' ORDER BY created_at DESC LIMIT 1",
+                            (project_id, fingerprint))
+        if receipts:
+            return {**db.loads(receipts[0]["response_json"]), "idempotent_replay": True}
+        return {"proposal_id": proposal_id, "status": row["status"], "applied": False,
+                "note": "提案已应用或已被取代，请刷新项目状态"}
+    content = db.loads(row["content_json"]) or {}
+    applied = {"proposal_id": proposal_id, "kind": row["kind"], "applied": True}
+    clean_shots = None
+    if row["kind"] == "shot_plan":
+        latest = db.query("SELECT id,version FROM script_versions WHERE project_id=? ORDER BY version DESC LIMIT 1", (project_id,))
+        if not latest or latest[0]["id"] != row["target_id"] or latest[0]["version"] != row["target_version"]:
+            raise err("PROPOSAL_NOT_APPLICABLE", "脚本已更新，请重新生成镜头计划")
+        shots._require_script_confirmed(project_id)
+        clean_shots = shots.validate_shot_input(project_id, content.get("shots"))
+    elif row["kind"] == "brief":
+        content = _clean_brief(content)
+    with db.transaction() as c:
+        current = c.execute("SELECT * FROM director_proposals WHERE id=? AND project_id=?",
+                            (proposal_id, project_id)).fetchone()
+        if not current or current["status"] != "draft":
+            raise err("PROPOSAL_NOT_APPLICABLE", "提案状态已改变，请刷新")
+        if row["kind"] == "brief":
+            project = c.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+            old = db.loads(project["brief_json"]) or {}
+            brief = {**old, **content}
+            stale = []
+            if brief != old:
+                c.execute("UPDATE projects SET brief_json=?,updated_at=? WHERE id=?", (db.dumps(brief),db.now(),project_id))
+                c.execute("UPDATE confirmations SET status='invalidated',reason='upstream_brief_changed',invalidated_at=? "
+                          "WHERE project_id=? AND object_type IN ('script','shot_plan') AND status='active'",
+                          (db.now(),project_id))
+                stale = ["script_confirm", "shot_plan_confirm"]
+            applied.update({"brief": brief, "stale": stale})
+        elif row["kind"] == "script":
+            script = c.execute("SELECT * FROM script_versions WHERE id=? AND project_id=?", (row["target_id"],project_id)).fetchone()
+            if not script:
+                raise err("PROPOSAL_NOT_APPLICABLE", "脚本草案已不存在")
+            confirmation = c.execute("SELECT status FROM confirmations WHERE object_type='script' "
+                "AND object_id=? AND object_version=? ORDER BY created_at DESC LIMIT 1", (script["id"],script["version"])).fetchone()
+            applied.update({"script_id": script["id"], "version": script["version"],
+                "confirmed": bool(confirmation and confirmation["status"] == "active"),
+                "note": "脚本已保存；请调用 /api/scripts/{id}/confirm 确认"})
+        elif row["kind"] == "shot_plan":
+            latest = c.execute("SELECT * FROM script_versions WHERE project_id=? ORDER BY version DESC LIMIT 1", (project_id,)).fetchone()
+            if not latest or latest["id"] != row["target_id"] or latest["version"] != row["target_version"]:
+                raise err("PROPOSAL_NOT_APPLICABLE", "脚本已更新，请重新生成镜头计划")
+            cfm = c.execute("SELECT status FROM confirmations WHERE object_type='script' "
+                            "AND object_id=? AND object_version=? ORDER BY created_at DESC LIMIT 1", (latest["id"], latest["version"])).fetchone()
+            if not cfm or cfm["status"] != "active":
+                raise err("SCRIPT_NOT_CONFIRMED", "脚本确认已失效，请重新确认")
+            if c.execute("SELECT 1 FROM shots WHERE project_id=? LIMIT 1", (project_id,)).fetchone():
+                raise err("PROPOSAL_NOT_APPLICABLE", "项目已有镜头，请通过镜头编辑调整")
+            ids = []
+            for i, shot in enumerate(clean_shots, 1):
+                sid = db.new_id("shot")
+                c.execute("INSERT INTO shots(id,project_id,script_version_id,seq,duration_s,description,motion,status,revision,created_at,updated_at) "
+                          "VALUES(?,?,?,?,?,?,?,'draft',1,?,?)",
+                          (sid,project_id,latest["id"],i,shot["duration_s"],shot["description"],shot["motion"],db.now(),db.now()))
+                ids.append(sid)
+            applied.update({"shot_ids": ids, "count": len(ids)})
+        else:
+            raise err("PROPOSAL_NOT_APPLICABLE", "未知提案类型")
+        c.execute("UPDATE director_proposals SET status='applied',applied_at=? WHERE id=?", (db.now(),proposal_id))
+        applied["workflow_revision"] = _workflow_revision(project_id, c)
+        c.execute("INSERT INTO director_requests(id,project_id,client_request_id,payload_hash,status,response_json,created_at,updated_at) "
+                  "VALUES(?,?,?,?,'completed',?,?,?)",
+                  (db.new_id("dreq"),project_id,receipt_key,fingerprint,db.dumps(applied),db.now(),db.now()))
+    # Execution outcome is already durable even if this convenience refresh fails.
     applied["allowed_actions"] = director.readiness(project_id)["allowed_actions"]
     return applied

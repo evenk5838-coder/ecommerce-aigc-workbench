@@ -1,0 +1,14 @@
+[
+  {
+    "suite": "tools_director_tests.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tools_confirm_chain_tests.py",
+    "exit_code": 0
+  },
+  {
+    "suite": "tools_director_chat_tests.py",
+    "exit_code": 0
+  }
+]

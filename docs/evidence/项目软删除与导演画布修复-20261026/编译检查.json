@@ -1,0 +1,31 @@
+{
+  "passed": 26,
+  "files": [
+    "backend/app/assembly.py",
+    "backend/app/assistant/__init__.py",
+    "backend/app/assistant/approval.py",
+    "backend/app/assistant/provider.py",
+    "backend/app/assistant/router.py",
+    "backend/app/assistant/service.py",
+    "backend/app/assistant/tools.py",
+    "backend/app/canvas.py",
+    "backend/app/cloud_tasks.py",
+    "backend/app/config.py",
+    "backend/app/db.py",
+    "backend/app/director.py",
+    "backend/app/director_chat.py",
+    "backend/app/engines.py",
+    "backend/app/errors.py",
+    "backend/app/main.py",
+    "backend/app/pipeline.py",
+    "backend/app/projects.py",
+    "backend/app/providers_ark.py",
+    "backend/app/routers/__init__.py",
+    "backend/app/routers/creative.py",
+    "backend/app/scope.py",
+    "backend/app/shots.py",
+    "backend/app/storage.py",
+    "backend/app/templates.py",
+    "backend/app/worker.py"
+  ]
+}

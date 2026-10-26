@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS assistant_approvals(
 CREATE TABLE IF NOT EXISTS projects(
   id TEXT PRIMARY KEY, name TEXT, brief_json TEXT, status TEXT DEFAULT 'draft',
   structure_template_id TEXT, structure_template_version INTEGER,
-  created_at REAL, updated_at REAL);
+  created_at REAL, updated_at REAL, deleted_at REAL);
 
 CREATE TABLE IF NOT EXISTS shots(
   id TEXT PRIMARY KEY, project_id TEXT, script_version_id TEXT, seq INTEGER,
@@ -154,6 +154,10 @@ CREATE TABLE IF NOT EXISTS confirmations(
   created_at REAL, invalidated_at REAL,
   UNIQUE(object_type, object_id, object_version));
 
+CREATE TABLE IF NOT EXISTS confirmation_events(
+  id TEXT PRIMARY KEY, confirmation_id TEXT, project_id TEXT,
+  event TEXT, snapshot_json TEXT, created_at REAL);
+
 CREATE TABLE IF NOT EXISTS script_versions(
   id TEXT PRIMARY KEY, project_id TEXT, version INTEGER, content_json TEXT,
   source TEXT, session_id TEXT, confirmed_at REAL, created_at REAL,
@@ -213,6 +217,9 @@ def conn():
             c.execute("PRAGMA journal_mode=WAL")
             c.execute("PRAGMA synchronous=NORMAL")
             yield c
+        except sqlite3.IntegrityError as exc:
+            _raise_project_guard_error(exc)
+            raise
         finally:
             c.close()
 
@@ -233,11 +240,12 @@ def transaction():
             c.execute("BEGIN IMMEDIATE")
             yield c
             c.execute("COMMIT")
-        except Exception:
+        except Exception as exc:
             try:
                 c.execute("ROLLBACK")
             except sqlite3.Error:
                 pass
+            _raise_project_guard_error(exc)
             raise
         finally:
             c.close()
@@ -267,7 +275,44 @@ MIGRATIONS = [
     # v0.10.1：分镜绑定生成时的镜头修订号（B1 当前版本确认链）
     ("storyboards", "shot_revision", "INTEGER"),
     ("canvas_states", "edges_json", "TEXT"),
+    ("projects", "deleted_at", "REAL"),
 ]
+
+
+def _raise_project_guard_error(exc: Exception) -> None:
+    if isinstance(exc, sqlite3.IntegrityError) and str(exc) == "PROJECT_DELETED":
+        from .errors import err
+        raise err("PROJECT_DELETED", "该项目已删除，无法继续修改或生成。") from exc
+
+
+def _install_project_guards(c) -> None:
+    """Tombstones are enforced in SQLite too, across transactions/processes."""
+    c.execute("CREATE TRIGGER IF NOT EXISTS protect_deleted_project_update BEFORE UPDATE ON projects "
+              "WHEN OLD.deleted_at IS NOT NULL AND NEW.deleted_at IS NOT NULL "
+              "BEGIN SELECT RAISE(ABORT, 'PROJECT_DELETED'); END")
+    direct = ("shots", "script_versions", "generation_scopes", "submit_receipts",
+              "films", "project_exports", "assembly_errors", "director_requests",
+              "director_turns", "director_proposals", "canvas_states", "canvas_nodes",
+              "confirmations", "confirmation_events", "assistant_sessions", "assistant_briefs", "assistant_quotes",
+              "assistant_approvals")
+    predicates = {table: "EXISTS(SELECT 1 FROM projects p WHERE p.id={row}.project_id "
+                         "AND p.deleted_at IS NOT NULL)" for table in direct}
+    for table in ("storyboards", "shot_takes"):
+        predicates[table] = ("EXISTS(SELECT 1 FROM shots s JOIN projects p ON p.id=s.project_id "
+                             "WHERE s.id={row}.shot_id AND p.deleted_at IS NOT NULL)")
+    predicates["tasks"] = (
+        "EXISTS(SELECT 1 FROM projects p WHERE p.deleted_at IS NOT NULL AND "
+        "(p.id={row}.external_request_id OR p.id IN (SELECT s.project_id FROM shots s "
+        "JOIN storyboards b ON b.shot_id=s.id WHERE b.task_id={row}.id) OR p.id IN "
+        "(SELECT s.project_id FROM shots s JOIN shot_takes t ON t.shot_id=s.id "
+        "WHERE t.task_id={row}.id)))")
+    for table, predicate in predicates.items():
+        for operation in ("INSERT", "UPDATE", "DELETE"):
+            rows = ("NEW",) if operation == "INSERT" else ("OLD",) if operation == "DELETE" else ("OLD", "NEW")
+            condition = " OR ".join(predicate.format(row=row) for row in rows)
+            c.execute(f"CREATE TRIGGER IF NOT EXISTS protect_deleted_{table}_{operation.lower()} "
+                      f"BEFORE {operation} ON {table} WHEN {condition} "
+                      "BEGIN SELECT RAISE(ABORT, 'PROJECT_DELETED'); END")
 
 
 def init_db() -> None:
@@ -281,6 +326,7 @@ def init_db() -> None:
         # 依赖迁移列的索引必须在 ALTER 之后创建
         c.execute("CREATE INDEX IF NOT EXISTS idx_tasks_external ON tasks(external_request_id)")
         c.execute("CREATE INDEX IF NOT EXISTS idx_tasks_template ON tasks(template_id)")
+        _install_project_guards(c)
 
 
 def row_to_dict(r: sqlite3.Row | None) -> dict | None:

@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from . import config, db, director, projects
+from . import config, db, projects
 from .errors import err
 
 NODE_TYPES = ("image", "video", "storyboard", "shot", "asset", "script")
@@ -23,11 +23,8 @@ def _state(project_id: str) -> dict:
     rows = db.query("SELECT * FROM canvas_states WHERE project_id=?", (project_id,))
     if rows:
         return rows[0]
-    db.insert("canvas_states", {"project_id": project_id, "schema_version": 1,
-                                "layout_revision": 0, "viewport_json": db.dumps(
-                                    {"x": 0, "y": 0, "zoom": 1}),
-                                "updated_at": db.now()})
-    return db.query("SELECT * FROM canvas_states WHERE project_id=?", (project_id,))[0]
+    return {"project_id": project_id, "schema_version": 1, "layout_revision": 0,
+            "viewport_json": db.dumps({"x": 0, "y": 0, "zoom": 1}), "edges_json": "[]"}
 
 
 def get_canvas(project_id: str) -> dict:
@@ -41,7 +38,12 @@ def get_canvas(project_id: str) -> dict:
         binding = db.loads(n["binding_json"]) or {}
         # 最近一次执行：只读真实任务/产物
         last = None
-        if binding.get("shot_id"):
+        if binding.get("shot_id") and n["type"] in ("image", "storyboard"):
+            boards = db.query("SELECT * FROM storyboards WHERE shot_id=? ORDER BY version DESC LIMIT 1", (binding["shot_id"],))
+            if boards:
+                last = {"storyboard_id": boards[0]["id"], "task_id": boards[0]["task_id"],
+                        "status": boards[0]["status"], "asset_id": boards[0]["asset_id"], "version": boards[0]["version"]}
+        elif binding.get("shot_id") and n["type"] in ("video", "shot"):
             take = db.query("SELECT * FROM shot_takes WHERE shot_id=? "
                             "ORDER BY created_at DESC LIMIT 1", (binding["shot_id"],))
             if take:
@@ -56,7 +58,7 @@ def get_canvas(project_id: str) -> dict:
     return {"schema_version": int(st["schema_version"] or 1),
             "layout_revision": int(st["layout_revision"] or 0),
             "viewport": db.loads(st["viewport_json"]) or {"x": 0, "y": 0, "zoom": 1},
-            "nodes": out,
+            "nodes": out, "edges": db.loads(st.get("edges_json")) or [],
             "note": "布局与生成配置分开；last_execution 只读，不可 PATCH"}
 
 
@@ -87,9 +89,18 @@ def _validate_config(cfg: dict) -> dict:
     if unknown:
         raise err("VALIDATION_FAILED", f"config 含未知字段：{unknown}",
                   detail={"allowed": list(CONFIG_KEYS)})
-    out = {k: cfg[k] for k in CONFIG_KEYS if k in cfg}
+    out = json.loads(json.dumps({k: cfg[k] for k in CONFIG_KEYS if k in cfg}))
     mode = out.get("generation_mode")
     model_id = out.get("model_id")
+    if not isinstance(out.get("params", {}), dict):
+        raise err("VALIDATION_FAILED", "params 必须是对象")
+    if "prompt" in out and not isinstance(out["prompt"], str):
+        raise err("VALIDATION_FAILED", "prompt 必须是字符串")
+    aid = out.get("input_asset_id")
+    if aid:
+        asset = db.get("assets", aid)
+        if not asset or asset.get("kind") != "image":
+            raise err("CANVAS_INVALID_REFERENCE", "参考素材不存在或不是图片")
     if mode and mode not in ("text_to_image", "image_to_image",
                              "text_to_video", "image_to_video"):
         raise err("VALIDATION_FAILED", f"未知 generation_mode：{mode}")
@@ -116,10 +127,14 @@ def _validate_config(cfg: dict) -> dict:
                 raise err("MODEL_CAPABILITY_MISMATCH", "节点参数不被模型支持",
                           detail={"problems": problems})
             out["params"] = params
-        if mode in ("text_to_video",):
+        if kind == "image":
+            problems = config.validate_params_for_model(model_id, "image", {**params, "generation_mode": mode or "text_to_image"})
+            if problems:
+                raise err("MODEL_CAPABILITY_MISMATCH", "节点参数不被模型支持", detail={"problems": problems})
+        if mode in ("text_to_image", "text_to_video"):
             if out.get("input_asset_id"):
                 raise err("GENERATION_MODE_CONFLICT",
-                          "文生视频节点不能携带参考素材", detail={"mode": mode})
+                          "文生节点不能携带参考素材", detail={"mode": mode})
         if mode in ("image_to_image", "image_to_video") and not out.get("input_asset_id"):
             raise err("REFERENCE_IMAGE_REQUIRED", f"{mode} 节点需要参考素材")
     return out
@@ -147,113 +162,108 @@ def _has_cycle(nodes: list[dict], edges: list[dict]) -> bool:
     return any(dfs(n) for n in list(graph))
 
 
+def _revision(value: Any, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        raise err("VALIDATION_FAILED", f"{name} 必须为非负整数")
+    return value
+
+
+@projects.project_guard()
 def patch_canvas(project_id: str, body: dict) -> dict:
-    """并发校验后的布局/节点编辑。**不生成、不确认**。"""
+    """Validate the complete next state before one atomic commit; omitted fields survive PATCH."""
     projects.get_project(project_id)
-    st = _state(project_id)
-    cur_layout = int(st["layout_revision"] or 0)
-    expected = body.get("expected_layout_revision")
-    if expected is not None and int(expected) != cur_layout:
-        raise err("CANVAS_REVISION_CONFLICT",
-                  f"画布已被更新：当前 r{cur_layout}，提交 r{expected}",
-                  detail={"current_layout_revision": cur_layout})
-
-    nodes_in = body.get("nodes") or []
-    edges_in = body.get("edges") or []
-    config_changed = False
-    upserts = 0
-
-    for n in nodes_in:
-        node_id = str(n.get("node_id") or "").strip()
-        if not node_id:
-            raise err("VALIDATION_FAILED", "node_id 必填")
-        ntype = n.get("type") or "video"
-        if ntype not in NODE_TYPES:
-            raise err("VALIDATION_FAILED", f"未知节点类型：{ntype}",
-                      detail={"allowed": list(NODE_TYPES)})
-        pos = n.get("position") or {}
-        if not isinstance(pos, dict):
-            raise err("VALIDATION_FAILED", "position 必须是对象")
-        binding = n.get("binding") or {}
-        _validate_ref(project_id, binding)
-
-        existing = db.query("SELECT * FROM canvas_nodes WHERE project_id=? AND node_id=?",
-                            (project_id, node_id))
-        cfg_in = n.get("config")
-        if existing:
-            row = existing[0]
-            patch: dict[str, Any] = {"updated_at": db.now(),
-                                     "position_json": db.dumps(pos),
-                                     "binding_json": db.dumps(binding),
-                                     "type": ntype}
-            if cfg_in is not None:
-                new_cfg = _validate_config(cfg_in)
-                old_cfg = db.loads(row["config_json"]) or {}
-                if new_cfg != old_cfg:
-                    patch["config_json"] = db.dumps(new_cfg)
-                    patch["config_revision"] = int(row["config_revision"] or 1) + 1
-                    config_changed = True
-                expected_cfg = n.get("expected_config_revision")
-                if expected_cfg is not None and int(expected_cfg) != int(row["config_revision"] or 1):
-                    raise err("CANVAS_REVISION_CONFLICT",
-                              f"节点 {node_id} 配置已被更新",
-                              detail={"node_id": node_id,
-                                      "current_config_revision": row["config_revision"]})
-            db.update("canvas_nodes", row["id"], patch)
-        else:
-            cfg = _validate_config(cfg_in or {})
-            db.insert("canvas_nodes", {"id": db.new_id("node"), "project_id": project_id,
-                                       "node_id": node_id, "type": ntype,
-                                       "position_json": db.dumps(pos),
-                                       "config_json": db.dumps(cfg),
-                                       "binding_json": db.dumps(binding),
-                                       "config_revision": 1,
-                                       "created_at": db.now(), "updated_at": db.now()})
-            if cfg:
-                config_changed = True
-        upserts += 1
-
-    # 删除未提交的节点（仅当显式传 nodes 时才做全量对齐）
-    if body.get("prune", False):
-        keep = {str(n.get("node_id")) for n in nodes_in}
-        for row in db.query("SELECT node_id FROM canvas_nodes WHERE project_id=?", (project_id,)):
-            if row["node_id"] not in keep:
-                db.query("DELETE FROM canvas_nodes WHERE project_id=? AND node_id=?",
-                         (project_id, row["node_id"]))
-
-    # 连线校验：引用存在 + 无环
-    known = {r["node_id"] for r in db.query(
-        "SELECT node_id FROM canvas_nodes WHERE project_id=?", (project_id,))}
-    for e in edges_in:
-        if e.get("from") not in known or e.get("to") not in known:
-            raise err("CANVAS_INVALID_REFERENCE", "连线引用了不存在的节点",
-                      detail={"edge": e})
-        if e.get("from") == e.get("to"):
-            raise err("CANVAS_CYCLE", "节点不能连接自身", detail={"edge": e})
-    if _has_cycle([{"node_id": k} for k in known], edges_in):
-        raise err("CANVAS_CYCLE", "连线存在循环依赖", detail={"edges": edges_in})
-
-    layout_revision = cur_layout + (1 if nodes_in or body.get("viewport") else 0)
-    with db.conn() as c:
-        c.execute("UPDATE canvas_states SET layout_revision=?, viewport_json=?, "
-                  "edges_json=?, updated_at=? WHERE project_id=?",
-                  (layout_revision,
-                   db.dumps(body.get("viewport") or db.loads(st["viewport_json"]) or
-                            {"x": 0, "y": 0, "zoom": 1}),
-                   db.dumps(edges_in) if "edges" in body else st.get("edges_json"),
-                   db.now(), project_id))
-
-    invalidated: list[str] = []
-    if config_changed:
-        n = director.invalidate("scope", project_id=project_id, reason="node_config_changed")
-        invalidated.append("scope")
-        if n:
-            invalidated.append(f"scope:{n}")
-
+    if not isinstance(body, dict):
+        raise err("VALIDATION_FAILED", "画布请求必须是对象")
+    nodes_in = body.get("nodes", [])
+    if not isinstance(nodes_in, list):
+        raise err("VALIDATION_FAILED", "nodes 必须是数组")
+    if body.get("prune") and "nodes" not in body:
+        raise err("VALIDATION_FAILED", "prune 必须显式提供 nodes")
+    with db.transaction() as c:
+        old_state = c.execute("SELECT * FROM canvas_states WHERE project_id=?", (project_id,)).fetchone()
+        st = dict(old_state) if old_state else {
+            "schema_version": 1, "layout_revision": 0,
+            "viewport_json": db.dumps({"x": 0, "y": 0, "zoom": 1}), "edges_json": "[]"}
+        cur_layout = int(st["layout_revision"] or 0)
+        expected = body.get("expected_layout_revision")
+        if expected is not None and _revision(expected, "expected_layout_revision") != cur_layout:
+            raise err("CANVAS_REVISION_CONFLICT", "画布已被更新", detail={"current_layout_revision": cur_layout})
+        old_nodes = {r["node_id"]: dict(r) for r in c.execute(
+            "SELECT * FROM canvas_nodes WHERE project_id=?", (project_id,))}
+        next_nodes = dict(old_nodes)
+        seen = set()
+        config_changed = False
+        for n in nodes_in:
+            if not isinstance(n, dict):
+                raise err("VALIDATION_FAILED", "节点必须是对象")
+            node_id = str(n.get("node_id") or "").strip()
+            if not node_id or node_id in seen:
+                raise err("VALIDATION_FAILED", "node_id 必填且不可重复")
+            seen.add(node_id)
+            old = old_nodes.get(node_id)
+            ntype = n.get("type", old["type"] if old else "video")
+            if ntype not in NODE_TYPES:
+                raise err("VALIDATION_FAILED", f"未知节点类型：{ntype}")
+            pos = n.get("position", db.loads(old["position_json"]) if old else {"x": 0, "y": 0})
+            binding = n.get("binding", db.loads(old["binding_json"]) if old else {})
+            if not isinstance(pos, dict):
+                raise err("VALIDATION_FAILED", "position 必须是对象")
+            _validate_ref(project_id, binding)
+            old_cfg = db.loads(old["config_json"]) or {} if old else {}
+            cfg = _validate_config(n["config"]) if "config" in n else old_cfg
+            cfg_rev = int(old["config_revision"] or 1) if old else 0
+            expected_cfg = n.get("expected_config_revision")
+            if expected_cfg is not None and _revision(expected_cfg, "expected_config_revision") != cfg_rev:
+                raise err("CANVAS_REVISION_CONFLICT", f"节点 {node_id} 配置已被更新",
+                          detail={"node_id": node_id, "current_config_revision": cfg_rev})
+            changed = cfg != old_cfg or (old is not None and (
+                binding != (db.loads(old["binding_json"]) or {}) or ntype != old["type"]))
+            config_changed = config_changed or changed
+            next_nodes[node_id] = {"id": old["id"] if old else db.new_id("node"),
+                "node_id": node_id, "project_id": project_id, "type": ntype,
+                "position_json": db.dumps(pos), "binding_json": db.dumps(binding),
+                "config_json": db.dumps(cfg), "config_revision": cfg_rev + int(changed) if old else 1,
+                "created_at": old["created_at"] if old else db.now(), "updated_at": db.now()}
+        if body.get("prune"):
+            removed = set(next_nodes) - seen
+            config_changed = config_changed or bool(removed)
+            next_nodes = {k: v for k, v in next_nodes.items() if k in seen}
+        edges = body.get("edges", db.loads(st.get("edges_json")) or [])
+        if not isinstance(edges, list):
+            raise err("VALIDATION_FAILED", "edges 必须是数组")
+        for edge in edges:
+            if not isinstance(edge, dict) or edge.get("from") not in next_nodes or edge.get("to") not in next_nodes:
+                raise err("CANVAS_INVALID_REFERENCE", "连线引用了不存在的节点", detail={"edge": edge})
+            if edge["from"] == edge["to"]:
+                raise err("CANVAS_CYCLE", "节点不能连接自身")
+        if _has_cycle([], edges):
+            raise err("CANVAS_CYCLE", "连线存在循环依赖")
+        viewport = body.get("viewport", db.loads(st["viewport_json"]))
+        if not isinstance(viewport, dict):
+            raise err("VALIDATION_FAILED", "viewport 必须是对象")
+        layout_changed = bool(nodes_in or body.get("prune") or "viewport" in body or "edges" in body)
+        layout_revision = cur_layout + int(layout_changed)
+        # No database writes above this line: failures leave nodes, revisions and confirmations intact.
+        for node_id in old_nodes.keys() - next_nodes.keys():
+            c.execute("DELETE FROM canvas_nodes WHERE project_id=? AND node_id=?", (project_id, node_id))
+        for node_id in seen:
+            row = next_nodes[node_id]
+            cols = list(row)
+            c.execute("INSERT INTO canvas_nodes(" + ",".join(cols) + ") VALUES(" + ",".join("?" for _ in cols) + ") "
+                      "ON CONFLICT(project_id,node_id) DO UPDATE SET " +
+                      ",".join(k + "=excluded." + k for k in cols if k not in ("id", "project_id", "node_id", "created_at")),
+                      [row[k] for k in cols])
+        c.execute("INSERT INTO canvas_states(project_id,schema_version,layout_revision,viewport_json,edges_json,updated_at) "
+                  "VALUES(?,1,?,?,?,?) ON CONFLICT(project_id) DO UPDATE SET "
+                  "layout_revision=excluded.layout_revision,viewport_json=excluded.viewport_json,"
+                  "edges_json=excluded.edges_json,updated_at=excluded.updated_at",
+                  (project_id, layout_revision, db.dumps(viewport), db.dumps(edges), db.now()))
+        invalidated = []
+        if config_changed:
+            c.execute("UPDATE confirmations SET status='invalidated',reason='node_config_changed',invalidated_at=? "
+                      "WHERE project_id=? AND object_type='scope' AND status='active'", (db.now(), project_id))
+            invalidated = ["scope"]
     return {"project_id": project_id, "layout_revision": layout_revision,
-            "nodes_upserted": upserts,
-            "config_changed": config_changed,
-            "invalidated": invalidated,
-            "canvas": get_canvas(project_id),
-            "note": ("仅移动节点不使报价失效；生成配置变化已使整组报价失效"
-                     if config_changed else "布局/位置更新，未影响生成确认与报价")}
+            "nodes_upserted": len(seen), "config_changed": config_changed,
+            "invalidated": invalidated, "canvas": get_canvas(project_id),
+            "note": "生成配置已变化，请重新报价" if config_changed else "布局已保存，生成确认不变"}

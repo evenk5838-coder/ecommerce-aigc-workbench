@@ -125,6 +125,7 @@ def _take_view(t: dict) -> dict:
             "status": t["status"], "duration_ms": t["duration_ms"]}
 
 
+@projects.project_guard()
 def compose(project_id: str, take_ids: list[str] | None = None,
             confirm_partial: bool = False, source_batch: str | None = None) -> dict:
     """合成成片。take_ids 缺省 = 每镜最新成功的 take。"""
@@ -222,6 +223,7 @@ def get_film(film_id: str) -> dict:
     row = db.get("films", film_id)
     if not row:
         raise err("FILM_NOT_FOUND", f"成片不存在：{film_id}")
+    projects.get_project(row["project_id"])
     data = db.loads(row["items_json"]) or {}
     return {"film_id": row["id"], "project_id": row["project_id"],
             "version": row["version"], "status": row["status"],
@@ -255,6 +257,7 @@ def save_template(name: str, snapshot: list[dict]) -> dict:
     return {"template_id": tid, "version": 1}
 
 
+@projects.project_guard()
 def save_from_project(project_id: str, name: str) -> dict:
     shots_rows = db.query("SELECT * FROM shots WHERE project_id=? ORDER BY seq", (project_id,))
     if not shots_rows:
@@ -281,6 +284,7 @@ def get_template(template_id: str, version: int | None = None) -> dict:
             "note": "模板只含结构，不含商品事实与素材"}
 
 
+@projects.project_guard()
 def apply_template(project_id: str, template_id: str, version: int | None = None) -> dict:
     """套用结构：生成镜头骨架；素材/商品事实**需重新绑定**；模型与时长**重新校验**。"""
     tpl = get_template(template_id, version)
@@ -314,6 +318,7 @@ def apply_template(project_id: str, template_id: str, version: int | None = None
 
 
 # ---------------- 项目包导出（S6） ----------------
+@projects.project_guard()
 def export_project(project_id: str, include: list[str] | None = None) -> dict:
     """导出 zip：**成片 MP4 + 片段 + 分镜图 + manifest.json**，并登记可下载入口。
 
@@ -412,6 +417,7 @@ def export_path(export_id: str) -> tuple[Path, dict]:
     row = db.get("project_exports", export_id)
     if not row:
         raise err("EXPORT_NOT_FOUND", f"导出不存在：{export_id}")
+    projects.get_project(row["project_id"])
     path = config.ASSETS / row["rel_path"]
     if not path.exists():
         raise err("EXPORT_NOT_FOUND", "导出文件已不存在，请重新导出")

@@ -72,6 +72,7 @@ def validate_shot_input(project_id: str, shots: list[dict], model_id: str | None
 
 
 # ---------------- 镜头 ----------------
+@projects.project_guard()
 def add_shots(project_id: str, script_id: str, shots: list[dict],
               model_id: str | None = None) -> dict:
     _require_script_confirmed(project_id)
@@ -110,11 +111,13 @@ def get_shot(shot_id: str) -> dict:
     row = db.get("shots", shot_id)
     if not row:
         raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    projects.get_project(row["project_id"])
     sb = db.query("SELECT * FROM storyboards WHERE shot_id=? ORDER BY version DESC",
                   (row["id"],))
     return _shot_view(row, sb)
 
 
+@projects.project_guard("shots")
 def update_shot(shot_id: str, *, description: str | None = None,
                 duration_s: Any = None, motion: str | None = None,
                 expected_revision: int | None = None,
@@ -149,6 +152,7 @@ def update_shot(shot_id: str, *, description: str | None = None,
             "invalidated_reason": "shot_changed" if invalidated else None}
 
 
+@projects.project_guard("shots")
 def delete_shot(shot_id: str) -> dict:
     row = db.get("shots", shot_id)
     if not row:
@@ -160,6 +164,7 @@ def delete_shot(shot_id: str) -> dict:
     return {"deleted": shot_id, "project_id": row["project_id"]}
 
 
+@projects.project_guard()
 def reorder_shots(project_id: str, order: list[str]) -> dict:
     """重排**只影响成片拼接顺序**；不使镜头/分镜产物失效；不触发生成。"""
     _require_script_confirmed(project_id)             # B2
@@ -218,6 +223,7 @@ def quote_storyboard(shot_ids: list[str], model_id: str,
             "side_effects": {"tasks_created": 0, "model_called": False}}
 
 
+@projects.project_guard("shots")
 def generate_storyboard(shot_id: str, model_id: str, confirm: bool,
                         size: str = "2048x2048", prompt: str | None = None,
                         input_asset_id: str | None = None) -> dict:
@@ -256,6 +262,7 @@ def generate_storyboard(shot_id: str, model_id: str, confirm: bool,
             "need_confirm": False}
 
 
+@projects.project_guard("storyboards")
 def attach_storyboard_asset(storyboard_id: str, asset_id: str) -> dict:
     row = db.get("storyboards", storyboard_id)
     if not row:
@@ -268,12 +275,14 @@ def get_storyboard(storyboard_id: str) -> dict:
     row = db.get("storyboards", storyboard_id)
     if not row:
         raise err("STORYBOARD_NOT_FOUND", f"分镜不存在：{storyboard_id}")
+    get_shot(row["shot_id"])
     return {"storyboard_id": row["id"], "shot_id": row["shot_id"],
             "version": row["version"], "asset_id": row["asset_id"],
             "task_id": row["task_id"], "status": row["status"],
             "reject_reason": row["reject_reason"]}
 
 
+@projects.project_guard("storyboards")
 def review_storyboard(storyboard_id: str, approve: bool,
                       reason: str | None = None) -> dict:
     row = db.get("storyboards", storyboard_id)
@@ -315,8 +324,7 @@ def review_storyboard(storyboard_id: str, approve: bool,
 # ---------------- B5：历史版本读取 ----------------
 def list_storyboards(shot_id: str) -> list[dict]:
     """该镜**全部**分镜版本（含 task_id，便于刷新后恢复轮询）。"""
-    if not db.get("shots", shot_id):
-        raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    get_shot(shot_id)
     rows = db.query("SELECT * FROM storyboards WHERE shot_id=? ORDER BY version DESC", (shot_id,))
     out = []
     for r in rows:
@@ -332,8 +340,7 @@ def list_storyboards(shot_id: str) -> list[dict]:
 
 def list_takes(shot_id: str) -> list[dict]:
     """该镜**全部** take（含失败项与实测时长），供前端回选历史成功片段。"""
-    if not db.get("shots", shot_id):
-        raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
+    get_shot(shot_id)
     rows = db.query("SELECT * FROM shot_takes WHERE shot_id=? ORDER BY created_at DESC", (shot_id,))
     return [{"take_id": r["id"], "task_id": r["task_id"], "asset_id": r["asset_id"],
              "status": r["status"], "duration_ms": r["duration_ms"],

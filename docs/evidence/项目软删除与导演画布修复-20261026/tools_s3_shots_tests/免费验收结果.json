@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-26 18:46:40",
+  "scope": "S3 镜头 / 分镜（CRUD、排序、时长、版本、审核、单镜重做）",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "worker": "未启动",
+    "real_model_calls": 0,
+    "note": "图片任务仅入队，未执行（无 worker），无费用"
+  },
+  "paid_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "脚本未确认 → 拒绝加镜头（不产生镜头）",
+      "ok": true,
+      "detail": {
+        "code": "SCRIPT_NOT_CONFIRMED",
+        "http": 409
+      }
+    },
+    {
+      "case": "脚本确认后可加镜头（seq 自动递增）",
+      "ok": true,
+      "detail": {
+        "count": 2,
+        "seqs": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "case": "镜头时长 2/3/6/12 通过；1/13/5.5/\"6\"/true 拒绝",
+      "ok": true,
+      "detail": {
+        "accepted": [
+          2,
+          3,
+          6,
+          12
+        ],
+        "rejected": {
+          "1": "out_of_range",
+          "13": "out_of_range",
+          "5.5": "not_integer",
+          "'6'": "not_integer",
+          "True": "not_integer"
+        }
+      }
+    },
+    {
+      "case": "编辑镜头时长同样严格（5.5 拒绝 / 8 通过）",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_CAPABILITY_MISMATCH",
+        "http": 400,
+        "updated_to": 8
+      }
+    },
+    {
+      "case": "重排只影响成片顺序，不使分镜确认失效",
+      "ok": true,
+      "detail": {
+        "order": [
+          "shot_1c7b197bade34dcc9a4e",
+          "shot_a66aff6ad856447b8d80",
+          "shot_484ed4a118094f3cb698"
+        ],
+        "storyboard_still_valid": true
+      }
+    },
+    {
+      "case": "删除镜头（其余保留）",
+      "ok": true,
+      "detail": {
+        "deleted": "shot_7dd774a…",
+        "remaining": 1
+      }
+    },
+    {
+      "case": "分镜报价不建任务（confirm=false）",
+      "ok": true,
+      "detail": {
+        "estimate": 0.12,
+        "tasks": "1→1"
+      }
+    },
+    {
+      "case": "confirm=true → 建 1 个图片任务（复用现有任务系统）",
+      "ok": true,
+      "detail": {
+        "task": "task_2c4432d…",
+        "version": 1
+      }
+    },
+    {
+      "case": "分镜多版本、审核绑定版本、新版本不继承批准",
+      "ok": true,
+      "detail": {
+        "v1": 1,
+        "v2": 2,
+        "new_unconfirmed": true,
+        "old_invalidated": "storyboard_regenerated"
+      }
+    },
+    {
+      "case": "驳回必须填原因；驳回后该镜回到待重做",
+      "ok": true,
+      "detail": {
+        "status": "rejected",
+        "shot_status": "draft"
+      }
+    },
+    {
+      "case": "单镜重做只影响该镜（只新增 1 个任务）",
+      "ok": true,
+      "detail": {
+        "tasks_added": 1,
+        "shot2_version_unchanged": true
+      }
+    },
+    {
+      "case": "就绪度随分镜通过推进到视频阶段",
+      "ok": true,
+      "detail": {
+        "before": "storyboard",
+        "after_actions": [
+          "edit_brief",
+          "regenerate_script",
+          "edit_shot_plan",
+          "quote_generation"
+        ]
+      }
+    }
+  ],
+  "disclaimer": "分镜任务只创建不执行；未调用任何真实模型。"
+}

@@ -1,0 +1,173 @@
+{
+  "executed_at": "2026-10-26T10:56:58.513266+00:00",
+  "kind": "isolated unit and in-memory ASGI route tests",
+  "command": "python -m unittest discover -s backend/tests -v",
+  "passed": 31,
+  "failed": 0,
+  "cases": [
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_memory_contains_previous_turn_and_script_contents",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_other_project_history_cannot_leak",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_usage_accumulates_both_provider_calls",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_second_call_budget_gate_keeps_first_usage_and_failed_receipt",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_initial_budget_failure_is_not_pending",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_revision_tracks_edits_and_replay_precedes_revision_validation",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_canvas_get_does_not_create_state",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_position_only_preserves_image_type_binding_config",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_edges_survive_refresh_and_edges_only_advances_layout",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_invalid_later_node_rolls_back_everything_and_confirmation",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_invalid_edges_roll_back_nodes_and_pruning",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_invalid_reference_image_and_image_size_rejected",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_apply_idempotent_returns_original_shot_ids",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_apply_failure_receipt_rolls_back_shots",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_invalidated_script_does_not_offer_or_apply_old_plan",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_message_restore_returns_current_actions_and_session",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_reconfirm_after_invalidation_can_apply_plan",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_message_pagination_does_not_skip_equal_timestamps",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_cross_project_bindings_rollback_complete_patch",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_malformed_model_brief_cannot_poison_project_state",
+      "passed": true
+    },
+    {
+      "suite": "test_director_canvas_integrity.py",
+      "case": "test_provider_honors_explicit_output_limit",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_soft_delete_is_idempotent_and_preserves_history_files_and_other_projects",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_all_related_write_entries_reject_deleted_project_before_side_effects",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_active_or_unknown_tasks_block_delete_including_legacy_indirect_link",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_active_composition_or_director_request_blocks_delete",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_unknown_provider_creation_and_pending_output_attachment_block_delete",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_full_batch_waiting_for_automatic_composition_blocks_delete",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_in_flight_operation_blocks_delete_without_waiting_or_canceling",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_sqlite_guards_close_stale_writers_and_roll_back_whole_transaction",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_migration_is_repeatable_and_tombstone_survives_reinitialization",
+      "passed": true
+    },
+    {
+      "suite": "test_project_deletion.py",
+      "case": "test_old_project_schema_is_migrated_without_dropping_rows",
+      "passed": true
+    }
+  ],
+  "basis": "Recorded from successful command output in this task; unittest reported Ran 31 tests, OK.",
+  "boundaries": {
+    "temporary_database": true,
+    "real_business_db_written": false,
+    "real_model_calls": 0,
+    "started_server": false,
+    "started_worker": false,
+    "actual_product_e2e": false
+  }
+}

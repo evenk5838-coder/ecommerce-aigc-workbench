@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import config, db, templates, worker
+from . import config, db, projects, templates, worker
 from .engines import GUARD, MANAGER
 from .errors import AppError, app_error_handler, err, unhandled_handler
 from .storage import asset_path, load_asset, save_bytes, validate_image_asset
@@ -481,6 +481,7 @@ def _insert_resolved(resolved: dict, body: TaskIn) -> dict:
     return {**task, "queue_position": q, "estimated_cost_cny": resolved["estimated_cost_cny"]}
 
 
+@projects.task_creation_guard
 def create_task(body: TaskIn, *, legacy: bool = False) -> dict:
     # ---- 助手路径：必须带批准，且来源/幂等键均由后端确定 ----
     if body.approval_id:
@@ -551,7 +552,9 @@ def get_task(task_id: str):
 
 
 @app.post("/api/tasks/{task_id}/cancel")
+@projects.project_guard("tasks")
 def cancel_task(task_id: str):
+    projects.assert_task_project_active(task_id)
     return worker.cancel(task_id)
 
 
@@ -560,10 +563,12 @@ class RetryIn(BaseModel):
 
 
 @app.post("/api/tasks/{task_id}/retry")
+@projects.project_guard("tasks")
 def retry_task(task_id: str, body: RetryIn | None = None):
     t = db.get("tasks", task_id)
     if not t:
         raise err("TASK_NOT_FOUND", f"任务不存在：{task_id}")
+    projects.assert_task_project_active(task_id)
     if t["status"] in worker.ACTIVE:
         raise err("CANCEL_REJECTED_PHASE", "任务仍在执行，请先取消")
     stored = (db.loads(t["params_json"]) or {})

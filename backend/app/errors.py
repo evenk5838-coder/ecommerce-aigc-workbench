@@ -92,6 +92,8 @@ CODES = {
     "ASSISTANT_NETWORK_ERROR": (503, True),
     # v0.10 S2：项目 / 脚本
     "PROJECT_NOT_FOUND": (404, False),
+    "PROJECT_DELETED": (410, False),
+    "PROJECT_BUSY": (409, False),
     "SCRIPT_NOT_FOUND": (404, False),
     "SCRIPT_VERSION_CONFLICT": (409, False),
     # v0.10 S3：镜头 / 分镜
@@ -119,6 +121,8 @@ CODES = {
     "IDEMPOTENCY_CONFLICT": (409, False),
     "DIRECTOR_REQUEST_NOT_FOUND": (404, False),
     "DIRECTOR_REQUEST_PENDING": (409, False),
+    "DIRECTOR_REQUEST_FAILED": (409, False),
+    "WORKFLOW_REVISION_CONFLICT": (409, False),
     "PROPOSAL_NOT_FOUND": (404, False),
     "PROPOSAL_VERSION_CONFLICT": (409, False),
     "PROPOSAL_NOT_APPLICABLE": (409, False),

@@ -83,6 +83,7 @@ def scope_hash(frozen: dict, mode: str) -> str:
 
 
 # ---------------- 报价 ----------------
+@projects.project_guard()
 def create_scope(project_id: str, mode: str, shot_ids: list[str],
                  specs: dict) -> dict:
     from . import cloud_tasks
@@ -125,6 +126,7 @@ def create_scope(project_id: str, mode: str, shot_ids: list[str],
             "side_effects": {"tasks_created": 0, "model_called": False}}
 
 
+@projects.project_guard("generation_scopes")
 def confirm_scope(scope_id: str, confirm: bool = True) -> dict:
     row = _get_scope(scope_id)
     if not confirm:
@@ -143,6 +145,7 @@ def confirm_scope(scope_id: str, confirm: bool = True) -> dict:
 
 
 # ---------------- 提交（单事务） ----------------
+@projects.project_guard("generation_scopes")
 def submit_scope(scope_id: str) -> dict:
     from . import main as core
 
@@ -264,6 +267,7 @@ def project_status(project_id: str) -> dict:
                        "partial": bool(f["partial"])} for f in films]}
 
 
+@projects.project_guard("shot_takes")
 def retry_take(take_id: str) -> dict:
     """**只重做该 take**（用户选定的失败镜头）；成功镜头不动，历史保留。"""
     take = db.get("shot_takes", take_id)
@@ -301,6 +305,7 @@ def _get_scope(scope_id: str) -> dict:
     row = db.get("generation_scopes", scope_id)
     if not row:
         raise err("SCOPE_NOT_FOUND", f"生成范围不存在：{scope_id}")
+    projects.get_project(row["project_id"])
     return row
 
 

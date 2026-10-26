@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-26 18:46:50",
+  "scope": "S5 成片拼接 + S6 结构模板 / 导出",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "worker": "未启动",
+    "real_model_calls": 0,
+    "note": "使用自制 32×32 素材占位；未执行真实合成为 mp4"
+  },
+  "paid_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 9,
+  "passed": 9,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "缺镜 → FILM_MISSING_SHOTS（不产出成片）",
+      "ok": true,
+      "detail": {
+        "code": "FILM_MISSING_SHOTS",
+        "http": 409
+      }
+    },
+    {
+      "case": "显式 confirm_partial → partial 成片（列出缺镜 + 计划/实测分开）",
+      "ok": true,
+      "detail": {
+        "status": "partial",
+        "missing": 1,
+        "planned_s": 10,
+        "actual_ms": 2000
+      }
+    },
+    {
+      "case": "全部成功 → ready；成片版本只增不覆盖；纯拼接",
+      "ok": true,
+      "detail": {
+        "v1": 1,
+        "v2": 2,
+        "note": "纯拼接，不裁剪/变速/补帧"
+      }
+    },
+    {
+      "case": "成片可列出（历史保留）",
+      "ok": true,
+      "detail": {
+        "films": 1
+      }
+    },
+    {
+      "case": "保存/查看结构模板（只含结构，不含商品事实）",
+      "ok": true,
+      "detail": {
+        "template_id": "stpl_14e6740…",
+        "version": 1
+      }
+    },
+    {
+      "case": "模板时长同样严格（5.5 / 99 拒绝）",
+      "ok": true,
+      "detail": {
+        "5.5": "rejected",
+        "99": "rejected"
+      }
+    },
+    {
+      "case": "从项目保存结构并套用（重绑素材/重校验模型）",
+      "ok": true,
+      "detail": {
+        "created": 2,
+        "version": 1
+      }
+    },
+    {
+      "case": "导出 zip 包含 manifest 与产物清单",
+      "ok": true,
+      "detail": {
+        "files": 4,
+        "bytes": 3529,
+        "has_manifest": true,
+        "has_film": true,
+        "download_url": "/api/exports/exp_4b575d8bb5a3433a8a02/file"
+      }
+    },
+    {
+      "case": "导出不重新生成（任务数不变）",
+      "ok": true,
+      "detail": {
+        "tasks": 22,
+        "unchanged": true
+      }
+    }
+  ],
+  "disclaimer": "ffmpeg 真实拼接未在本轮验证（无真实 mp4 片段）；本轮验证编排与状态语义。"
+}

@@ -1,7 +1,4 @@
-"""创作空间路由（S2：项目 / brief / 脚本）。
-
-只做 S2 范围；shots / scope / films / structure-templates 尚未实现（S3 起）。
-"""
+"""创作空间：项目、脚本、镜头、分镜、成片、对话导演与画布。"""
 from __future__ import annotations
 
 from fastapi import APIRouter
@@ -65,6 +62,11 @@ def get_project(project_id: str):
 @router.patch("/projects/{project_id}")
 def patch_project(project_id: str, body: ProjectPatch):
     return projects.update_project(project_id, body.name, body.brief)
+
+
+@router.delete("/projects/{project_id}")
+def delete_project(project_id: str):
+    return projects.delete_project(project_id)
 
 
 @router.post("/projects/{project_id}/scripts")
@@ -246,9 +248,11 @@ def confirm_scope(scope_id: str, body: ScopeConfirmIn | None = None):
 @router.post("/projects/{project_id}/generate")
 def generate(project_id: str, body: dict):
     """按已确认的 scope 提交整组任务（单事务、幂等、单 worker 顺序执行）。"""
+    projects.get_project(project_id)
     scope_id = (body or {}).get("scope_id")
     if not scope_id:
-        raise ValueError("scope_id 必填")
+        from ..errors import err as _err
+        raise _err("VALIDATION_FAILED", "scope_id 必填")
     row = scope._get_scope(scope_id)
     if row["project_id"] != project_id:
         from ..errors import err as _err
@@ -298,6 +302,7 @@ def get_film(film_id: str):
 
 @router.get("/projects/{project_id}/films")
 def list_films(project_id: str):
+    projects.get_project(project_id)
     rows = assembly.db.query("SELECT id FROM films WHERE project_id=? ORDER BY version DESC",
                              (project_id,))
     return {"items": [assembly.get_film(r["id"]) for r in rows]}

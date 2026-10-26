@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 
-from .. import db
+from .. import db, projects
 from ..errors import err
 from . import approval, tools
 from .provider import get_provider, provider_status
@@ -39,6 +39,7 @@ def get_session(session_id: str) -> dict:
     if not row:
         raise err("ASSISTANT_SESSION_NOT_FOUND", f"会话不存在：{session_id}",
                   detail={"session_id": session_id})
+    projects.ensure_not_deleted(row.get("project_id"))
     return row
 
 
@@ -56,6 +57,7 @@ def session_intent(session_id: str) -> str:
 
 def ensure_session(session_id: str | None, project_id: str | None,
                    intent: str | None) -> dict:
+    projects.ensure_not_deleted(project_id)
     if intent and intent not in INTENTS:
         raise err("VALIDATION_FAILED", f"intent 只能为 {list(INTENTS)}",
                   detail={"allowed": list(INTENTS), "got": intent})
@@ -211,6 +213,7 @@ def get_brief(project_id: str) -> dict:
 
 
 def save_brief(project_id: str, brief: dict) -> dict:
+    projects.ensure_not_deleted(project_id)
     if not isinstance(brief, dict):
         raise err("VALIDATION_FAILED", "brief 必须是对象")
     unknown = [k for k in brief if k not in BRIEF_FIELDS]
@@ -589,6 +592,7 @@ def _reply_type(intent: str, awaiting: dict | None, structured: dict,
     return "message", False, True
 
 
+@projects.assistant_guard
 def chat(*, session_id: str | None, project_id: str | None, message: str,
          intent: str | None = None, brief: dict | None = None,
          context: dict | None = None, provider=None) -> dict:  # noqa: ANN001

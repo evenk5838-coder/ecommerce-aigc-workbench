@@ -10,7 +10,10 @@
 from __future__ import annotations
 
 import json
+import inspect
 import os
+import threading
+from functools import wraps
 from typing import Any
 
 from . import db
@@ -19,6 +22,99 @@ from .errors import err
 BRIEF_FIELDS = ("subject", "quantity", "selling_points", "forbidden_elements",
                 "target_platform", "target_duration_s", "style", "notes")
 PROJECT_STATUS = ("draft", "scripting", "script_confirmed", "archived")
+
+_project_locks: dict[str, threading.RLock] = {}
+_project_locks_guard = threading.Lock()
+
+
+def _project_lock(project_id: str):
+    with _project_locks_guard:
+        return _project_locks.setdefault(project_id, threading.RLock())
+
+
+def related_project_id(table: str, object_id: str) -> str | None:
+    """Resolve stored ownership; never infer a project from user supplied labels."""
+    row = db.get(table, object_id)
+    if not row:
+        return None
+    if table == "projects":
+        return row["id"]
+    if table in ("storyboards", "shot_takes"):
+        shot = db.get("shots", row["shot_id"])
+        return shot["project_id"] if shot else None
+    if table == "tasks":
+        if row.get("external_request_id") and db.get("projects", row["external_request_id"]):
+            return row["external_request_id"]
+        linked = db.query("SELECT s.project_id FROM shots s JOIN storyboards b ON b.shot_id=s.id "
+                          "WHERE b.task_id=? UNION SELECT s.project_id FROM shots s "
+                          "JOIN shot_takes t ON t.shot_id=s.id WHERE t.task_id=?", (object_id, object_id))
+        return linked[0]["project_id"] if linked else None
+    return row.get("project_id")
+
+
+def project_guard(table: str = "projects"):
+    """Serialize a project write with deletion, including work outside SQLite."""
+    def decorate(fn):
+        signature = inspect.signature(fn)
+        first = next(iter(signature.parameters))
+        @wraps(fn)
+        def guarded(*args, **kwargs):
+            object_id = signature.bind(*args, **kwargs).arguments[first]
+            project_id = object_id if table == "projects" else related_project_id(table, object_id)
+            if not project_id:
+                return fn(*args, **kwargs)  # preserve the endpoint's not-found error
+            with _project_lock(project_id):
+                get_project(project_id)
+                return fn(*args, **kwargs)
+        return guarded
+    return decorate
+
+
+def task_creation_guard(fn):
+    @wraps(fn)
+    def guarded(body, *args, **kwargs):
+        project_id = getattr(body, "external_request_id", None)
+        if project_id and db.get("projects", project_id):
+            with _project_lock(project_id):
+                get_project(project_id)
+                return fn(body, *args, **kwargs)
+        return fn(body, *args, **kwargs)
+    return guarded
+
+
+def assistant_guard(fn):
+    """Keep legacy keyword-only chat calls safe without changing their API."""
+    signature = inspect.signature(fn)
+    @wraps(fn)
+    def guarded(*args, **kwargs):
+        supplied = signature.bind(*args, **kwargs).arguments
+        session = db.get("assistant_sessions", supplied.get("session_id")) if supplied.get("session_id") else None
+        project_id = supplied.get("project_id") or (session or {}).get("project_id")
+        if project_id and db.get("projects", project_id):
+            with _project_lock(project_id):
+                get_project(project_id)
+                return fn(*args, **kwargs)
+        return fn(*args, **kwargs)
+    return guarded
+
+
+def ensure_not_deleted(project_id: str | None) -> None:
+    """Legacy workbench session IDs need not be projects, but tombstones stay closed."""
+    row = db.get("projects", project_id) if project_id else None
+    if row and row.get("deleted_at") is not None:
+        raise err("PROJECT_DELETED", "该项目已删除，素材和历史任务仍保留。",
+                  detail={"project_id": project_id, "deleted_at": row["deleted_at"]})
+
+
+def assert_task_project_active(task_id: str) -> None:
+    task = db.get("tasks", task_id)
+    if task:
+        ensure_not_deleted(task.get("external_request_id"))
+    linked = db.query("SELECT s.project_id FROM shots s JOIN storyboards b ON b.shot_id=s.id "
+                      "WHERE b.task_id=? UNION SELECT s.project_id FROM shots s "
+                      "JOIN shot_takes t ON t.shot_id=s.id WHERE t.task_id=?", (task_id, task_id))
+    for row in linked:
+        get_project(row["project_id"])
 
 
 # ---------------- 项目 ----------------
@@ -43,6 +139,9 @@ def get_project(project_id: str) -> dict:
     if not row:
         raise err("PROJECT_NOT_FOUND", f"项目不存在：{project_id}",
                   detail={"project_id": project_id})
+    if row.get("deleted_at") is not None:
+        raise err("PROJECT_DELETED", "该项目已删除，素材和历史任务仍保留。",
+                  detail={"project_id": project_id, "deleted_at": row["deleted_at"]})
     return row
 
 
@@ -55,7 +154,7 @@ def project_detail(project_id: str) -> dict:
 
 
 def list_projects(limit: int = 20) -> list[dict]:
-    rows = db.query("SELECT * FROM projects ORDER BY updated_at DESC LIMIT ?",
+    rows = db.query("SELECT * FROM projects WHERE deleted_at IS NULL ORDER BY updated_at DESC LIMIT ?",
                     (max(1, min(limit, 100)),))
     out = []
     for r in rows:
@@ -65,6 +164,69 @@ def list_projects(limit: int = 20) -> list[dict]:
     return out
 
 
+def delete_project(project_id: str) -> dict:
+    """Hide a project atomically; retain every linked row and media file."""
+    lock = _project_lock(project_id)
+    if not lock.acquire(blocking=False):
+        raise err("PROJECT_BUSY", "项目正在处理操作，请完成后再删除。",
+                  detail={"project_id": project_id, "operation_in_progress": True})
+    try:
+        with db.transaction() as c:
+            row = c.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+            if not row:
+                raise err("PROJECT_NOT_FOUND", "项目不存在。", detail={"project_id": project_id})
+            if row["deleted_at"] is not None:
+                return {"project_id": project_id, "deleted": True,
+                        "deleted_at": row["deleted_at"], "already_deleted": True}
+            # Unknown states fail closed: deleting must not hide in-flight paid work.
+            tasks = c.execute(
+                "SELECT DISTINCT t.id, t.status FROM tasks t WHERE "
+                "(t.external_request_id=? OR t.id IN (SELECT b.task_id FROM storyboards b "
+                "JOIN shots s ON s.id=b.shot_id WHERE s.project_id=?) OR t.id IN "
+                "(SELECT k.task_id FROM shot_takes k JOIN shots s ON s.id=k.shot_id "
+                "WHERE s.project_id=?)) AND (t.status IS NULL OR t.status NOT IN "
+                "('succeeded','failed','canceled','interrupted') OR t.error_code='CREATE_RESULT_UNKNOWN')",
+                (project_id,)*3).fetchall()
+            films = c.execute("SELECT id, status FROM films WHERE project_id=? AND "
+                              "(status IS NULL OR status NOT IN ('ready','partial','failed'))",
+                              (project_id,)).fetchall()
+            requests = c.execute("SELECT client_request_id, status FROM director_requests "
+                                 "WHERE project_id=? AND (status IS NULL OR status NOT IN "
+                                 "('completed','failed'))", (project_id,)).fetchall()
+            # A worker marks a task terminal before it attaches the output and starts
+            # automatic composition. Protect those gaps as part of the active work.
+            pending_outputs = c.execute(
+                "SELECT k.id, k.status FROM shot_takes k JOIN shots s ON s.id=k.shot_id "
+                "WHERE s.project_id=? AND (k.status IS NULL OR k.status NOT IN "
+                "('succeeded','failed','canceled','interrupted')) UNION "
+                "SELECT b.id, 'attaching' FROM storyboards b JOIN shots s ON s.id=b.shot_id "
+                "JOIN tasks t ON t.id=b.task_id WHERE s.project_id=? AND t.status='succeeded' "
+                "AND b.asset_id IS NOT t.output_asset_id", (project_id, project_id)).fetchall()
+            assembling_batches = c.execute(
+                "SELECT r.batch_id FROM submit_receipts r WHERE r.project_id=? AND r.mode='full' "
+                "AND EXISTS(SELECT 1 FROM tasks t WHERE t.batch_id=r.batch_id) "
+                "AND NOT EXISTS(SELECT 1 FROM tasks t WHERE t.batch_id=r.batch_id "
+                "AND (t.status IS NULL OR t.status!='succeeded')) "
+                "AND NOT EXISTS(SELECT 1 FROM films f WHERE f.source_batch=r.batch_id) "
+                "AND NOT EXISTS(SELECT 1 FROM assembly_errors e WHERE e.batch_id=r.batch_id)",
+                (project_id,)).fetchall()
+            if tasks or films or requests or pending_outputs or assembling_batches:
+                raise err("PROJECT_BUSY", "项目仍有生成、合成或待核对的对话请求，请处理完成后再删除。",
+                          detail={"project_id": project_id,
+                                  "tasks": [dict(t) for t in tasks], "films": [dict(f) for f in films],
+                                  "requests": [dict(r) for r in requests],
+                                  "pending_outputs": [dict(o) for o in pending_outputs],
+                                  "assembling_batches": [dict(b) for b in assembling_batches]})
+            deleted_at = db.now()
+            c.execute("UPDATE projects SET deleted_at=?, updated_at=? WHERE id=?",
+                      (deleted_at, deleted_at, project_id))
+            return {"project_id": project_id, "deleted": True,
+                    "deleted_at": deleted_at, "already_deleted": False}
+    finally:
+        lock.release()
+
+
+@project_guard()
 def update_project(project_id: str, name: str | None = None,
                    brief: dict | None = None) -> dict:
     row = get_project(project_id)
@@ -121,6 +283,7 @@ def _next_version(project_id: str) -> int:
     return int(rows[0]["v"]) + 1
 
 
+@project_guard()
 def add_script(project_id: str, content: dict, source: str = "manual",
                session_id: str | None = None,
                base_version: int | None = None) -> dict:
@@ -163,9 +326,11 @@ def get_script(script_id: str) -> dict:
     if not row:
         raise err("SCRIPT_NOT_FOUND", f"脚本不存在：{script_id}",
                   detail={"script_id": script_id})
+    get_project(row["project_id"])
     return _script_view(row)
 
 
+@project_guard("script_versions")
 def edit_script(script_id: str, content: dict, base_version: int | None = None) -> dict:
     """手工编辑 → **新建版本**（不覆盖历史）。"""
     row = db.get("script_versions", script_id)
@@ -175,6 +340,7 @@ def edit_script(script_id: str, content: dict, base_version: int | None = None) 
                       session_id=row.get("session_id"), base_version=base_version)
 
 
+@project_guard("script_versions")
 def confirm_script(script_id: str, confirm: bool = True) -> dict:
     """确认脚本 → **持久化确认记录**（绑定 script_id + version）。"""
     from . import director
@@ -214,6 +380,7 @@ SCRIPT_SYSTEM_PROMPT = (
 )
 
 
+@project_guard()
 def generate_script(project_id: str, instruction: str | None = None,
                     target_duration_s: int | None = None,
                     provider=None) -> dict:  # noqa: ANN001
@@ -274,6 +441,7 @@ def _parse_script(text: str) -> dict:
 
 
 # ---------------- 采用助手草案（**不调用模型**） ----------------
+@project_guard()
 def adopt_draft(project_id: str, kind: str, content: dict,
                 base_version: int | None = None) -> dict:
     """把助手产出的草案**落库**。仅写库，不产生任何模型调用。

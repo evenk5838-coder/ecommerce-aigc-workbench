@@ -27,31 +27,32 @@ OBJECT_TYPES = ("script", "shot_plan", "storyboard", "scope", "film")
 
 
 # ---------------- 确认 ----------------
+@projects.project_guard()
 def confirm_object(project_id: str, object_type: str, object_id: str,
                    object_version: int) -> dict:
     if object_type not in OBJECT_TYPES:
         raise err("VALIDATION_FAILED", f"未知确认对象类型：{object_type}",
                   detail={"allowed": list(OBJECT_TYPES)})
     projects.get_project(project_id)      # 校验项目存在
-    existing = db.query(
-        "SELECT * FROM confirmations WHERE object_type=? AND object_id=? AND object_version=?",
-        (object_type, object_id, object_version))
-    if existing:
-        row = existing[0]
-        if row["status"] != "active":
-            # 重新确认：把旧的置为 superseded 再插新行（保留历史）
-            db.update("confirmations", row["id"],
-                      {"status": "superseded", "invalidated_at": db.now()})
-        else:
+    with db.transaction() as c:
+        row = c.execute("SELECT * FROM confirmations WHERE object_type=? AND object_id=? "
+                        "AND object_version=?", (object_type, object_id, object_version)).fetchone()
+        if row and row["status"] == "active":
             return {"confirmation_id": row["id"], "status": "active",
                     "object_type": object_type, "object_id": object_id,
                     "object_version": object_version, "reused": True}
-    cid = db.new_id("cfm")
-    db.insert("confirmations", {
-        "id": cid, "project_id": project_id, "object_type": object_type,
-        "object_id": object_id, "object_version": int(object_version),
-        "status": "active", "reason": None,
-        "created_at": db.now(), "invalidated_at": None})
+        cid = row["id"] if row else db.new_id("cfm")
+        if row:
+            # The version has a UNIQUE row. Archive its previous state before reactivation.
+            c.execute("INSERT INTO confirmation_events(id,confirmation_id,project_id,event,snapshot_json,created_at) "
+                      "VALUES(?,?,?,?,?,?)", (db.new_id("cfme"), cid, project_id, "reconfirmed",
+                                              db.dumps(dict(row)), db.now()))
+            c.execute("UPDATE confirmations SET status='active', reason=NULL, created_at=?, "
+                      "invalidated_at=NULL WHERE id=?", (db.now(), cid))
+        else:
+            c.execute("INSERT INTO confirmations(id,project_id,object_type,object_id,object_version,status,"
+                      "reason,created_at,invalidated_at) VALUES(?,?,?,?,?,'active',NULL,?,NULL)",
+                      (cid, project_id, object_type, object_id, int(object_version), db.now()))
     return {"confirmation_id": cid, "status": "active", "object_type": object_type,
             "object_id": object_id, "object_version": int(object_version), "reused": False}
 

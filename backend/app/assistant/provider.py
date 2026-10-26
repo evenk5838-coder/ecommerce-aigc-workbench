@@ -61,7 +61,8 @@ class LLMProvider(Protocol):
     def available(self) -> bool: ...
 
     def chat(self, messages: list[dict], tools: list[ToolSpec],
-             tool_results: list[dict] | None = None) -> ChatResult: ...
+             tool_results: list[dict] | None = None, *,
+             max_tokens: int | None = None) -> ChatResult: ...
 
 
 class UnavailableProvider:
@@ -73,7 +74,7 @@ class UnavailableProvider:
     def available(self) -> bool:
         return False
 
-    def chat(self, messages, tools, tool_results=None) -> ChatResult:  # noqa: ANN001
+    def chat(self, messages, tools, tool_results=None, *, max_tokens=None) -> ChatResult:  # noqa: ANN001
         raise RuntimeError("assistant provider not configured")
 
 
@@ -97,9 +98,10 @@ class FixedReplyProvider:
     def push(self, item: dict) -> None:
         self._script.append(item)
 
-    def chat(self, messages, tools, tool_results=None) -> ChatResult:  # noqa: ANN001
+    def chat(self, messages, tools, tool_results=None, *, max_tokens=None) -> ChatResult:  # noqa: ANN001
         self.calls.append({"messages": list(messages),
                            "tools": [t.name for t in tools],
+                           "max_tokens": max_tokens,
                            "tool_results": tool_results or []})
         item = self._script[self._i] if self._i < len(self._script) else {
             "reply": "（测试替身无更多脚本）", "tool_calls": []}
@@ -135,7 +137,7 @@ class ArkChatProvider:
         from .. import providers_ark
         return bool(self.model) and providers_ark.configured()
 
-    def chat(self, messages, tools, tool_results=None) -> ChatResult:  # noqa: ANN001
+    def chat(self, messages, tools, tool_results=None, *, max_tokens=None) -> ChatResult:  # noqa: ANN001
         from .. import providers_ark
 
         body: dict = {
@@ -143,7 +145,7 @@ class ArkChatProvider:
             "messages": _to_openai_messages(messages),
             "temperature": float(os.getenv("ASSISTANT_TEMPERATURE", "0.3")),
         }
-        max_tokens = os.getenv("ASSISTANT_MAX_TOKENS")
+        max_tokens = max_tokens if max_tokens is not None else os.getenv("ASSISTANT_MAX_TOKENS")
         if max_tokens:
             body["max_tokens"] = int(max_tokens)
         if tools:
@@ -339,7 +341,7 @@ class DeepSeekChatProvider:
     def available(self) -> bool:
         return bool(self.model) and bool(self._api_key)
 
-    def chat(self, messages, tools, tool_results=None) -> ChatResult:  # noqa: ANN001
+    def chat(self, messages, tools, tool_results=None, *, max_tokens=None) -> ChatResult:  # noqa: ANN001
         from ..errors import err
         if not self._api_key:
             raise err("ASSISTANT_CONFIG_INCOMPLETE",
@@ -357,7 +359,7 @@ class DeepSeekChatProvider:
             # 非思考模式（官方文档：thinking 默认开启，需显式关闭）
             "thinking": {"type": "disabled"},
         }
-        max_tokens = os.getenv("ASSISTANT_MAX_TOKENS")
+        max_tokens = max_tokens if max_tokens is not None else os.getenv("ASSISTANT_MAX_TOKENS")
         if max_tokens:
             body["max_tokens"] = int(max_tokens)
         if tools:

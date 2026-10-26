@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-26 18:46:37",
+  "scope": "S2 项目 / brief / 脚本",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "provider": "FixedReplyProvider / Unavailable",
+    "real_llm_calls": 0,
+    "worker": "未启动"
+  },
+  "paid_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 13,
+  "passed": 13,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "新建项目 + 写入 brief",
+      "ok": true,
+      "detail": {
+        "project_id": "prj_e7eb9bbbbc…",
+        "status": "draft"
+      }
+    },
+    {
+      "case": "brief 未知字段 / 小数数量 / 空项目名 → 拒绝",
+      "ok": true,
+      "detail": {
+        "unknown_field": "rejected",
+        "quantity_float": "rejected",
+        "empty_name": "rejected"
+      }
+    },
+    {
+      "case": "刷新恢复：列表与详情带回 brief",
+      "ok": true,
+      "detail": {
+        "projects": 1,
+        "recovered": true
+      }
+    },
+    {
+      "case": "助手不可用：返回提示、不报错、不产生脚本版本",
+      "ok": true,
+      "detail": {
+        "assistant_unavailable": true,
+        "hint": "助手暂不可用，可先手工编写脚本并继续…"
+      }
+    },
+    {
+      "case": "助手不可用时可手工写脚本并确认（不阻断流程）",
+      "ok": true,
+      "detail": {
+        "script": "scr_87dc5b32…",
+        "version": 1
+      }
+    },
+    {
+      "case": "生成脚本：结构化解析 + 记录 LLM 用量（替身，无真实调用）",
+      "ok": true,
+      "detail": {
+        "version": 1,
+        "shots": 3,
+        "usage_rows": 1
+      }
+    },
+    {
+      "case": "模型输出非结构化：明确降级，不编造镜头",
+      "ok": true,
+      "detail": {
+        "parse_ok": false,
+        "degraded": "model_output_not_structured"
+      }
+    },
+    {
+      "case": "重新生成/编辑只追加版本，旧版本保留",
+      "ok": true,
+      "detail": {
+        "versions": [
+          1,
+          2,
+          3
+        ],
+        "history_intact": true
+      }
+    },
+    {
+      "case": "并发编辑：base_version 过期 → SCRIPT_VERSION_CONFLICT(409)",
+      "ok": true,
+      "detail": {
+        "code": "SCRIPT_VERSION_CONFLICT",
+        "http": 409,
+        "latest_ok_version": 3
+      }
+    },
+    {
+      "case": "确认绑定具体版本；新版本不继承确认",
+      "ok": true,
+      "detail": {
+        "confirmed": 1,
+        "new_version_unconfirmed": 2
+      }
+    },
+    {
+      "case": "改 brief → 返回 stale 标记（确认作废但不删历史）",
+      "ok": true,
+      "detail": {
+        "stale": [
+          "script_confirm"
+        ],
+        "history_confirm_kept": true
+      }
+    },
+    {
+      "case": "不存在的项目/脚本 → 404",
+      "ok": true,
+      "detail": {
+        "project_404": true,
+        "script_404": true
+      }
+    },
+    {
+      "case": "脚本流程不创建任何生成任务（不调图片/视频模型）",
+      "ok": true,
+      "detail": {
+        "tasks_before": 0,
+        "tasks_after": 0
+      }
+    }
+  ],
+  "disclaimer": "脚本生成为替身模型；真实 DeepSeek 生成未在本轮验证。"
+}
