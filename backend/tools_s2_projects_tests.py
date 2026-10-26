@@ -201,7 +201,8 @@ def run() -> int:
         projects.confirm_script(s["script_id"])
         out = projects.update_project(pid, brief={"subject": "两件套装"})
         assert "script_confirm" in out["stale"], out["stale"]
-        assert "shot_plan_confirm" in out["stale"], out["stale"]
+        # 分镜计划确认尚未存在（S3 才有），因此不应虚报 shot_plan_confirm
+        assert "shot_plan_confirm" not in out["stale"], out["stale"]
         # 历史确认记录不被删除
         assert projects.get_script(s["script_id"])["confirmed_at"] is not None
         return {"stale": out["stale"], "history_confirm_kept": True}
