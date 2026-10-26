@@ -5,6 +5,8 @@ import JSZip from 'jszip';
 import Home from './Home';
 import CreativeSpace from './CreativeSpace';
 import ImageOutputSettings from './ImageOutputSettings';
+import SingleTemplatePanel from './SingleTemplatePanel';
+import { templateInput } from './single-templates';
 import { imageSizeTier } from './image-specs';
 import GenerationConfirm from './GenerationConfirm';
 import PromptOptimizer from './assistant/PromptOptimizer';
@@ -23,7 +25,7 @@ const ACTIVE = ['queued','loading','running','postprocess','remote_queued','remo
 const NAMES: Record<string,string> = {queued:'排队中',loading:'加载中',running:'生成中',postprocess:'保存结果',remote_queued:'云端排队',remote_running:'云端生成',cancel_requested:'已请求取消',succeeded:'已完成',failed:'生成失败',canceled:'已取消',interrupted:'已中断'};
 const DEFAULT_GENERATION: GenerationSettings = {kind:'image',imageMode:'text_to_image',purpose:'white',imagePrompt:getImagePrompt('text_to_image','white'),videoPrompt:'镜头缓慢推近商品，柔和光线掠过表面，保持商品形态和包装稳定，适合电商商品展示。',imageRatio:'1:1',videoRatio:'9:16',imageReference:null,videoReference:null,batchCount:1,duration:5,videoResolution:'720p'};
 const ERRORS: Record<string,string> = {AUTH_MISSING:'尚未配置云端 Key，请在后端配置后重试。',AUTH_FAILED:'模型鉴权失败，请检查 Key 与模型开通权限。',BUDGET_NOT_APPROVED:'后端尚未批准云端预算。',BUDGET_EXCEEDED:'已达到本次预算上限，请先核对用量。',MODEL_NOT_DOWNLOADED:'本地模型权重未就位。',MODEL_NOT_OPENED:'当前账号尚未开通该模型，请核对火山控制台。',CREATE_RESULT_UNKNOWN:'创建结果暂不明确，请先核对云端任务，避免重复扣费。'};
-type PendingGeneration = { id:string; items:TaskInput[]; kind:'image'|'video'; modelName:string; specLabel:string; costs:number[]|null; estimates:TaskEstimate[]|null; error:string };
+type PendingGeneration = { id:string; items:TaskInput[]; kind:'image'|'video'; modelName:string; specLabel:string; costs:number[]|null; estimates:TaskEstimate[]|null; prompts:string[]; error:string };
 const time = (ms?: number) => ms == null ? '—' : ms < 60000 ? `${(ms/1000).toFixed(1)}秒` : `${(ms/60000).toFixed(1)}分钟`;
 function IconButton({ children, label, onClick, disabled = false, active = false }: {children:ReactNode;label:string;onClick:()=>void;disabled?:boolean;active?:boolean}) {
   return <button className={`icon-button ${active?'active':''}`} aria-label={label} title={label} onClick={onClick} disabled={disabled}>{children}</button>;
@@ -51,6 +53,7 @@ export default function App() {
   const [modelId,setModelId]=useState(''),[referencePicker,setReferencePicker]=useState(false);
   const settings={...DEFAULT_GENERATION,...project.generation};
   const {kind,imageMode,purpose,batchCount,duration}=settings;
+  const activeTemplate=settings.template?.template.kind===kind?settings.template:null;
   const prompt=kind==='image'?settings.imagePrompt:settings.videoPrompt;
   const ratio=kind==='image'?settings.imageRatio:settings.videoRatio;
   const reference=kind==='image'?settings.imageReference:settings.videoReference;
@@ -224,21 +227,23 @@ export default function App() {
     if(submitLock.current||pendingRef.current)return;
     setSubmitError('');
     const fields:{prompt?:string;reference?:string}={};
-    if(!prompt.trim())fields.prompt='请填写商品描述或修改要求。';
-    if((kind==='video'||imageMode==='image_to_image')&&!refAsset)fields.reference='请先上传或选择一张商品参考图。';
+    if(!activeTemplate&&!prompt.trim())fields.prompt='请填写商品描述或修改要求。';
+    if((kind==='video'||(imageMode==='image_to_image'&&!activeTemplate)||(activeTemplate&&activeTemplate.template.template_id!=='tpl_season_theme'&&activeTemplate.template.required_assets.some(a=>a.required)))&&!refAsset)fields.reference='请先上传或选择一张商品参考图。';
     setValidation(fields);
     if(fields.reference||fields.prompt){document.getElementById(fields.reference?'reference-select':'prompt')?.focus();return;}
     let base;
-    try{base=buildGenerationInput({kind,imageMode,modelId,prompt,reference:refAsset,ratio,duration,model:selectedModel,resolution,imageSize});}
+    try{base=activeTemplate?templateInput(activeTemplate,selectedModel,{ratio,imageSize,duration,resolution,reference:refAsset?.id??null,prompt}):buildGenerationInput({kind,imageMode,modelId,prompt,reference:refAsset,ratio,duration,model:selectedModel,resolution,imageSize});}
     catch(e){setSubmitError(e instanceof Error?e.message:'请检查生成参数。');return;}
     const id=crypto.randomUUID();
     const items=Array.from({length:batchCount},()=>({...base,params:{...base.params},client_request_id:crypto.randomUUID()}));
     pendingRef.current=id;
-    setPendingGeneration({id,items,kind,modelName:selectedModel?.name||modelId,specLabel:kind==='video'?`${ratio} · ${resolution} · ${duration} 秒`:`${ratio} · ${imageSize.replace('x',' × ')}`,costs:null,estimates:null,error:''});
+    setPendingGeneration({id,items,kind,modelName:selectedModel?.name||modelId,specLabel:kind==='video'?`${ratio} · ${resolution} · ${duration} 秒`:`${ratio} · ${imageSize.replace('x',' × ')}`,costs:null,estimates:null,prompts:[],error:''});
     try{
       const quotes=await Promise.all(items.map(item=>api.estimateTask(item)));
       const estimateCheck=inspectGenerationEstimates(quotes,items.length);
-      if(pendingRef.current===id)setPendingGeneration(current=>current?.id===id?{...current,estimates:quotes,costs:estimateCheck.costs,error:estimateCheck.error??''}:current);
+      const prompts=quotes.map(quote=>quote.params_preview?.prompt).filter((value):value is string=>typeof value==='string'&&value.trim().length>0);
+      if(activeTemplate&&(prompts.length!==items.length||quotes.some(quote=>quote.template_id!==activeTemplate.template.template_id||quote.template_version!==activeTemplate.template.latest_version)))throw new Error('模板解析结果或版本不完整，请重新获取费用预估。');
+      if(pendingRef.current===id)setPendingGeneration(current=>current?.id===id?{...current,estimates:quotes,prompts,costs:estimateCheck.costs,error:estimateCheck.error??''}:current);
     }catch(e){if(pendingRef.current===id)setPendingGeneration(current=>current?.id===id?{...current,error:e instanceof Error?e.message:'费用预估失败，请返回修改。'}:current);}
   };
   const closeGeneration=()=>{if(busy)return;pendingRef.current=null;setPendingGeneration(null);};
@@ -276,23 +281,23 @@ export default function App() {
     {!compact&&<div className="asset-bottom"><label><input type="checkbox" checked={marked.has(a.id)} onChange={()=>setMarked(old=>{const n=new Set(old);if(n.has(a.id))n.delete(a.id);else n.add(a.id);return n;})}/>选择</label><span>{a.source==='upload'?'已上传':'已生成'}</span></div>}
   </article>)}{!filteredAssets.length&&!resourceErrors.assets&&<div className="empty-state"><ImageIcon size={26}/><strong>{query||assetTab!=='all'?'没有符合筛选条件的素材':'素材从这里开始'}</strong><span>{query||assetTab!=='all'?'试试其他关键词，或切换筛选条件。':'上传商品图，或生成第一张图片。'}</span><button className="secondary" onClick={()=>openUpload(view==='canvas'?'canvas':'library')}><Upload size={14}/>上传素材</button></div>}</div>;
 
-  const needsReference=kind==='video'||imageMode==='image_to_image';
+  const needsReference=kind==='video'||imageMode==='image_to_image'||!!activeTemplate;
   const generationForm=<fieldset disabled={!ready||busy||!!pendingGeneration} className="composer-content">
     <div className="kind-switch" aria-label="生成类型">
       <button aria-pressed={kind==='image'} className={kind==='image'?'selected':''} onClick={()=>updateGeneration({kind:'image'})}><ImageIcon size={18}/>生图</button>
       <button aria-pressed={kind==='video'} className={kind==='video'?'selected':''} onClick={()=>updateGeneration({kind:'video'})}><Film size={18}/>生视频</button>
     </div>
-    <div className="composer-fields"><p className="composer-section-heading"><span>01</span> 创作内容</p>
+    <div className="composer-fields"><SingleTemplatePanel kind={kind} modelId={modelId} value={activeTemplate} onChange={value=>updateGeneration({template:value})} onSelect={template=>{if(prompt.trim()&&!window.confirm('套用模板将清空当前描述，由模板生成新描述，是否继续？'))return;updateGeneration({template:{template,fields:{},conceptAcknowledged:false},...(kind==='image'?{imagePrompt:'',imageMode:template.default_params.generation_mode==='image_to_image'?'image_to_image':'text_to_image',imageSize:typeof template.default_params.size==='string'?template.default_params.size:undefined,imageRatio:'1:1'}:{videoPrompt:'',duration:typeof template.default_params.duration==='number'?template.default_params.duration:duration})});}}/><p className="composer-section-heading"><span>01</span> 创作内容</p>
     {kind==='image'?<>
-      <div className="mode-switch" aria-label="图片输入方式">{([['text_to_image','文生图'],['image_to_image','图生图']] as const).map(([mode,label])=><button key={mode} aria-pressed={imageMode===mode} className={imageMode===mode?'selected':''} onClick={()=>setImageMode(mode)}>{label}</button>)}</div>
-      <label className="field-label">图片用途</label><div className="purpose-options">{([['white','白底商品图'],['scene','氛围场景图'],['custom','自定义']] as const).map(([value,label])=><button key={value} aria-pressed={purpose===value} className={purpose===value?'selected':''} onClick={()=>selectPurpose(value)}>{label}</button>)}</div>
+      {activeTemplate?<p className="microcopy">{activeTemplate.template.template_id==='tpl_season_theme'?'有商品图时参考原图创作；未提供时按创意概念图生成。':'此模板使用商品参考图；退出模板后可切换输入方式。'}</p>:<div className="mode-switch" aria-label="图片输入方式">{([['text_to_image','文生图'],['image_to_image','图生图']] as const).map(([mode,label])=><button key={mode} aria-pressed={imageMode===mode} className={imageMode===mode?'selected':''} onClick={()=>setImageMode(mode)}>{label}</button>)}</div>}
+      {!activeTemplate&&<><label className="field-label">图片用途</label><div className="purpose-options">{([['white','白底商品图'],['scene','氛围场景图'],['custom','自定义']] as const).map(([value,label])=><button key={value} aria-pressed={purpose===value} className={purpose===value?'selected':''} onClick={()=>selectPurpose(value)}>{label}</button>)}</div></>}
     </>:<p className="composer-intro">从一张商品图开始，描述你想要的镜头和动作。</p>}
     {needsReference&&<div className="reference-field">
-      <label className="field-label">{kind==='image'?'商品参考图':'视频首帧图'}<span>单张 · 最大 10MB</span></label>
+      <label className="field-label">{kind==='image'?(activeTemplate?.template.template_id==='tpl_season_theme'?'商品参考图（可选）':'商品参考图'):'视频首帧图'}<span>单张 · 最大 10MB</span></label>
       {refAsset?<div className="selected-reference"><img src={mediaUrl(refAsset.id)} alt={kind==='image'?'已选商品参考图':'已选视频首帧图'}/><div><strong>已选择 1 张图片</strong><span>{refAsset.width} × {refAsset.height} · {(refAsset.size/1e6).toFixed(1)} MB</span><button onClick={()=>setReferencePicker(true)}>更换图片</button></div><IconButton label="移除参考图" onClick={()=>updateGeneration(kind==='image'?{imageReference:null}:{videoReference:null})}><X size={15}/></IconButton></div>:<button id="reference-select" aria-invalid={!!validation.reference} aria-describedby={validation.reference?'reference-error':undefined} className="reference-empty" onClick={()=>setReferencePicker(true)}><Upload size={23}/><strong>上传或选择商品图</strong><span>从素材库选择，也可以上传新图片</span></button>}
       {validation.reference&&<p className="field-error" id="reference-error" role="alert">{validation.reference}</p>}
     </div>}
-    <label className="field-label" htmlFor="prompt">{kind==='video'?'镜头与动作描述':imageMode==='image_to_image'?'你想修改什么？':'描述你想生成的商品图'}<Sparkles size={14}/></label>
+    <label className="field-label" htmlFor="prompt">{activeTemplate?'覆盖模板描述（选填）':kind==='video'?'镜头与动作描述':imageMode==='image_to_image'?'你想修改什么？':'描述你想生成的商品图'}<Sparkles size={14}/></label>
     <textarea id="prompt" aria-invalid={!!validation.prompt} aria-describedby={validation.prompt?'prompt-error':undefined} value={prompt} onChange={e=>setPrompt(e.target.value)} rows={5} placeholder={kind==='image'?'描述商品、背景、光线和构图…':'例如：镜头缓慢推近，商品保持静止…'}/>
     {validation.prompt&&<p className="field-error" id="prompt-error" role="alert">{validation.prompt}</p>}
     {kind==='image'&&imageMode==='image_to_image'&&<p className="microcopy reference-tip">以参考图中的实际商品为准，请勿描述图中没有的商品。生成后请核对数量、包装与外形。</p>}
@@ -352,7 +357,7 @@ export default function App() {
       </div>
       <footer className="statusbar"><span><span className="green-dot"/>本地工作台 + 云端推理</span><span>{system?`${activeTasks.length} 个任务处理中`:'等待连接'}<i/>画布编辑不占用生成队列</span></footer>
     </div>
-    {pendingGeneration&&<GenerationConfirm modelName={pendingGeneration.modelName} kind={pendingGeneration.kind} count={pendingGeneration.items.length} specLabel={pendingGeneration.specLabel} costs={pendingGeneration.costs} error={pendingGeneration.error||pendingPermissionError||pendingEstimateError||''} busy={busy} hasReference={!!pendingGeneration.items[0].input_asset_id} onConfirm={()=>void confirmGeneration()} onClose={closeGeneration}/>}
+    {pendingGeneration&&<GenerationConfirm prompts={pendingGeneration.prompts} modelName={pendingGeneration.modelName} kind={pendingGeneration.kind} count={pendingGeneration.items.length} specLabel={pendingGeneration.specLabel} costs={pendingGeneration.costs} error={pendingGeneration.error||pendingPermissionError||pendingEstimateError||''} busy={busy} hasReference={!!pendingGeneration.items[0].input_asset_id} onConfirm={()=>void confirmGeneration()} onClose={closeGeneration}/>}
     <input ref={fileRef} className="hidden" type="file" accept="image/png,image/jpeg,image/webp" multiple onChange={e=>void upload(e.target.files)}/>
     {referencePicker&&<ReferencePicker assets={assets} selectedId={reference} onSelect={a=>selectReference(a,kind)} onUpload={()=>openUpload(kind)} onClose={()=>setReferencePicker(false)} uploading={uploading} error={resourceErrors.assets} onRefresh={()=>void refresh()}/>}
     {preview&&<div className="modal-backdrop" onClick={()=>setPreview(null)}><section className="preview-modal" role="dialog" aria-modal="true" aria-label="素材预览" onClick={e=>e.stopPropagation()}><header><div><strong>{assetName(preview)}</strong><span>{preview.width}×{preview.height} · {(preview.size/1e6).toFixed(2)} MB</span></div><IconButton label="关闭预览" onClick={()=>setPreview(null)}><X size={20}/></IconButton></header><div className="preview-media">{preview.kind==='image'?<img src={mediaUrl(preview.id)} alt={assetName(preview)}/>:<video src={mediaUrl(preview.id)} controls autoPlay/>}</div><div className="preview-actions"><a className="secondary" href={mediaUrl(preview.id)} download><ArrowDownToLine size={15}/>下载原文件</a>{preview.kind==='image'&&<><button className="secondary" onClick={()=>selectReference(preview,'image')}><ImageIcon size={15}/>用作图生图参考</button><button className="secondary" onClick={()=>selectReference(preview,'video')}><Film size={15}/>用作视频首帧</button><button className="primary" onClick={()=>{addAsset(preview);setPreview(null);}}>加入排版<Plus size={15}/></button></>}</div><label className="sku-label">SKU 分组（仅用于项目内管理）<input placeholder="例如：面霜系列 / 白色款" value={project.assetGroups[preview.id]||''} onChange={e=>mutate(p=>({...p,assetGroups:{...p.assetGroups,[preview.id]:e.target.value}}),false)}/></label></section></div>}

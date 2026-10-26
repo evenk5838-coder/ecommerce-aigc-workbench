@@ -138,3 +138,5 @@
 @media (prefers-reduced-motion: reduce) {
   .generation-confirm-spin { animation: none; }
 }
+
+.generation-confirm-prompts{font-size:12px;color:#816791;margin:14px 0}.generation-confirm-prompts summary{cursor:pointer}.generation-confirm-prompts p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.8;max-height:160px;overflow:auto;background:#f8f4fc;padding:10px;border-radius:8px}

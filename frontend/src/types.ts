@@ -1,3 +1,4 @@
+import type { SingleTemplateSelection } from './single-templates';
 export interface Asset {
   id: string; kind: 'image' | 'video'; mime: string; size: number;
   width: number; height: number; source: string; created_at: number;
@@ -60,6 +61,7 @@ export interface Project {
   generation?: GenerationSettings;
 }
 export interface GenerationSettings {
+  template?:SingleTemplateSelection|null;
   kind: 'image' | 'video'; imageMode: 'text_to_image' | 'image_to_image';
   purpose: 'white' | 'scene' | 'custom'; imagePrompt: string; videoPrompt: string;
   imageRatio: string; videoRatio: string; imageReference: string | null; videoReference: string | null;
@@ -72,6 +74,7 @@ export interface Draft {
 export interface TaskInput {
   kind: 'image' | 'video'; model_id: string; params: Record<string, unknown>;
   input_asset_id?: string | null; client_request_id: string;
+  template_id?:string;template_version?:number;template_fields?:Record<string,string>;
 }
 
 /** Estimate payloads may be incomplete at runtime; explicit permission is required before confirmation. */
@@ -81,4 +84,5 @@ export interface TaskEstimate {
   estimated_cost_cny?: number | null;
   effective?: Record<string, unknown> | null;
   kind?: 'image' | 'video'; model_id?: string;
+  params_preview?:{prompt?:unknown;fields?:unknown};template_id?:string|null;template_version?:number|null;
 }

@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-26",
+  "kind": "frontend_integration_preparation",
+  "paid_model_calls": 0,
+  "business_writes": 0,
+  "frontend_branch": "codex/assistant-frontend-v1",
+  "real_backend": {
+    "base_commit": "5a2c7ef",
+    "read_only_project": "existing project and scripts read successfully",
+    "s3_s6_unavailable": "shots/status/films/structure endpoints 404 and explicit unavailable state",
+    "single_template_estimate": {
+      "template_id": "tpl_white_bg",
+      "template_version": 1,
+      "estimated_cost_cny": 0.12,
+      "side_effects": {
+        "model_called": false,
+        "task_created": false,
+        "queued": false,
+        "budget_deducted": false
+      }
+    }
+  },
+  "isolated_browser_checks": {
+    "fixture_name": "隔离界面验收 · 非真实项目",
+    "project_confirmation_gate": true,
+    "full_scope_quote_confirm_submit": {
+      "mode": "full",
+      "shot_ids": [
+        "shot_qa1",
+        "shot_qa2"
+      ],
+      "generate_body_keys": [
+        "scope_id"
+      ]
+    },
+    "failed_retry": {
+      "mode": "clips",
+      "shot_ids": [
+        "shot_qa2"
+      ],
+      "successful_shot_excluded": true
+    },
+    "brief_edit_invalidates_quote": true,
+    "malformed_scope_hash_blocked": true,
+    "canvas_nodes": 10,
+    "canvas_zoom_keyboard_move": true,
+    "no_document_horizontal_overflow_widths": [
+      390,
+      768,
+      1280
+    ],
+    "screenshots_widths": [
+      390,
+      768,
+      1280,
+      1440
+    ],
+    "canvas_layout_remount_restore": true
+  },
+  "not_verified": [
+    "real storyboard/media/video generation",
+    "real S3-S6 backend integration",
+    "real concatenate and export file integrity",
+    "business DB restart recovery",
+    "complete product console/network matrix",
+    "final human review"
+  ],
+  "engineering": {
+    "tests": 371,
+    "test_files": 15,
+    "typecheck": true,
+    "lint": true,
+    "build": true,
+    "selected_secret_pattern_scan": true,
+    "build_warning": "529.31kB JS chunk exceeds Vite 500kB warning; no build failure"
+  }
+}

@@ -11,6 +11,7 @@ export interface GenerationConfirmProps {
   error: string;
   busy: boolean;
   hasReference: boolean;
+  prompts?:string[];
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -18,7 +19,7 @@ export interface GenerationConfirmProps {
 const money = (value: number): string => value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
 
 /** Confirms the current manual request snapshot; it does not create a backend approval. */
-export default function GenerationConfirm({ modelName, kind, count, specLabel, costs, error, busy, hasReference, onConfirm, onClose }: GenerationConfirmProps) {
+export default function GenerationConfirm({ modelName, kind, count, specLabel, costs, error, busy, hasReference, prompts, onConfirm, onClose }: GenerationConfirmProps) {
   const headingId = useId();
   const descriptionId = useId();
   const dialog = useRef<HTMLElement>(null);
@@ -105,6 +106,7 @@ export default function GenerationConfirm({ modelName, kind, count, specLabel, c
         <p className="generation-confirm-disclaimer">费用为后端逐项估算的合计，非实际账单。</p>
       </div>
 
+      {prompts?.length? <details className="generation-confirm-prompts"><summary>查看最终生成描述</summary>{[...new Set(prompts)].map((prompt,index)=><p key={index}>{prompt}</p>)}</details>:null}
       <p className="generation-confirm-cloud"><Cloud size={17} aria-hidden="true" /><span>{hasReference ? '本次生成会将描述和所选参考图发送至云端模型。' : '本次生成会将文字描述发送至云端模型。'}</span></p>
       {busy && <p className="generation-confirm-pending" role="status">正在提交，请稍候。提交期间暂不能关闭。</p>}
       <footer className="generation-confirm-actions">
