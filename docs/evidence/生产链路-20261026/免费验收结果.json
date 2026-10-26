@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-26 13:41:31",
+  "scope": "生产链路回写 + full 自动合成 + 失败/取消/重启/重复 + ZIP 导出",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "provider": "替身（返回真实 ffmpeg 小 mp4 / PNG）",
+    "worker": "未启动线程（直接调用 worker.execute 生产路径）",
+    "real_model_calls": 0
+  },
+  "paid_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 9,
+  "passed": 9,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "worker 完成分镜图任务 → storyboards.asset_id 自动回写",
+      "ok": true,
+      "detail": {
+        "storyboards": 2,
+        "attached": true
+      }
+    },
+    {
+      "case": "full：逐镜任务完成 → 自动拼接成片（ready，实测约 4000ms）",
+      "ok": true,
+      "detail": {
+        "films": 1,
+        "status": "ready",
+        "duration_ms": 4000,
+        "shot_status": {
+          "shot_b06858907a0c4758a597": "ready",
+          "shot_27d021cf9af745c999b9": "ready"
+        }
+      }
+    },
+    {
+      "case": "clips：完成逐镜后**不**自动合成",
+      "ok": true,
+      "detail": {
+        "films": 0,
+        "note": "clips 只交付独立片段"
+      }
+    },
+    {
+      "case": "失败镜 → take=failed，且 full 不自动出片",
+      "ok": true,
+      "detail": {
+        "takes": [
+          "failed",
+          "succeeded"
+        ],
+        "films": 0
+      }
+    },
+    {
+      "case": "排队中取消 → take 标记 canceled",
+      "ok": true,
+      "detail": {
+        "cancel": "canceled",
+        "take": "canceled"
+      }
+    },
+    {
+      "case": "重复完成回报 → 不重复建 take / 不重复合成",
+      "ok": true,
+      "detail": {
+        "films": 1,
+        "takes": 1,
+        "idempotent": true
+      }
+    },
+    {
+      "case": "重启：中断任务的 take 标记 interrupted，且不自动合成",
+      "ok": true,
+      "detail": {
+        "interrupted": 1,
+        "take": "interrupted"
+      }
+    },
+    {
+      "case": "导出 ZIP 含 films/ + clips/ + storyboards/ + manifest",
+      "ok": true,
+      "detail": {
+        "files": 6,
+        "films": [
+          "films/v1.mp4"
+        ],
+        "clips": 2,
+        "storyboards": 2,
+        "bytes": 5253,
+        "download_url": "/api/exports/exp_1d2ec1efb9bf4fd2bd0b/file"
+      }
+    },
+    {
+      "case": "下载入口 GET /api/exports/{id}/file 返回 zip",
+      "ok": true,
+      "detail": {
+        "media_type": "application/zip",
+        "file": "prj_531042aa77b44915b3ca-d7ab11.zip"
+      }
+    }
+  ],
+  "disclaimer": "云端调用为替身；验证的是生产链路状态机与文件产物，不是模型质量。"
+}

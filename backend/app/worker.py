@@ -82,6 +82,12 @@ def execute(task: dict) -> None:
                 "started_at": started, "finished_at": db.now(), "result": "succeeded",
                 "peak_mem_mb": peak, "latency_ms": res.get("latency_ms"),
             })
+            # 生产链路回写：分镜素材 / 镜头 take / full 自动合成（失败不影响任务结论）
+            try:
+                from . import pipeline
+                pipeline.on_task_succeeded(db.get("tasks", task_id) or {})
+            except Exception:  # noqa: BLE001
+                pass
             return
 
         if task["kind"] == "image":
@@ -117,11 +123,21 @@ def execute(task: dict) -> None:
             "peak_mem_mb": peak, "latency_ms": int((time.time() - started) * 1000),
             "params_json": task["params_json"],
         })
+        try:
+            from . import pipeline
+            pipeline.on_task_succeeded(db.get("tasks", task_id) or {})
+        except Exception:  # noqa: BLE001
+            pass
     except CancelRequested:
         peak = SAMPLER.stop()
         _set(task_id, status="canceled", stage="canceled", peak_mem_mb=peak,
              latency_ms=int((time.time() - started) * 1000), finished_at=db.now(),
              error_code=None, error_message="用户取消（协作式，已在步/帧边界停止）")
+        try:
+            from . import pipeline
+            pipeline.on_task_failed(db.get("tasks", task_id) or {}, status="canceled")
+        except Exception:  # noqa: BLE001
+            pass
         db.insert("task_attempts", {
             "id": db.new_id("att"), "task_id": task_id, "attempt_no": task["attempts"],
             "started_at": started, "finished_at": db.now(), "result": "canceled",
@@ -136,6 +152,11 @@ def execute(task: dict) -> None:
             "started_at": started, "finished_at": db.now(), "result": "failed",
             "error_code": e.code, "error_message": e.message, "peak_mem_mb": peak,
         })
+        try:
+            from . import pipeline
+            pipeline.on_task_failed(db.get("tasks", task_id) or {}, status="failed")
+        except Exception:  # noqa: BLE001
+            pass
     except Exception as e:  # noqa: BLE001
         peak = SAMPLER.stop()
         msg = f"{type(e).__name__}: {str(e)[:400]}"
@@ -184,6 +205,11 @@ def cancel(task_id: str) -> dict:
     if st == "queued":
         _set(task_id, status="canceled", stage="canceled", finished_at=db.now(),
              error_message="排队中取消（未占用算力）")
+        try:
+            from . import pipeline
+            pipeline.on_task_failed(db.get("tasks", task_id) or {}, status="canceled")
+        except Exception:  # noqa: BLE001
+            pass
         return {"result": "canceled", "phase": "queued"}
     remote_id = task.get("remote_task_id")
     if remote_id:
@@ -203,6 +229,11 @@ def cancel(task_id: str) -> dict:
                 ark.video_cancel(remote_id)
                 _set(task_id, status="canceled", stage="canceled", remote_status="canceled",
                      finished_at=db.now(), error_message="云端排队中任务已取消（官方 DELETE）")
+                try:
+                    from . import pipeline
+                    pipeline.on_task_failed(db.get("tasks", task_id) or {}, status="canceled")
+                except Exception:  # noqa: BLE001
+                    pass
                 return {"result": "canceled", "phase": "cloud_queued", "cloud_canceled": True,
                         "message": "云端任务已取消"}
             except Exception as e:  # noqa: BLE001
@@ -244,5 +275,10 @@ def reconcile() -> dict:
             "error_code": "TASK_INTERRUPTED",
         })
     queued = db.query("SELECT COUNT(*) c FROM tasks WHERE status='queued'")[0]["c"]
+    try:
+        from . import pipeline
+        pipeline.on_reconcile_interrupted([r["id"] for r in rows])
+    except Exception:  # noqa: BLE001
+        pass
     MANAGER.unload()
     return {"interrupted": len(rows), "queued": queued}

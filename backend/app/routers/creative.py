@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from .. import assembly, director, projects, scope, shots
@@ -312,3 +313,10 @@ def apply_structure(project_id: str, body: ApplyStructureIn):
 def export_project(project_id: str, body: dict | None = None):
     include = (body or {}).get("include")
     return assembly.export_project(project_id, include)
+
+
+@router.get("/exports/{export_id}/file")
+def download_export(export_id: str):
+    """导出包下载入口（前端用这个 URL 触发下载）。"""
+    path, row = assembly.export_path(export_id)
+    return FileResponse(path, media_type="application/zip", filename=row["file_name"])

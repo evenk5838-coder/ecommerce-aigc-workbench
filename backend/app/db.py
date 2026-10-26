@@ -112,6 +112,13 @@ CREATE TABLE IF NOT EXISTS structure_template_versions(
   id TEXT PRIMARY KEY, template_id TEXT, version INTEGER, snapshot_json TEXT,
   created_at REAL, UNIQUE(template_id, version));
 
+CREATE TABLE IF NOT EXISTS project_exports(
+  id TEXT PRIMARY KEY, project_id TEXT, file_name TEXT, rel_path TEXT, bytes INTEGER,
+  includes_json TEXT, created_at REAL);
+
+CREATE TABLE IF NOT EXISTS assembly_errors(
+  id TEXT PRIMARY KEY, project_id TEXT, batch_id TEXT, error TEXT, created_at REAL);
+
 CREATE TABLE IF NOT EXISTS confirmations(
   id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
   object_version INTEGER, status TEXT DEFAULT 'active', reason TEXT,
@@ -224,6 +231,8 @@ MIGRATIONS = [
     ("assistant_messages", "structured_json", "TEXT"),
     # v0.3 助手：会话内工具事实摘要（区分 tool_query / quoted / user_selected）
     ("assistant_sessions", "facts_json", "TEXT"),
+    # v0.10：成片来源批次（用于 full 模式自动合成幂等）
+    ("films", "source_batch", "TEXT"),
 ]
 
 

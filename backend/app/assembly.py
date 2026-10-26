@@ -126,7 +126,7 @@ def _take_view(t: dict) -> dict:
 
 
 def compose(project_id: str, take_ids: list[str] | None = None,
-            confirm_partial: bool = False) -> dict:
+            confirm_partial: bool = False, source_batch: str | None = None) -> dict:
     """合成成片。take_ids 缺省 = 每镜最新成功的 take。"""
     projects.get_project(project_id)
     row_shots = db.query("SELECT * FROM shots WHERE project_id=? ORDER BY seq", (project_id,))
@@ -193,6 +193,7 @@ def compose(project_id: str, take_ids: list[str] | None = None,
         concat_error = (err_detail or "")[:300]
 
     db.insert("films", {"id": film_id, "project_id": project_id, "version": version,
+                        "source_batch": source_batch,
                         "status": status, "items_json": db.dumps(
                             {"items": items, "missing": missing,
                              "planned_duration_s": planned_s,
@@ -314,50 +315,112 @@ def apply_template(project_id: str, template_id: str, version: int | None = None
 
 # ---------------- 项目包导出（S6） ----------------
 def export_project(project_id: str, include: list[str] | None = None) -> dict:
-    """导出 zip：成片 + 片段 + 分镜图 + 清单 JSON。导出不重新生成。"""
+    """导出 zip：**成片 MP4 + 片段 + 分镜图 + manifest.json**，并登记可下载入口。
+
+    导出不重新生成；文件缺失时在 manifest 里如实标记，不伪造。
+    """
     projects.get_project(project_id)
     include = include or ["film", "clips", "storyboards", "manifest"]
     import zipfile
 
+    export_id = db.new_id("exp")
     out_dir = config.ASSETS / "exports"
     out_dir.mkdir(parents=True, exist_ok=True)
-    name = f"{project_id}-export.zip"
-    target = out_dir / name
-    manifest = {"project_id": project_id, "generated_at": db.now(),
-                "shots": [], "films": []}
+    file_name = f"{project_id}-{export_id[-6:]}.zip"
+    target = out_dir / file_name
+
+    manifest = {"project_id": project_id, "export_id": export_id,
+                "generated_at": db.now(), "includes": include,
+                "films": [], "shots": [], "missing": []}
+
+    shot_rows = db.query("SELECT * FROM shots WHERE project_id=? ORDER BY seq", (project_id,))
+    film_rows = (db.query("SELECT * FROM films WHERE project_id=? ORDER BY version DESC",
+                          (project_id,)) if _has("films") else [])
+    any_film = False
+
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as zf:
-        for s in db.query("SELECT * FROM shots WHERE project_id=? ORDER BY seq", (project_id,)):
+        # 1) 成片 MP4
+        if "film" in include:
+            for f in film_rows:
+                if not f.get("asset_id"):
+                    manifest["missing"].append({"kind": "film", "film_id": f["id"],
+                                                "reason": "no_asset"})
+                    continue
+                path = _asset_file(f["asset_id"])
+                if path.exists():
+                    zf.write(path, f"films/v{f['version']}.mp4")
+                    manifest["films"].append({"film_id": f["id"], "version": f["version"],
+                                              "status": f["status"],
+                                              "duration_ms": f["duration_ms"],
+                                              "planned_duration_s": (db.loads(f["items_json"]) or {})
+                                              .get("planned_duration_s"),
+                                              "partial": bool(f["partial"]),
+                                              "file": f"films/v{f['version']}.mp4"})
+                    any_film = True
+                else:
+                    manifest["missing"].append({"kind": "film", "film_id": f["id"],
+                                                "reason": "file_not_found"})
+
+        # 2) 逐镜：分镜图 + 片段
+        for s in shot_rows:
+            entry = {"shot_id": s["id"], "seq": s["seq"], "duration_s": s["duration_s"],
+                     "description": s["description"], "storyboard": None, "clip": None}
             sb = db.query("SELECT * FROM storyboards WHERE shot_id=? AND status='approved' "
                           "ORDER BY version DESC LIMIT 1", (s["id"],))
-            entry = {"shot_id": s["id"], "seq": s["seq"], "duration_s": s["duration_s"],
-                     "description": s["description"],
-                     "storyboard": ({"asset_id": sb[0]["asset_id"],
-                                     "version": sb[0]["version"]} if sb else None)}
             if "storyboards" in include and sb and sb[0]["asset_id"]:
                 f = _asset_file(sb[0]["asset_id"])
                 if f.exists():
-                    zf.write(f, f"storyboards/{s['seq']:02d}-{sb[0]['asset_id']}{f.suffix}")
+                    name = f"storyboards/{s['seq']:02d}-v{sb[0]['version']}{f.suffix}"
+                    zf.write(f, name)
+                    entry["storyboard"] = {"version": sb[0]["version"], "file": name}
+                else:
+                    manifest["missing"].append({"kind": "storyboard", "shot_id": s["id"],
+                                                "reason": "file_not_found"})
             takes = db.query("SELECT * FROM shot_takes WHERE shot_id=? AND status='succeeded' "
                              "ORDER BY created_at DESC LIMIT 1", (s["id"],))
             if "clips" in include and takes and takes[0]["asset_id"]:
                 f = _asset_file(takes[0]["asset_id"])
                 if f.exists():
-                    zf.write(f, f"clips/{s['seq']:02d}-{takes[0]['asset_id']}{f.suffix}")
+                    name = f"clips/{s['seq']:02d}-{takes[0]['id'][-8:]}{f.suffix}"
+                    zf.write(f, name)
+                    entry["clip"] = {"take_id": takes[0]["id"],
+                                     "duration_ms": takes[0]["duration_ms"], "file": name}
+                else:
+                    manifest["missing"].append({"kind": "clip", "shot_id": s["id"],
+                                                "reason": "file_not_found"})
             manifest["shots"].append(entry)
-        if "film" in include:
-            films = db.query("SELECT * FROM films WHERE project_id=? ORDER BY version DESC",
-                             (project_id,))
-            for f in films:
-                manifest["films"].append({"film_id": f["id"], "version": f["version"],
-                                          "status": f["status"],
-                                          "duration_ms": f["duration_ms"],
-                                          "partial": bool(f["partial"])})
+
         zf.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=2))
-    asset = db.query("SELECT id FROM assets WHERE rel_path=?", (str(Path("exports") / name),))
-    return {"export_id": f"exp_{project_id[-6:]}", "file_name": name,
-            "path": str(target), "bytes": target.stat().st_size,
-            "asset_id": asset[0]["id"] if asset else None,
-            "includes": include}
+
+    rel = str(Path("exports") / file_name)
+    db.insert("project_exports", {"id": export_id, "project_id": project_id,
+                                  "file_name": file_name, "rel_path": rel,
+                                  "bytes": target.stat().st_size,
+                                  "includes_json": db.dumps(include),
+                                  "created_at": db.now()})
+    return {"export_id": export_id, "project_id": project_id, "file_name": file_name,
+            "bytes": target.stat().st_size, "includes": include,
+            "download_url": f"/api/exports/{export_id}/file",
+            "films_included": len(manifest["films"]),
+            "clips_included": sum(1 for s in manifest["shots"] if s.get("clip")),
+            "storyboards_included": sum(1 for s in manifest["shots"] if s.get("storyboard")),
+            "missing": manifest["missing"],
+            "note": "导出不重新生成；缺失项已在 manifest.missing 标注"}
+
+
+def export_path(export_id: str) -> tuple[Path, dict]:
+    row = db.get("project_exports", export_id)
+    if not row:
+        raise err("EXPORT_NOT_FOUND", f"导出不存在：{export_id}")
+    path = config.ASSETS / row["rel_path"]
+    if not path.exists():
+        raise err("EXPORT_NOT_FOUND", "导出文件已不存在，请重新导出")
+    return path, row
+
+
+def _has(table: str) -> bool:
+    return bool(db.query("SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+                         (table,)))
 
 
 def _default_model() -> str:

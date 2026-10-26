@@ -214,15 +214,18 @@ def run() -> int:
         pid = project_with_takes(1, succeed=1)
         assembly.compose(pid)
         out = assembly.export_project(pid)
-        path = Path(out["path"])
+        path, _row = assembly.export_path(out["export_id"])
         assert path.exists() and out["bytes"] > 0
         with zipfile.ZipFile(path) as zf:
             names = zf.namelist()
             manifest = json.loads(zf.read("manifest.json"))
         assert "manifest.json" in names
         assert manifest["project_id"] == pid and manifest["shots"]
-        return {"files": len(names), "bytes": out["bytes"],
-                "has_manifest": True}
+        # 导出必须含成片 MP4
+        assert any(n.startswith("films/") for n in names), names
+        assert out["download_url"].endswith("/file")
+        return {"files": len(names), "bytes": out["bytes"], "has_manifest": True,
+                "has_film": True, "download_url": out["download_url"]}
     case("导出 zip 包含 manifest 与产物清单", export_zip)
 
     def export_no_regeneration():
