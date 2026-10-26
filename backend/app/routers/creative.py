@@ -7,7 +7,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from .. import director, projects
+from .. import director, projects, shots
 
 router = APIRouter(prefix="/api", tags=["creative"])
 
@@ -111,3 +111,96 @@ def director_readiness(project_id: str):
 def adopt_draft(project_id: str, body: DraftIn):
     """采用助手草案（只写库，**不重复调用 LLM**）。"""
     return projects.adopt_draft(project_id, body.kind, body.content, body.base_version)
+
+
+# ---------------- S3：镜头与分镜 ----------------
+class ShotsIn(BaseModel):
+    script_id: str
+    shots: list[dict]
+    model_id: str | None = None
+
+
+class ShotPatch(BaseModel):
+    description: str | None = None
+    duration_s: int | None = None
+    motion: str | None = None
+    expected_revision: int | None = None
+
+
+class ReorderIn(BaseModel):
+    order: list[str]
+
+
+class StoryboardQuoteIn(BaseModel):
+    shot_ids: list[str]
+    model_id: str
+    size: str = "2048x2048"
+    prompt: str | None = None
+
+
+class StoryboardGenIn(BaseModel):
+    model_id: str
+    confirm: bool = False
+    size: str = "2048x2048"
+    prompt: str | None = None
+    input_asset_id: str | None = None
+
+
+class ReviewIn(BaseModel):
+    approve: bool
+    reason: str | None = None
+
+
+@router.post("/projects/{project_id}/shots")
+def add_shots(project_id: str, body: ShotsIn):
+    return shots.add_shots(project_id, body.script_id, body.shots, body.model_id)
+
+
+@router.get("/projects/{project_id}/shots")
+def list_shots(project_id: str):
+    return {"items": shots.list_shots(project_id)}
+
+
+@router.post("/projects/{project_id}/shots/reorder")
+def reorder_shots(project_id: str, body: ReorderIn):
+    return shots.reorder_shots(project_id, body.order)
+
+
+@router.get("/shots/{shot_id}")
+def get_shot(shot_id: str):
+    return shots.get_shot(shot_id)
+
+
+@router.patch("/shots/{shot_id}")
+def patch_shot(shot_id: str, body: ShotPatch):
+    return shots.update_shot(shot_id, description=body.description,
+                             duration_s=body.duration_s, motion=body.motion,
+                             expected_revision=body.expected_revision)
+
+
+@router.delete("/shots/{shot_id}")
+def delete_shot(shot_id: str):
+    return shots.delete_shot(shot_id)
+
+
+@router.post("/storyboards/quote")
+def quote_storyboard(body: StoryboardQuoteIn):
+    """分镜图报价（不建任务）。"""
+    return shots.quote_storyboard(body.shot_ids, body.model_id, body.size, body.prompt)
+
+
+@router.post("/shots/{shot_id}/storyboard")
+def generate_storyboard(shot_id: str, body: StoryboardGenIn):
+    """生成分镜图；confirm=false 时只返回报价。"""
+    return shots.generate_storyboard(shot_id, body.model_id, body.confirm, body.size,
+                                     body.prompt, body.input_asset_id)
+
+
+@router.get("/storyboards/{storyboard_id}")
+def get_storyboard(storyboard_id: str):
+    return shots.get_storyboard(storyboard_id)
+
+
+@router.post("/storyboards/{storyboard_id}/review")
+def review_storyboard(storyboard_id: str, body: ReviewIn):
+    return shots.review_storyboard(storyboard_id, body.approve, body.reason)

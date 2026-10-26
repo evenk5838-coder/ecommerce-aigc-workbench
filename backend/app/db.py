@@ -76,6 +76,16 @@ CREATE TABLE IF NOT EXISTS projects(
   structure_template_id TEXT, structure_template_version INTEGER,
   created_at REAL, updated_at REAL);
 
+CREATE TABLE IF NOT EXISTS shots(
+  id TEXT PRIMARY KEY, project_id TEXT, script_version_id TEXT, seq INTEGER,
+  duration_s INTEGER, description TEXT, motion TEXT, status TEXT DEFAULT 'draft',
+  revision INTEGER DEFAULT 1, created_at REAL, updated_at REAL);
+
+CREATE TABLE IF NOT EXISTS storyboards(
+  id TEXT PRIMARY KEY, shot_id TEXT, task_id TEXT, asset_id TEXT, version INTEGER,
+  status TEXT DEFAULT 'draft', reject_reason TEXT, created_at REAL,
+  UNIQUE(shot_id, version));
+
 CREATE TABLE IF NOT EXISTS confirmations(
   id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
   object_version INTEGER, status TEXT DEFAULT 'active', reason TEXT,
@@ -114,6 +124,8 @@ CREATE INDEX IF NOT EXISTS idx_assistant_messages ON assistant_messages(session_
 CREATE INDEX IF NOT EXISTS idx_assistant_sessions_project ON assistant_sessions(project_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_script_versions ON script_versions(project_id, version);
 CREATE INDEX IF NOT EXISTS idx_confirmations ON confirmations(project_id, object_type, status);
+CREATE INDEX IF NOT EXISTS idx_shots ON shots(project_id, seq);
+CREATE INDEX IF NOT EXISTS idx_storyboards ON storyboards(shot_id, version);
 """
 
 

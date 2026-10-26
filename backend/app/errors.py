@@ -94,6 +94,12 @@ CODES = {
     "PROJECT_NOT_FOUND": (404, False),
     "SCRIPT_NOT_FOUND": (404, False),
     "SCRIPT_VERSION_CONFLICT": (409, False),
+    # v0.10 S3：镜头 / 分镜
+    "SCRIPT_NOT_CONFIRMED": (409, False),
+    "SHOT_NOT_FOUND": (404, False),
+    "SHOT_REVISION_CONFLICT": (409, False),
+    "STORYBOARD_NOT_FOUND": (404, False),
+    "STORYBOARD_NOT_READY": (409, False),
 }
 
 
