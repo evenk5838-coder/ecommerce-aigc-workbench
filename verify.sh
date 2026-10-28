@@ -3,12 +3,19 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 mode="${1:-}"
-if [[ "$mode" != "v0.11-backend" && "$mode" != "v0.11-frontend" && "$mode" != "canvas-core-backend" && "$mode" != "canvas-core-frontend" && "$mode" != "director-workflow-backend" && "$mode" != "director-workflow-frontend" && "$mode" != "frontend-closing" && "$mode" != "budget-reservation-fix" ]]; then
-  echo 'Usage: APP_PYTHON=/absolute/python bash verify.sh v0.11-backend|v0.11-frontend|canvas-core-backend|canvas-core-frontend|director-workflow-backend|director-workflow-frontend|frontend-closing|budget-reservation-fix'
+if [[ "$mode" != "v0.11-backend" && "$mode" != "v0.11-frontend" && "$mode" != "canvas-core-backend" && "$mode" != "canvas-core-frontend" && "$mode" != "director-workflow-backend" && "$mode" != "director-workflow-frontend" && "$mode" != "frontend-closing" && "$mode" != "budget-reservation-fix" && "$mode" != "director-context" && "$mode" != "director-reference" && "$mode" != "web-closing" ]]; then
+  echo 'Usage: APP_PYTHON=/absolute/python bash verify.sh v0.11-backend|v0.11-frontend|canvas-core-backend|canvas-core-frontend|director-workflow-backend|director-workflow-frontend|frontend-closing|budget-reservation-fix|director-context|director-reference|web-closing'
   exit 2
 fi
 app_python="${APP_PYTHON:-python3}"
-if [[ "$mode" == "budget-reservation-fix" ]]; then
+if [[ "$mode" == "web-closing" ]]; then
+  evidence_dir="docs/evidence/v0.11-Web收尾-20261029"
+  export V011_WORKFLOW_DIST="/private/tmp/ecom-v011-frontend-preview/web-closing-dist"
+elif [[ "$mode" == "director-reference" ]]; then
+  evidence_dir="docs/evidence/v0.11-分镜共用参考图-后端-20261029"
+elif [[ "$mode" == "director-context" ]]; then
+  evidence_dir="docs/evidence/v0.11-长对话上下文-后端-20261029"
+elif [[ "$mode" == "budget-reservation-fix" ]]; then
   evidence_dir="docs/evidence/v0.11-历史预算误拦截修复-20261028"
 elif [[ "$mode" == "frontend-closing" ]]; then
   evidence_dir="docs/evidence/v0.11-前端收尾-20261028"
@@ -166,6 +173,9 @@ run_director_workflow_frontend_checks() {
   if [[ "$mode" == "frontend-closing" ]]; then
     "$app_python" scripts/check-v011-files.py files-frontend-closing
   fi
+  if [[ "$mode" == "web-closing" ]]; then
+    "$app_python" -c "from pathlib import Path; paths=['frontend/src/features.ts','frontend/src/media-export.ts','frontend/src/media-export.test.ts','frontend/src/features.test.tsx','docs/阶段文档/Web收尾-20261029.md','docs/evidence/v0.11-Web收尾-20261029/是否表.md','docs/evidence/v0.11-Web收尾-20261029/照着做清单.md']; assert all(Path(p).is_file() and Path(p).stat().st_size for p in paths); print('PASS: 7 Web closing source/evidence files; layout PNG editor explicitly deferred')"
+  fi
   "$app_python" scripts/check-v011-files.py check-live-build "$run_dir/live-build-before.json"
   "$app_python" scripts/check-v011-files.py check-workflow-source "$run_dir/frontend-input-sha256.json"
   "$app_python" scripts/check-v011-files.py check-workflow-build "$run_dir/workflow-build-sha256.json"
@@ -176,7 +186,7 @@ run_director_workflow_frontend_checks() {
 run_budget_reservation_checks() {
   local run_dir="$evidence_dir/run-$run_stamp"
   mkdir -p "$run_dir"
-  echo "Historical reservation regression: $run_stamp"
+  echo "Backend context/reservation regression ($mode): $run_stamp"
   echo 'Scope: isolated databases, blocked model transports, fixed media and real local FFmpeg; zero paid calls'
   "$app_python" scripts/check-v011-files.py snapshot-live-build "$run_dir/live-build-before.json"
   echo '1/5 Full backend and retained legacy director tests'
@@ -185,23 +195,42 @@ run_budget_reservation_checks() {
   echo '2/5 Credential pattern exclusions'
   "$app_python" scripts/check-v011-files.py secrets
   echo '3/5 HTTP image/video/film workflow and restart WITH unknown historical video reservation'
-  "$app_python" scripts/check-director-workflow-http.py --legacy-budget-reservation --evidence-dir "$run_dir/http-clips"
-  "$app_python" scripts/check-director-workflow-http.py --legacy-budget-reservation --film --evidence-dir "$run_dir/http-film"
+  if [[ "$mode" == "director-reference" ]]; then
+    "$app_python" scripts/check-director-workflow-http.py --shared-reference --legacy-budget-reservation --evidence-dir "$run_dir/http-clips"
+    "$app_python" scripts/check-director-workflow-http.py --shared-reference --legacy-budget-reservation --film --evidence-dir "$run_dir/http-film"
+  else
+    "$app_python" scripts/check-director-workflow-http.py --legacy-budget-reservation --evidence-dir "$run_dir/http-clips"
+    "$app_python" scripts/check-director-workflow-http.py --legacy-budget-reservation --film --evidence-dir "$run_dir/http-film"
+  fi
   echo '4/5 Frontend unchanged: verify released build fingerprints'
   "$app_python" scripts/check-v011-files.py check-live-build "$run_dir/live-build-before.json"
   echo '5/5 Technical files, Python syntax and whitespace'
   "$app_python" scripts/check-v011-files.py files-director-workflow
   "$app_python" -m py_compile backend/app/config.py backend/app/node_execution.py backend/app/errors.py scripts/check-director-workflow-http.py
+  if [[ "$mode" == "director-context" || "$mode" == "director-reference" ]]; then
+    "$app_python" -m py_compile backend/app/director_context.py backend/app/director_workflow.py backend/app/director_chat.py scripts/check-director-recorded-context.py
+    "$app_python" -m py_compile backend/app/director_creation.py
+    "$app_python" -c "from pathlib import Path; paths=['backend/app/director_context.py','backend/tests/test_director_context.py','docs/阶段文档/长对话上下文-后端-20261029.md','docs/evidence/v0.11-长对话上下文-后端-20261029/是否表.md','docs/evidence/v0.11-长对话上下文-后端-20261029/照着做清单.md']; assert all(Path(p).is_file() and Path(p).stat().st_size for p in paths); print('PASS: 5 context batch technical/evidence files')"
+    if [[ "$mode" == "director-reference" ]]; then
+      "$app_python" -c "from pathlib import Path; paths=['docs/阶段文档/分镜共用参考图-后端-20261029.md','docs/evidence/v0.11-分镜共用参考图-后端-20261029/是否表.md','docs/evidence/v0.11-分镜共用参考图-后端-20261029/照着做清单.md']; assert all(Path(p).is_file() and Path(p).stat().st_size for p in paths); print('PASS: 3 shared-reference batch evidence files')"
+    fi
+    if [[ -f data/acceptance/run-20261028-real-v011/acceptance.db ]]; then
+      "$app_python" scripts/check-director-recorded-context.py
+    else
+      echo 'SKIP: optional recorded-data replay; local acceptance database is not present (not shipped in Git)'
+    fi
+  fi
   git diff --check
-  echo 'PASS: historical reservation fix and free isolated HTTP recovery; paid media and user acceptance remain separate'
+  echo 'PASS: backend regressions and free isolated HTTP recovery; paid media and user acceptance remain separate'
   echo "Evidence: $log_path"
 }
 
-if [[ "$mode" == "budget-reservation-fix" ]]; then
+if [[ "$mode" == "budget-reservation-fix" || "$mode" == "director-context" || "$mode" == "director-reference" ]]; then
   run_budget_reservation_checks 2>&1 | tee "$log_path"
   cp "$log_path" "$evidence_dir/verify-输出.txt"
-elif [[ "$mode" == "frontend-closing" ]]; then
+elif [[ "$mode" == "frontend-closing" || "$mode" == "web-closing" ]]; then
   run_director_workflow_frontend_checks 2>&1 | tee "$log_path"
+  if [[ "$mode" == "web-closing" ]]; then cp "$log_path" "$evidence_dir/verify-输出.txt"; fi
 elif [[ "$mode" == "director-workflow-frontend" ]]; then
   run_director_workflow_frontend_checks 2>&1 | tee "$log_path"
 elif [[ "$mode" == "director-workflow-backend" ]]; then

@@ -1,0 +1,94 @@
+{
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/release-verification.json": {
+    "size": 693,
+    "sha256": "d6da97df9bf3542ca826bf4ed9d3b4e53ceeef5e3364a8da1a57fd016a0e42c6"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/verify-输出.txt": {
+    "size": 72879,
+    "sha256": "2cc5c75a44717fd3418b22760934215f38abfb22007ee2584d47d4f9e821b0d1"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/照着做清单.md": {
+    "size": 741,
+    "sha256": "c3c2656fc255afa023d468108e265f7b89bbe1b1d040eb2c6892c55aba7ad0d4"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/final-summary.json": {
+    "size": 4166,
+    "sha256": "76435dd2f94a51ddc872ab34ddec58137f5b6409e75847f312a00ae3bd82c94b"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/是否表.md": {
+    "size": 865,
+    "sha256": "6a6993e5ba34b6b798b4a7027aeb3e83b2d77c783cfc398d54cf9b8af58edd8d"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/release-preparation.json": {
+    "size": 7182,
+    "sha256": "2eda0cad3791fd8001e45a4758c6660319fd562cf0b1ac7837a4f214955faa64"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/verify-20261029T002059-59384.txt": {
+    "size": 72879,
+    "sha256": "2cc5c75a44717fd3418b22760934215f38abfb22007ee2584d47d4f9e821b0d1"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/run-20261029T002059-59384/live-build-before.json": {
+    "size": 381,
+    "sha256": "3807fe33ec2eeedb38196720b0a2a1e29645f4df5b8c2eaeb576c958608c99a7"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T162155Z/summary.json": {
+    "size": 3197,
+    "sha256": "1c910c6d22dc89af4a3d617550e4c84df2f455b4f8cfa0a5fd23d504f1732b1a"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T162155Z/check.py": {
+    "size": 6213,
+    "sha256": "62f5b948a2ce0ed78c8ba7b0e6d6d6cb3ded8c0363e09569c157c844c5ea9aec"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T161807Z/summary.json": {
+    "size": 3198,
+    "sha256": "d5da86e5fe0ae1b87c2e2813681748b60770859d003dbfb31fb512449f2429b6"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T161807Z/check.py": {
+    "size": 6213,
+    "sha256": "62f5b948a2ce0ed78c8ba7b0e6d6d6cb3ded8c0363e09569c157c844c5ea9aec"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/run-20261029T002059-59384/http-film/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/run-20261029T002059-59384/http-film/director-workflow-http.json": {
+    "size": 519791,
+    "sha256": "8b5dda0d777ca94153db13cf3ed29705d9a7d85119a6372749e78814f7fcf13d"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/run-20261029T002059-59384/http-clips/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/run-20261029T002059-59384/http-clips/director-workflow-http.json": {
+    "size": 606070,
+    "sha256": "c892c8308833cbe4101fbf5f85ac4e7abc6ce91edea223c9d7324b00a2fcf97a"
+  },
+  "backend/app/director_context.py": {
+    "size": 4617,
+    "sha256": "2a3bf0d72d86409ea5c55d4fe0c5eeda8e2c1d924948f32275399edf369a3657"
+  },
+  "backend/app/director_workflow.py": {
+    "size": 37745,
+    "sha256": "cd3922c333a9c554658419268f8915d2f7a84e6ee78315d3aabccf4d89809b3a"
+  },
+  "backend/app/director_chat.py": {
+    "size": 48165,
+    "sha256": "af62c527830c1a414a8eb5bb8c10bdb9ec718e85ce6705401776f993810cd9dd"
+  },
+  "backend/tests/test_director_context.py": {
+    "size": 7590,
+    "sha256": "dbe7a672fe70ae0cf1b1546ec00540c554636087ca84be1db267dee72cb23e26"
+  },
+  "scripts/check-director-recorded-context.py": {
+    "size": 6213,
+    "sha256": "62f5b948a2ce0ed78c8ba7b0e6d6d6cb3ded8c0363e09569c157c844c5ea9aec"
+  },
+  "verify.sh": {
+    "size": 14136,
+    "sha256": "effee607c55d46b43af8a9b6ab74c4d1ffc77ee5fed4a0403ebd32d2659e2d7b"
+  },
+  "docs/阶段文档/长对话上下文-后端-20261029.md": {
+    "size": 3835,
+    "sha256": "1056a7e2681214ec5c0c45ffbf5e73e0c7cf075b9f14c6b5c2c9aaf3ec96e7b1"
+  }
+}

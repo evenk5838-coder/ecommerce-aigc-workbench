@@ -351,12 +351,15 @@ def _text_source(connection: Any, project_id: str, args: dict) -> tuple[dict, di
 
 @projects.project_guard()
 def prepare_storyboards(project_id: str, args: dict, ctx: dict) -> dict:
-    _object(args, {"source_node_id", "expected_source_revision", "model_id", "params", "shots"}, "storyboards")
+    _object(args, {"source_node_id", "expected_source_revision", "model_id", "params", "shots", "input_asset_id"}, "storyboards")
     model_id = _string(args.get("model_id"), "model_id")
     items = _items(args.get("shots"), "shots")
 
     def apply(connection: Any, stable: str) -> dict:
         source, source_info = _text_source(connection, project_id, args)
+        shared_id = args.get("input_asset_id")
+        shared_id = _string(shared_id, "input_asset_id") if shared_id is not None else None
+        shared_reference = _asset(shared_id) if shared_id is not None else None
         origin = db.loads(source["position_json"]) or {"x": 0, "y": 0}
         base_seq = connection.execute("SELECT COALESCE(MAX(seq),0) seq FROM shots WHERE project_id=?", (project_id,)).fetchone()["seq"]
         artifacts = []
@@ -366,8 +369,11 @@ def prepare_storyboards(project_id: str, args: dict, ctx: dict) -> dict:
             title = _string(item.get("title", f"分镜 {base_seq + index}"), "shot.title")
             params = {**_object(args.get("params", {}), node_execution.PARAM_KEYS["image"], "params"),
                       **_object(item.get("params", {}), node_execution.PARAM_KEYS["image"], "shot.params")}
-            aid = item.get("input_asset_id")
-            reference = _asset(_string(aid, "input_asset_id")) if aid is not None else None
+            # Omitted shot reference inherits this group's explicit reference;
+            # null opts out, and a shot's own ID overrides only that shot.
+            aid = item.get("input_asset_id", shared_id)
+            aid = _string(aid, "shot.input_asset_id") if aid is not None else None
+            reference = (shared_reference if aid == shared_id else _asset(aid)) if aid is not None else None
             cfg = _media_config("image", model_id, prompt, params, asset_id=aid, title=title)
             duration = item.get("duration_s")
             if duration is not None and (isinstance(duration, bool) or not isinstance(duration, int) or not 1 <= duration <= 3600):

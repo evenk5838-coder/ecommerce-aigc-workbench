@@ -10,6 +10,7 @@ concatenation after every clip succeeds. Default keeps explicit composition.
 from __future__ import annotations
 
 import argparse
+import base64
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -36,7 +37,7 @@ def write_json(path: Path, value) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def serve(directory: str, port: int, film: bool = False, legacy_reservation: bool = False) -> None:
+def serve(directory: str, port: int, film: bool = False, legacy_reservation: bool = False, shared_reference: bool = False) -> None:
     private = Path(directory).resolve()
     if (not private.is_relative_to(Path("/private/tmp")) or not private.name.startswith("director-workflow-http-")
             or json.loads((private / "isolation.json").read_text()).get("isolated") is not True):
@@ -90,6 +91,7 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
                 "created_at": 1792657128.552663})
         assert config.duration_policy("doubao-seedance-2-0-260128")["kind"] == "unavailable"
     events_file = private / "fixtures.jsonl"
+    shared_asset = None
     def event(value):
         with events_file.open("a", encoding="utf-8") as stream:
             stream.write(json.dumps({"at": time.time(), "real_model": False, **value}, ensure_ascii=False) + "\n")
@@ -127,6 +129,8 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
                     "model_id": IMAGE, "params": {"ratio": "1:1", "size": "1024x1024"}, "shots": [
                         {"title": "RED image", "prompt": "RED fixture: one cup full view", "duration_s": 5},
                         {"title": "BLUE image", "prompt": "BLUE fixture: one cup close-up", "duration_s": 5}]}
+                if shared_reference:
+                    args["input_asset_id"] = shared_asset["id"]
             elif stage == "VIDEOS":
                 nodes = sorted((node for node in context["nodes"] if node["type"] == "image"),
                                key=lambda node: 0 if ("BLUE" if film else "RED") in node["config"]["title"] else 1)
@@ -162,14 +166,29 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
             subprocess.run([storage.ffmpeg_exe(), "-nostdin", "-v", "error", "-f", "lavfi", "-i",
                             f"color=c={color}:s=64x48:r=10:d={duration}", "-c:v", "libx264", "-pix_fmt", "yuv420p",
                             "-an", str(clip)], check=True, capture_output=True, timeout=20)
+    if shared_reference:
+        db.init_db()
+        picture = fixtures / "product-reference.png"
+        if not picture.exists():
+            Image.new("RGB", (72, 56), "green").save(picture)
+        shared_asset = storage.save_bytes(picture.read_bytes(), "image", "shared-reference-fixture")
     def runner(kind):
         def fixed(task_id, model_id, params, token, on_progress=None):
             token.raise_if_canceled()
             cloud_tasks.budget_gate(cloud_tasks.estimate_cost(kind, model_id, params))
             if kind == "video":
                 cloud_tasks.build_content(params)
+            reference_digest = None
+            if kind == "image" and shared_reference:
+                assert params["generation_mode"] == "image_to_image"
+                assert params["input_asset_id"] == shared_asset["id"]
+                ref = storage.load_asset(params["input_asset_id"])
+                encoded = storage.asset_data_url(ref).split(",", 1)[1]
+                reference_digest = hashlib.sha256(base64.b64decode(encoded)).hexdigest()
+                assert reference_digest == shared_asset["sha256"]
             color = "red" if "RED" in params["prompt"] else "blue"
-            event({"kind": "media_fixture", "media_kind": kind, "task_id": task_id, "color": color})
+            event({"kind": "media_fixture", "media_kind": kind, "task_id": task_id, "color": color,
+                   "reference_asset_id": params.get("input_asset_id"), "reference_sha256": reference_digest})
             if on_progress:
                 on_progress(.8)
             return {"data": (fixtures / (color + (".png" if kind == "image" else ".mp4"))).read_bytes(),
@@ -182,6 +201,7 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
     def metrics():
         events = [json.loads(line) for line in events_file.read_text().splitlines()] if events_file.exists() else []
         return {"label": LABEL, "scope": "film" if film else "clips_then_explicit_compose",
+                "shared_reference": {key: shared_asset[key] for key in ("id", "sha256")} if shared_asset else None,
                 "legacy_task": db.get("tasks", "legacy-unknown-video") if legacy_reservation else None,
                 "pid": os.getpid(), "task_count": len(db.query("SELECT id FROM tasks")),
                 "node_count": len(db.query("SELECT id FROM canvas_nodes")), "script_count": len(db.query("SELECT id FROM script_versions")),
@@ -193,7 +213,7 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
     uvicorn.run(main.app, host="127.0.0.1", port=port, log_level="warning", access_log=False)
 
 
-def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_reservation: bool = False) -> None:
+def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_reservation: bool = False, shared_reference: bool = False) -> None:
     evidence = Path(evidence_directory).resolve() if evidence_directory else Path(tempfile.mkdtemp(prefix="director-http-evidence-", dir="/private/tmp"))
     evidence.mkdir(parents=True, exist_ok=True)
     if any((evidence / name).exists() for name in ("director-workflow-http.json", "fixed-blue-then-red.mp4")):
@@ -202,6 +222,7 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
     record = {"label": LABEL + ("；一次确认视频与顺序合成" if film_mode else "；逐条素材与独立合成确认"),
               "scope": scenario, "video_output_mode": "film" if film_mode else "clips",
               "legacy_reservation_fixture": legacy_reservation,
+              "shared_reference_fixture": shared_reference,
               "started_at": datetime.now(timezone.utc).isoformat(), "passed": False, "http": []}
     with socket.socket() as reservation:
         reservation.bind(("127.0.0.1", 0))
@@ -237,6 +258,8 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
                 command.append("--film")
             if legacy_reservation:
                 command.append("--legacy-budget-reservation")
+            if shared_reference:
+                command.append("--shared-reference")
             process = subprocess.Popen(command,
                                        env=environment, stdout=log, stderr=subprocess.STDOUT)
             try:
@@ -263,6 +286,7 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
         try:
             process = start()
             initial_legacy_task = request("/__check__/metrics")["legacy_task"] if legacy_reservation else None
+            shared_asset = request("/__check__/metrics")["shared_reference"] if shared_reference else None
             project = request("/api/projects", {"name": "HTTP fixed-media director proof", "brief": {
                 "subject": "one cup", "quantity": 1, "style": "simple", "target_duration_s": 10}})["project_id"]
             prefix = f"/api/projects/{project}/director"
@@ -306,6 +330,9 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
             boards = talk("STORYBOARDS", "按已确认脚本准备两张分镜", ["script"])
             board_action = one_action(boards, "generation")
             image_ids = [item["node_id"] for item in boards["artifacts"]]
+            if shared_reference:
+                assert all(item["config"]["input_asset_id"] == shared_asset["id"]
+                           and item["config"]["generation_mode"] == "image_to_image" for item in boards["artifacts"])
             assert len(image_ids) == 2 and request("/__check__/metrics")["task_count"] == int(legacy_reservation)
             assert len(confirm(board_action, "confirm_generate")["tasks"]) == 2
             images_done = completed(board_action)
@@ -380,6 +407,12 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
             canvas = request(f"/api/projects/{project}/canvas")
             assert any(node["node_id"] == film["result_node_id"] and node["asset"]["id"] == film["asset_id"] for node in canvas["nodes"])
             final = request("/__check__/metrics")
+            if shared_reference:
+                assert before["shared_reference"] == final["shared_reference"] == shared_asset
+                image_events = [item for item in final["events"] if item.get("media_kind") == "image"]
+                assert len(image_events) == 2
+                assert all(item["reference_asset_id"] == shared_asset["id"]
+                           and item["reference_sha256"] == shared_asset["sha256"] for item in image_events)
             if legacy_reservation:
                 assert before["legacy_task"] == final["legacy_task"] == initial_legacy_task
             for key in ("task_count", "node_count", "script_count", "composition_count", "llm_fixture_calls", "media_fixture_calls"):
@@ -408,10 +441,11 @@ if __name__ == "__main__":
     parser.add_argument("--evidence-dir")
     parser.add_argument("--film", action="store_true", help="Check one video+ordered-film confirmation instead of separate composition")
     parser.add_argument("--legacy-budget-reservation", action="store_true", help="Include the historical unknown-video budget regression")
+    parser.add_argument("--shared-reference", action="store_true", help="Use one product reference for both image nodes and verify worker inputs")
     parser.add_argument("--serve", help=argparse.SUPPRESS)
     parser.add_argument("--port", type=int, default=0, help=argparse.SUPPRESS)
     arguments = parser.parse_args()
     if arguments.serve:
-        serve(arguments.serve, arguments.port, arguments.film, arguments.legacy_budget_reservation)
+        serve(arguments.serve, arguments.port, arguments.film, arguments.legacy_budget_reservation, arguments.shared_reference)
     else:
-        run(arguments.evidence_dir, arguments.film, arguments.legacy_budget_reservation)
+        run(arguments.evidence_dir, arguments.film, arguments.legacy_budget_reservation, arguments.shared_reference)

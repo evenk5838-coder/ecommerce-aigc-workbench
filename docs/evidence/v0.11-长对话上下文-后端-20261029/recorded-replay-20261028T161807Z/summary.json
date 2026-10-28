@@ -1,0 +1,106 @@
+{
+  "project_id": "prj_7d52f89107db4ce4b9b4",
+  "default_cap_cny": 0.05,
+  "default_session_cap_cny": 0.3,
+  "cases": [
+    {
+      "label": "original_no_selection",
+      "selected_node_ids": [],
+      "context_node_count": 6,
+      "context_role": "editor",
+      "history_messages": 8,
+      "baseline_initial_cny": 0.046658,
+      "default_result": {
+        "status": "message",
+        "node_ids": []
+      },
+      "provider_calls": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "estimated_cny": 0.042588,
+          "blocked_by_default_005": false,
+          "characters": 22167,
+          "messages_sha256": "5d03914a0d3d19514ba4afe98cd7cfa0c95e339ad8ad74a273b96b875c9ff4fb"
+        },
+        {
+          "round": 2,
+          "estimated_cny": 0.042978,
+          "blocked_by_default_005": false,
+          "characters": 22674,
+          "messages_sha256": "b443defb993a4639618632dc6d3375c01804d7778ce5e9bed918ea1cb3fb07d3"
+        }
+      ]
+    },
+    {
+      "label": "explicit_two_images",
+      "selected_node_ids": [
+        "director-image-958ab41985e36955b60f-1",
+        "director-image-958ab41985e36955b60f-2"
+      ],
+      "context_node_count": 6,
+      "context_role": "cinematographer",
+      "history_messages": 8,
+      "baseline_initial_cny": 0.046736,
+      "default_result": {
+        "status": "message",
+        "node_ids": []
+      },
+      "provider_calls": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "estimated_cny": 0.042664,
+          "blocked_by_default_005": false,
+          "characters": 22265,
+          "messages_sha256": "5d604845187bada3a532faa57cd5fb3be8fe6a897b0fb8e6c70f3f9f14ff0c30"
+        },
+        {
+          "round": 2,
+          "estimated_cny": 0.043124,
+          "blocked_by_default_005": false,
+          "characters": 22865,
+          "messages_sha256": "bbfc5af970dbb5381ea099787b8d63688f072ac78ecae5355da4d82ddee90ed7"
+        }
+      ]
+    },
+    {
+      "label": "two_images_with_long_edit_request",
+      "selected_node_ids": [
+        "director-image-958ab41985e36955b60f-1",
+        "director-image-958ab41985e36955b60f-2"
+      ],
+      "context_node_count": 6,
+      "context_role": "cinematographer",
+      "history_messages": 8,
+      "baseline_initial_cny": 0.052022,
+      "default_result": {
+        "status": "message",
+        "node_ids": []
+      },
+      "provider_calls": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "estimated_cny": 0.047952,
+          "blocked_by_default_005": false,
+          "characters": 24506,
+          "messages_sha256": "55f207cd7146f1829aa66ce9a790c985caa1d9085c3cffcb5caffcc739ba2646"
+        },
+        {
+          "round": 2,
+          "estimated_cny": 0.048412,
+          "blocked_by_default_005": false,
+          "characters": 25106,
+          "messages_sha256": "1f12d4c1657a394f0c8e3b59048c1fd4daa8b3e5f5282959daea85e3b5b33f83"
+        }
+      ]
+    }
+  ],
+  "real_model_calls": 0,
+  "network_blocked": true,
+  "original_db_opened_readonly": true,
+  "only_copy_mutated": true,
+  "copy_directory": "/private/tmp/real-context-budget-y9wl42so",
+  "product_sha256": "e8b9dc922aed5711e90e7ab26b7cf64e0b887f4d097e26c987a7d8572c2b594e"
+}

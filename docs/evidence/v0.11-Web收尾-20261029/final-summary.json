@@ -1,0 +1,54 @@
+{
+  "frontend_test_files": 39,
+  "frontend_tests": 844,
+  "real_model_calls": 0,
+  "layout_editor": "hidden; implementation and draft layers retained",
+  "layout_png_acceptance": "deferred by user",
+  "mobile": "deferred by user",
+  "native_zip_download": true,
+  "native_png_mp4_download": true,
+  "archive_original_bytes_match": true,
+  "failed_asset_no_download": true,
+  "desktop_widths": [
+    1440,
+    1280,
+    1024
+  ],
+  "http": {
+    "clips": {
+      "passed": true,
+      "request_count": 42
+    },
+    "film": {
+      "passed": true,
+      "request_count": 36
+    }
+  },
+  "release": {
+    "verified_at": "2026-10-29T01:15:39.249214+08:00",
+    "backend_restarted": false,
+    "backend_source_unchanged": true,
+    "business_tables_identical": true,
+    "asset_files_identical": true,
+    "health_status": "ok",
+    "script": "/assets/index-BiTHxQvK.js",
+    "counts": {
+      "projects": 4,
+      "tasks": 76,
+      "assets": 32,
+      "drafts": 5,
+      "draft_versions": 122,
+      "canvas_nodes": 14,
+      "script_versions": 4,
+      "director_requests": 12,
+      "director_actions": 6,
+      "director_turns": 11,
+      "assistant_usage": 22
+    },
+    "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/web-closing-20261029T011413",
+    "real_model_calls": 0,
+    "served_build_matches_verified": true,
+    "old_hashed_assets_retained": true
+  },
+  "browser_group": "813F5CBC21012E1E358D0091A7BA5FEB"
+}

@@ -1,0 +1,143 @@
+{
+  "backend_tests": 358,
+  "retained_legacy_tests": 21,
+  "new_context_tests": 8,
+  "real_provider_calls": 0,
+  "per_call_limit_cny": 0.05,
+  "session_limit_cny": 0.3,
+  "recorded_replay": "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T162155Z/summary.json",
+  "recorded_replay_cases": [
+    {
+      "label": "original_no_selection",
+      "selected_node_ids": [],
+      "context_node_count": 6,
+      "context_role": "editor",
+      "history_messages": 8,
+      "baseline_initial_cny": 0.04687,
+      "default_result": {
+        "status": "message",
+        "node_ids": []
+      },
+      "provider_calls": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "estimated_cny": 0.042798,
+          "blocked_by_default_005": false,
+          "characters": 22329,
+          "messages_sha256": "3e2d4b0cc8bfbc295d889eb31dde84e998119c30043c9a0a580cce9df4de3bc0"
+        },
+        {
+          "round": 2,
+          "estimated_cny": 0.043188,
+          "blocked_by_default_005": false,
+          "characters": 22836,
+          "messages_sha256": "fcffb766de5d123280689ccb673ddc351c76d81a3b21e606f221ab47152e5c84"
+        }
+      ]
+    },
+    {
+      "label": "explicit_two_images",
+      "selected_node_ids": [
+        "director-image-958ab41985e36955b60f-1",
+        "director-image-958ab41985e36955b60f-2"
+      ],
+      "context_node_count": 6,
+      "context_role": "cinematographer",
+      "history_messages": 8,
+      "baseline_initial_cny": 0.046946,
+      "default_result": {
+        "status": "message",
+        "node_ids": []
+      },
+      "provider_calls": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "estimated_cny": 0.042874,
+          "blocked_by_default_005": false,
+          "characters": 22427,
+          "messages_sha256": "b22f2d5b9b789ae4a907af2a48057acfe7f34b8c79852b2e1d887e5535e6ee97"
+        },
+        {
+          "round": 2,
+          "estimated_cny": 0.043334,
+          "blocked_by_default_005": false,
+          "characters": 23027,
+          "messages_sha256": "96c25ce0600bf13016c1ec6ae045dc2a1a0f6942f26cf3a08ff891367f5446fa"
+        }
+      ]
+    },
+    {
+      "label": "two_images_with_long_edit_request",
+      "selected_node_ids": [
+        "director-image-958ab41985e36955b60f-1",
+        "director-image-958ab41985e36955b60f-2"
+      ],
+      "context_node_count": 6,
+      "context_role": "cinematographer",
+      "history_messages": 8,
+      "baseline_initial_cny": 0.052234,
+      "default_result": {
+        "status": "message",
+        "node_ids": []
+      },
+      "provider_calls": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "estimated_cny": 0.048162,
+          "blocked_by_default_005": false,
+          "characters": 24668,
+          "messages_sha256": "d98cebb4ab02e445d75645d659cb8e1df54a02732ddbc6f159fefcc8ba571dd0"
+        },
+        {
+          "round": 2,
+          "estimated_cny": 0.048622,
+          "blocked_by_default_005": false,
+          "characters": 25268,
+          "messages_sha256": "e6a1afb8cff6d15d24caba847b5cf824f37d58d2dc92263ba2bafbf52511951a"
+        }
+      ]
+    }
+  ],
+  "http": {
+    "clips": {
+      "passed": true,
+      "requests": 42,
+      "restart_replay_no_new_work": true
+    },
+    "film": {
+      "passed": true,
+      "requests": 36,
+      "restart_replay_no_new_work": true
+    }
+  },
+  "release": {
+    "verified_at": "2026-10-29T00:25:15.420600+08:00",
+    "service_pid": 59983,
+    "health_status": "ok",
+    "projects_readable": true,
+    "tables_identical": true,
+    "asset_files_identical": true,
+    "frontend_identical": true,
+    "source_matches_verified": true,
+    "counts": {
+      "projects": 4,
+      "tasks": 76,
+      "assets": 32,
+      "drafts": 5,
+      "draft_versions": 119,
+      "canvas_nodes": 14,
+      "script_versions": 4,
+      "director_requests": 12,
+      "director_actions": 6,
+      "director_turns": 11,
+      "assistant_usage": 22
+    },
+    "quick_check": "ok",
+    "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/director-context-20261029T002249",
+    "new_paid_calls": 0
+  },
+  "real_model_understanding_acceptance": "pending"
+}

@@ -1,0 +1,125 @@
+{
+  "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/web-closing-20261029T011413",
+  "tables": {
+    "projects": {
+      "count": 4,
+      "sha256": "a46393b97dffd46570b29cfe86ecefd6b7c004598554567e23d2c2a957f309a5"
+    },
+    "tasks": {
+      "count": 76,
+      "sha256": "058343ec55b2a93565efe8d74ac87f0a24d9774afbe2447c380f81d421b515f2"
+    },
+    "assets": {
+      "count": 32,
+      "sha256": "62727a8a3fff5011f2cf0f411854bcc9b8e1e7fc89ba2fd62cb73b66ddd122ba"
+    },
+    "drafts": {
+      "count": 5,
+      "sha256": "1472fec611f6efd0d1665c9ec70cb7b982cec3da1e72e74555802fc5a786e076"
+    },
+    "draft_versions": {
+      "count": 122,
+      "sha256": "2cd9a6b284a269dfaa3a00e12630d56bed41026dc58db903c7028761e2905b21"
+    },
+    "canvas_nodes": {
+      "count": 14,
+      "sha256": "377ed5348cf32c3bfc5eac8bd565ef72092165f0f9138a681b626b7a2723c465"
+    },
+    "script_versions": {
+      "count": 4,
+      "sha256": "be0f0cba6fda30dd501c5230e031c30816e7a7146d7c9e4e13284f66f43ae859"
+    },
+    "director_requests": {
+      "count": 12,
+      "sha256": "f6475ea595547028f3bf15eb39c23d3d31455059749cd226e87c4bbf2ac377c2"
+    },
+    "director_actions": {
+      "count": 6,
+      "sha256": "de2df6977d4295a9bb4e9d914a7357f0a3d6b7968cf8d650e25efdcbaf98e11d"
+    },
+    "director_turns": {
+      "count": 11,
+      "sha256": "e2171ea08475a12ef91dfc0f4e3ceb2548abea28839c32c7f1c95b85233bd9a5"
+    },
+    "assistant_usage": {
+      "count": 22,
+      "sha256": "51706801fd93b9402503f1b25def3edba0a22e8b04c04e8d96d9b99835d3e205"
+    }
+  },
+  "assets": {
+    "0c/a4/0ca41059857cb64f4dc42e4b02cde624b1796bcaf215435af70ada7fdeb9a635.mp4": "0ca41059857cb64f4dc42e4b02cde624b1796bcaf215435af70ada7fdeb9a635",
+    "3b/cd/3bcd1b5d2b56978efe896acf9733c9df31b24a3b24300d8cf45d5d803cac4995.mp4": "3bcd1b5d2b56978efe896acf9733c9df31b24a3b24300d8cf45d5d803cac4995",
+    "0b/ab/0babd02cfec3e80d20c5a8a4c0644de15a14d11790c5fe71405bc4ed9393761f.jpg": "0babd02cfec3e80d20c5a8a4c0644de15a14d11790c5fe71405bc4ed9393761f",
+    "9d/5b/9d5b7d19b0283aea56ea88305dbc91f03d3f61543526675b16da66c24b32a4e9.jpg": "9d5b7d19b0283aea56ea88305dbc91f03d3f61543526675b16da66c24b32a4e9",
+    "da/4b/da4be8e8893c1d58187c6d50b664ab62c1e9e84ccd7e898b7b7d1d34bdb1042f.jpg": "da4be8e8893c1d58187c6d50b664ab62c1e9e84ccd7e898b7b7d1d34bdb1042f",
+    "b4/6a/b46a7a7204cd0d2847f387d7b24c5736c25de2ccf33d744668c630a7bbf24502.jpg": "b46a7a7204cd0d2847f387d7b24c5736c25de2ccf33d744668c630a7bbf24502",
+    "cf/88/cf8865616e6d521732f6ff2a6da0dc4f685d438b213ad99351524a9697141b95.jpg": "cf8865616e6d521732f6ff2a6da0dc4f685d438b213ad99351524a9697141b95",
+    "45/4b/454b6b62ea983e36b22ec290676b8aaa7121831b3bd43419ccfd93c35a625d7e.mp4": "454b6b62ea983e36b22ec290676b8aaa7121831b3bd43419ccfd93c35a625d7e",
+    "74/19/74195198f8683e7c55fd6488696fa26f011c63dbfa39fcacb85814347ae4780a.jpg": "74195198f8683e7c55fd6488696fa26f011c63dbfa39fcacb85814347ae4780a",
+    "19/64/196442510c8cd822a48aaf48eeb3ac8c6524c27b1ceac45bbcffdfd84ca1d6d9.jpg": "196442510c8cd822a48aaf48eeb3ac8c6524c27b1ceac45bbcffdfd84ca1d6d9",
+    "86/a1/86a1813b769959f3d54c6892e54f0ca3c92b04dc3b8f157df21f22500b9f81b5.png": "86a1813b769959f3d54c6892e54f0ca3c92b04dc3b8f157df21f22500b9f81b5",
+    "88/da/88da373e1690bfdf4ea60739b8cc2e1518aed896a4addba43eab3d2966aae661.jpg": "88da373e1690bfdf4ea60739b8cc2e1518aed896a4addba43eab3d2966aae661",
+    "5c/e9/5ce95db5d1526e41f39e65bf48f524d17e3c0f0e8b8d7575a10e26929761fc14.mp4": "5ce95db5d1526e41f39e65bf48f524d17e3c0f0e8b8d7575a10e26929761fc14",
+    "5e/01/5e01be8aea5c080e2af1c133a1469465d14f393a1f9ec3ef074f83f4748f80a4.jpg": "5e01be8aea5c080e2af1c133a1469465d14f393a1f9ec3ef074f83f4748f80a4",
+    "06/c4/06c473def90c882b8c236785cc56efc1d92e1a5f95f769f164d873b23bb3790e.jpg": "06c473def90c882b8c236785cc56efc1d92e1a5f95f769f164d873b23bb3790e",
+    "6c/05/6c05f7dd3c43dd59aef3cf5ec62a55bb86f1a9ab5c50b5b508877a611e398360.jpg": "6c05f7dd3c43dd59aef3cf5ec62a55bb86f1a9ab5c50b5b508877a611e398360",
+    "99/9a/999a64caf3a01851e01861ed432a1fca93e48314ca11793596fc15527c79d57d.png": "999a64caf3a01851e01861ed432a1fca93e48314ca11793596fc15527c79d57d",
+    "97/c3/97c309bc88704e3959dcc471f4d44052091be83791f4c3d592e35b0cec523818.mp4": "97c309bc88704e3959dcc471f4d44052091be83791f4c3d592e35b0cec523818",
+    "d4/a8/d4a84e9708ac8009069d92a5c0f93fe0feddca46a2cc16a4db3985a04bbd339d.mp4": "d4a84e9708ac8009069d92a5c0f93fe0feddca46a2cc16a4db3985a04bbd339d",
+    "af/06/af0667f14a8bfe2961d30cd7fc8e2d9d98e2184873a782a3e3082f17bb02f887.mp4": "af0667f14a8bfe2961d30cd7fc8e2d9d98e2184873a782a3e3082f17bb02f887",
+    "cd/bf/cdbfefe0707d66630c46c0a44f09501781505da34ae73c41aa188940b47c9b9e.jpg": "cdbfefe0707d66630c46c0a44f09501781505da34ae73c41aa188940b47c9b9e",
+    "f9/b7/f9b7f5cb07b22c20c3a9b98d1227017c8794110cc6dab6dc1b4be8b24af9043d.png": "f9b7f5cb07b22c20c3a9b98d1227017c8794110cc6dab6dc1b4be8b24af9043d",
+    "f0/93/f093fceaf68a565c8561f212ff1a5fca31b16f892eaa4286542596725a866b30.jpg": "f093fceaf68a565c8561f212ff1a5fca31b16f892eaa4286542596725a866b30",
+    "fa/bd/fabd15f479cd08019696abb5325fdf53c9b548c0bddee0382547fb9743bafe20.mp4": "fabd15f479cd08019696abb5325fdf53c9b548c0bddee0382547fb9743bafe20",
+    "46/3c/463c40e7eaf1c8f90da8eaf4b8922777023a0bfea884b4e5d4d4cd1cb93a35b9.jpg": "463c40e7eaf1c8f90da8eaf4b8922777023a0bfea884b4e5d4d4cd1cb93a35b9",
+    "2c/e0/2ce0216f692af2fb040c756f051550a43c908f775b5836d5a96bacdc5dbd7a94.jpg": "2ce0216f692af2fb040c756f051550a43c908f775b5836d5a96bacdc5dbd7a94",
+    "77/bd/77bd323773b7c7a7673069a8e3c7976a65a92f954c16a4ba7462dda86d604d50.mp4": "77bd323773b7c7a7673069a8e3c7976a65a92f954c16a4ba7462dda86d604d50",
+    "77/48/774885b284aae9ba6d2add10cd3536915e23d299684e349b3fec7f70136bf433.jpg": "774885b284aae9ba6d2add10cd3536915e23d299684e349b3fec7f70136bf433",
+    "70/95/7095ac8db1160bf3ddeffc579378c9644c4c3db8f022b4fd6352869b62bad0ae.png": "7095ac8db1160bf3ddeffc579378c9644c4c3db8f022b4fd6352869b62bad0ae",
+    "24/f1/24f11c0fcb19d8993b06e6e395d5b5c5fe1270200c2bccc43361413deda16389.jpg": "24f11c0fcb19d8993b06e6e395d5b5c5fe1270200c2bccc43361413deda16389",
+    "4f/d2/4fd2e3af1df89e5b8bdf2e78a1059eea85e88ce8d80e93e598f2eb9f09fd4abc.png": "4fd2e3af1df89e5b8bdf2e78a1059eea85e88ce8d80e93e598f2eb9f09fd4abc",
+    "76/0c/760cb650b9f38ee07a9b564cd54385ad30445e8f72701ce731b2979ee5acb334.mp4": "760cb650b9f38ee07a9b564cd54385ad30445e8f72701ce731b2979ee5acb334"
+  },
+  "backend": {
+    "backend/app/shots.py": "e01cf9f45234b247342304a482db87d1de6a8a7aecf3fb06ca3a169134220e99",
+    "backend/app/worker.py": "efd5b4cebdd170228c87a6c4162ab33b2b855dfd5af70c610e035d30b28b1427",
+    "backend/app/db.py": "37439f46686fd5c82413b17fd3eccb8ac6056e5bb68f4617aac2a51ad99cc37d",
+    "backend/app/director_generation.py": "e10d463501f91ff17fad8ff597b52d044414a844375036347f8e5cd755a4bc41",
+    "backend/app/director_chat.py": "af62c527830c1a414a8eb5bb8c10bdb9ec718e85ce6705401776f993810cd9dd",
+    "backend/app/config.py": "82fc95bd3c447ecde18fb379fa9054a1d9157fd4ca441cc32fd7b03e18103c6e",
+    "backend/app/engines.py": "9055f3626f40ad933a56a71e59fb0f341f7342da61e738e2bf1a2a4ac03413dd",
+    "backend/app/canvas_history.py": "cd49652f820b9f4e74ca109cf1caf3a787aa6e0b7b9661caaacaf0e411c1f6cf",
+    "backend/app/director_workflow.py": "889de0d020d2686fe40d3696fa4c7ef64b84b6cb21263641b428cb7e6005a1bd",
+    "backend/app/director_creation.py": "3f03170f5f8849d3cefef79038eddb36404e931a9951c7f1f412e689c128d683",
+    "backend/app/director_context.py": "2a3bf0d72d86409ea5c55d4fe0c5eeda8e2c1d924948f32275399edf369a3657",
+    "backend/app/templates.py": "5bb33a0704c3fb638cfcf2f9010ac4340b40b47dbcf0e468040baf7c362c0d80",
+    "backend/app/director_recovery.py": "9195f9f16bfd1c1c8baecb09151f5761ffe0f210e876792327997e982127846e",
+    "backend/app/assembly.py": "de6ebad97743d23d46d459535e9bdd53300e92a5124dadc3b9e20bef7d9eb0f3",
+    "backend/app/node_execution.py": "d65aefce8e18e45002506aa82561924e7e3cf3e0038e8942263896d6a458b573",
+    "backend/app/pipeline.py": "006d0dd05d2399da52172d455e7e6f87cb6f3c8b2939088954e621c09df0d403",
+    "backend/app/providers_ark.py": "54985ad7efe3547b8b2c14ce1b7104538fc521330b01a706a8d9072a2c1c2e0e",
+    "backend/app/storage.py": "1a960b7dbe615614e3335076841283d00bb1a9dab9ce09fa4a535027bb89a029",
+    "backend/app/errors.py": "6ae33eaaad98c5a51be5c0f24d91c95e14ee95e681010233794c0e507a2ea60d",
+    "backend/app/director_composition.py": "e1a53d98e779163ea92177b7b4be019141070d5317c99adb82a1f5180847d536",
+    "backend/app/projects.py": "7dd6677962c4e52d376910b9c1452a4faa2feff3f712bd16aaa0f94ac1062e1f",
+    "backend/app/main.py": "b3aef74f4146866d68d3eeaa2e3906518aeb5380cf8051694de337acadd188dd",
+    "backend/app/director.py": "0398854a70fd03f7a4e3a836e5087c42fc10996efe2b0236b2207815bcd0a23e",
+    "backend/app/scope.py": "ddce6bc8c9c4423b49f22d99d62a49f5a3976f1aeb4dd29d6c354e9754b5be06",
+    "backend/app/cloud_tasks.py": "2d9a2ee5728a71cbb5f47c3bf91a3a6d763b4190d3383ee0f28ca6dbef39ff35",
+    "backend/app/canvas.py": "bbacddcd52f5161531d68147fad04019aa6cd5fc619753c18f8d21314f81af09",
+    "backend/app/routers/__init__.py": "8a3152d994ddbe63d953158d6ccd1804b60818f96d6cde8ff13770495609ed03",
+    "backend/app/routers/creative.py": "d3b255207d02e3d09ff14ec10ad84b1a2b9b443aecbc465c76404a3e055e50f1",
+    "backend/app/assistant/service.py": "16f8f710aff462c2bdf1191c3ed7b8400e2643b6bf78aa4a191bd7c0e285f7a9",
+    "backend/app/assistant/provider.py": "dd5315ef3825753609664ea0f94624713cdb70e5f64b0f3b7538a63254fa5b04",
+    "backend/app/assistant/tools.py": "abff516e8afc9e4a4cd1d35cb63073b26222530760166cd634f61f8f11960ead",
+    "backend/app/assistant/__init__.py": "e2471386b1f27823577b73e9df9d95ef33fae2fa7a8dd4ba11bd42d19a2a672c",
+    "backend/app/assistant/approval.py": "587c67888e850746c259e401653cf3323157cdaea474446f893431ee05ce5b4f",
+    "backend/app/assistant/router.py": "7fdd234d394157153ba83bcce9343c00a65fc8dc9137f8310882d2baaaf56a82"
+  },
+  "new_dist": {
+    "index.html": "e33b875100f15d8064107d2263c80d9668fc4c4dd812a510273466759c22dceb",
+    "assets/index-D1vie5MJ.css": "a016d3568b6fe95f970317f20843c408cf59efdea1dd0a09393c200392c15336",
+    "assets/index-BiTHxQvK.js": "78c94d7a07f540dba42c53ea1c43d4b1a3903bf93a82433e3b5de7d5280ed6bc"
+  },
+  "browser_verified_script": "/assets/index-BiTHxQvK.js"
+}

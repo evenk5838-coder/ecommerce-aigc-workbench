@@ -1,0 +1,210 @@
+{
+  "docs/evidence/v0.11-Web收尾-20261029/release-verification.json": {
+    "size": 744,
+    "sha256": "8711823551908c4086f758c84cf5482f60a132f28a5a543d4858c97a5b73c821"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/verify-输出.txt": {
+    "size": 3870,
+    "sha256": "c01e453e5d885166d60f452aad016006b9e84d89097b5af9fe8418490dcd5d1d"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/照着做清单.md": {
+    "size": 660,
+    "sha256": "1d955627e708a785f45062d987681efd0ef9a416cb6e67565dbaa1e9f09fedfe"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/release-verification-attempt.json": {
+    "size": 224,
+    "sha256": "f08a2dcacf9a59925943d371d1199d197e906138d547482ca47b46e746a06300"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/final-summary.json": {
+    "size": 1448,
+    "sha256": "3614dcac8a25c4ad61c393cd689a7488cf688a4af036e520f4d68c59c92bbead"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/verify-20261029T011241-64224.txt": {
+    "size": 3870,
+    "sha256": "c01e453e5d885166d60f452aad016006b9e84d89097b5af9fe8418490dcd5d1d"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/verify-20261029T010104-63039.txt": {
+    "size": 3871,
+    "sha256": "988ce3ca0e3cff564f700edecd2f3bb734780b48be215fc4ad00c31bc732d862"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/是否表.md": {
+    "size": 872,
+    "sha256": "c91c981ca393e37216b36550941c6777b6714b8766c33f00a50fdba1d244792e"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/release-preparation.json": {
+    "size": 10258,
+    "sha256": "93a830306ca825bbca07b2a488b47be71cfaa18313a69f0e5058697b293d751c"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/09-recovery.json": {
+    "size": 346,
+    "sha256": "e9efbefbe14a2bbedd837b85c01a049f9b6d0e3d81d73420b8e44314a07deb1a"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/01-open-receipt.json": {
+    "size": 4756,
+    "sha256": "511943b8239a7f1b37be29b3e84c8c8d12ca52c9e18214cc4d87790b8eb2b63c"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/02-setup-receipt.json": {
+    "size": 1855,
+    "sha256": "0572e0ff2263576e076b4caba1a4aa48ea8fd8935166f490f94f04bee085d05a"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/13-final-build.json": {
+    "size": 381,
+    "sha256": "2625c5a10e130bc16a767b27fce108a470757c9221d9f274a0a5cc29d516aaa6"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/05-download.json": {
+    "size": 7348,
+    "sha256": "13cea1c9a5348f04d7b347951f6db162ca37774ac9f71e5a48f81c591b563418"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/10-director-corrected.json": {
+    "size": 539,
+    "sha256": "3080a8d8cecfdda30461145864adb4d5e1980913962f999d3e60559fb1ef072a"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/downloaded-assets.zip": {
+    "size": 5200,
+    "sha256": "c9b49a5dcc4eb94eebe511a39392d1f38101091a52b9712221ff8eaef31d5f44"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/08-director.json": {
+    "size": 1059,
+    "sha256": "72543c60a3913880daf04caf9ac1a2eda931e305b7d1359ac59201c248cb9d68"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/11-director-screenshot.json": {
+    "size": 2009,
+    "sha256": "decfd0ec64e8d5bcd488ad8d5bbda02e905ad2016055c1ed69af4121c983be4d"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/zip-check.json": {
+    "size": 1023,
+    "sha256": "9eebc39b847e2f308d65c1c79da6a4148f7f1e66082afaf88726c81a84f2d1a1"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/07-library-screenshot.json": {
+    "size": 713,
+    "sha256": "236a92ee678a812c77766779188708a6b80bd94bf2488a613fdfbc5fdecbc8b6"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/director-desktop.png": {
+    "size": 84316,
+    "sha256": "b3b84667d07ba2f1c471e4ba6617d2a0833f1295a241e26b10e8fa5bc69f301c"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/12-library-screenshot.json": {
+    "size": 1970,
+    "sha256": "e3abf2fd4639e4ac294e832eb953f919b8b1bd118568fba20871006d446bc8a0"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/originals-check.json": {
+    "size": 1154,
+    "sha256": "853681b03172a52a4c4b1da8b71dd21b8e5254c798da2caef026bc8cccc23d35"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/06-failure-originals.json": {
+    "size": 2101,
+    "sha256": "e789153ff82c6980801fd9e9e3ba38eddd10dd246d5d5d1d785f19e28d72be6d"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/04-upload.json": {
+    "size": 343,
+    "sha256": "3f07388f9505eba1d2a6c7b1b437abfddc7a7e32d6a019d1d332e04605fe1d9e"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/03-hide-draft.json": {
+    "size": 716,
+    "sha256": "e1911084540b6241abd9dc646600e4f3030fb6a1ca5e30260e49a300671d4dc5"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/finish.json": {
+    "size": 820,
+    "sha256": "970dde6f008a5769734424d3d453e710bd5399699735068f300f96806747dae4"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/browser/library-desktop.png": {
+    "size": 45203,
+    "sha256": "aa936206258a1b42946d076d880d0a4a45aab5310de1897d7fedef285998f1fd"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/frontend-input-sha256.json": {
+    "size": 15158,
+    "sha256": "7a3f82520adac65b653c3e74597c33eb6b4ae3cf792ffcc96e4594f35664a746"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/workflow-build-sha256.json": {
+    "size": 283,
+    "sha256": "0c8a3153452490bb751ddc63a60f74e950a8303e35bf2ad9355fa1d5c484b744"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/live-build-before.json": {
+    "size": 381,
+    "sha256": "3807fe33ec2eeedb38196720b0a2a1e29645f4df5b8c2eaeb576c958608c99a7"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/frontend-input-sha256.json": {
+    "size": 15158,
+    "sha256": "f1f44f69a5685fd024517a76e92e9aeeac67d3a71ebff3e273de777a662aac7d"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/workflow-build-sha256.json": {
+    "size": 283,
+    "sha256": "3c11d822d5c402685cf7590ba25b908366269ba95a87eeec3387db5f69a1f974"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/live-build-before.json": {
+    "size": 381,
+    "sha256": "3807fe33ec2eeedb38196720b0a2a1e29645f4df5b8c2eaeb576c958608c99a7"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/http-film/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/http-film/director-workflow-http.json": {
+    "size": 519154,
+    "sha256": "1d0d7762d8864d1238930cf3ab16610bf50a13fc77ef48b25e6e7ac8a1336fbd"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/http-clips/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T011241-64224/http-clips/director-workflow-http.json": {
+    "size": 597841,
+    "sha256": "5f71bee60cea4e57eb02795bbb3484abcdf8478fe6b52c0ccdbe3e0a32164fd6"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/http-film/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/http-film/director-workflow-http.json": {
+    "size": 519102,
+    "sha256": "d06636f8c5243a426664ce2873ecb0d3d314aca9e7c1acf56fb5c02cf29a312f"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/http-clips/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-Web收尾-20261029/run-20261029T010104-63039/http-clips/director-workflow-http.json": {
+    "size": 595144,
+    "sha256": "44030bd4099be6dd1a39a607c3a3e19ce9d572fb8277dfcba314a6a5c8e8c4a4"
+  },
+  "frontend/src/App.tsx": {
+    "size": 60723,
+    "sha256": "d059aa1a53acbc8081c70cdb55d6c0441f70e352aa5ebed68ec5748449894140"
+  },
+  "frontend/src/Home.tsx": {
+    "size": 8322,
+    "sha256": "018485b87efd1beba396ed9c6788a6b2e38cdb0211ca823ea46f7f8423a20450"
+  },
+  "frontend/src/editor.ts": {
+    "size": 5162,
+    "sha256": "b9354f87172963da4f461ade6bb7b218b7203c91fdeac6a5d407cd045cf973b4"
+  },
+  "frontend/src/features.ts": {
+    "size": 362,
+    "sha256": "37f2d6ae17331e8a961b6d8579a5cb07e7f41db59500cb75af12c7654aa7af18"
+  },
+  "frontend/src/features.test.tsx": {
+    "size": 1293,
+    "sha256": "e06d1507af25ac5f9bdc6abb1e8c539ba4a4d28426da6f85ef69d22f62faa316"
+  },
+  "frontend/src/media-export.ts": {
+    "size": 1985,
+    "sha256": "3edb168d8a90630735d72c9e82575003d1898ca39b0dc08fe5ce7d56ce06fd1c"
+  },
+  "frontend/src/media-export.test.ts": {
+    "size": 2815,
+    "sha256": "dc39d5fc1634c274033ef24a884209d4c569e38ff180660398ca95c7ae92bda3"
+  },
+  "frontend/src/CStudioShell.css": {
+    "size": 3550,
+    "sha256": "d0c482e74bee3e923b1de781f0c9f03e670ab6a96ba0fb8ad2360521e04ee401"
+  },
+  "docs/阶段文档/Web收尾-20261029.md": {
+    "size": 5019,
+    "sha256": "3688f5caada33a504fc054d0aa67a027096d710271f5177bdcefe8b5226dd3d1"
+  },
+  "verify.sh": {
+    "size": 16155,
+    "sha256": "2807019683fca25087e21a349d5ddf0ee145c1b0e07493e9293ee6ffa80863b5"
+  }
+}

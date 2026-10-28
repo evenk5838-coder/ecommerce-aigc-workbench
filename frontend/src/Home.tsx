@@ -13,7 +13,7 @@ type Props = {
   children: ReactNode;
   onPreview: (asset: Asset) => void;
   onReference: (asset: Asset, kind: 'image' | 'video') => void;
-  onEdit: (asset: Asset) => void;
+  onEdit?: (asset: Asset) => void;
   onLibrary: () => void;
   onTasks: () => void;
   onRefresh?: () => void;
@@ -90,7 +90,7 @@ export default function Home({ assets, activeCount, connected, loading, kind, as
                   <div className="workbench-result-actions">
                     <button onClick={() => onReference(asset, 'image')}><ImageIcon size={15} /><span>参考生图<small>保留商品，调整背景与呈现</small></span></button>
                     <button onClick={() => onReference(asset, 'video')}><Film size={15} /><span>生视频<small>将这张图片作为视频首帧</small></span></button>
-                    <button onClick={() => onEdit(asset)}><Layers size={15} /><span>排版编辑<small>添加文案、色块与布局</small></span></button>
+                    {onEdit && <button onClick={() => onEdit(asset)}><Layers size={15} /><span>排版编辑<small>添加文案、色块与布局</small></span></button>}
                   </div>
                 </details>}
               </div>

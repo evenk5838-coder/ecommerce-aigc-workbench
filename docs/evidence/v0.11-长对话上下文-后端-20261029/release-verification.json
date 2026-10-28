@@ -1,0 +1,26 @@
+{
+  "verified_at": "2026-10-29T00:25:15.420600+08:00",
+  "service_pid": 59983,
+  "health_status": "ok",
+  "projects_readable": true,
+  "tables_identical": true,
+  "asset_files_identical": true,
+  "frontend_identical": true,
+  "source_matches_verified": true,
+  "counts": {
+    "projects": 4,
+    "tasks": 76,
+    "assets": 32,
+    "drafts": 5,
+    "draft_versions": 119,
+    "canvas_nodes": 14,
+    "script_versions": 4,
+    "director_requests": 12,
+    "director_actions": 6,
+    "director_turns": 11,
+    "assistant_usage": 22
+  },
+  "quick_check": "ok",
+  "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/director-context-20261029T002249",
+  "new_paid_calls": 0
+}

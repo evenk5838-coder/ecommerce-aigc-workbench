@@ -1,0 +1,33 @@
+{
+  "all_archive_original_bytes_match": true,
+  "failure_creates_no_new_download": true,
+  "legacy_layers_preserved": [
+    "legacy-shape",
+    "legacy-text"
+  ],
+  "native_downloads": [
+    {
+      "fixture": "fixture-blue.png",
+      "filename": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af.png",
+      "mime": "image/png",
+      "matching_native_files": [
+        "/Users/niannian/Downloads/03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af.png"
+      ],
+      "recent_matching_files": [
+        "/Users/niannian/Downloads/03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af.png"
+      ]
+    },
+    {
+      "fixture": "fixture-blue.mp4",
+      "filename": "d77fd58203295cd8701e6f1b0257000720970feebf81a446b034b3003540a468.mp4",
+      "mime": "video/mp4",
+      "matching_native_files": [
+        "/Users/niannian/Downloads/d77fd58203295cd8701e6f1b0257000720970feebf81a446b034b3003540a468.mp4"
+      ],
+      "recent_matching_files": [
+        "/Users/niannian/Downloads/d77fd58203295cd8701e6f1b0257000720970feebf81a446b034b3003540a468.mp4"
+      ]
+    }
+  ],
+  "native_files_timestamp_verified": true
+}

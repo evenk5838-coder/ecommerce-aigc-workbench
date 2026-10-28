@@ -1,0 +1,86 @@
+{
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/release-verification.json": {
+    "size": 711,
+    "sha256": "cc48e463afb5ebe5e1c4dd3f13ec61a9b614513ab4ec23615bb09b2d266df8a9"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/verify-输出.txt": {
+    "size": 74897,
+    "sha256": "26591cdd4966563252ee283f23a6cdc24a37864953625a9c1b7cdb93b5a90940"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/照着做清单.md": {
+    "size": 920,
+    "sha256": "9379a95cf8bc8e30fd3f22c8a8d03ddf86a4e53953ec5b40b3c48e9513768116"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/final-summary.json": {
+    "size": 1531,
+    "sha256": "ca6fa9156ab6723e5deb9b01836d08e67c145e1bd5a727bda65602af08872a19"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/verify-20261029T003856-60978.txt": {
+    "size": 74897,
+    "sha256": "26591cdd4966563252ee283f23a6cdc24a37864953625a9c1b7cdb93b5a90940"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/是否表.md": {
+    "size": 757,
+    "sha256": "23f007d77b21148d4b622cff61ddce15d2896b958ed0ce8070ccfeeddc7d7715"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/provider-wire-check.txt": {
+    "size": 275,
+    "sha256": "0ef617863f64d00931d78f6a16761dbfd6db3c28c916faf985b3a56f68c05f8f"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/release-preparation.json": {
+    "size": 7362,
+    "sha256": "da46589bf57f66435e2a68aa44a11e334163bb2a23440762cb994b9b57c9fb6c"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/run-20261029T003856-60978/live-build-before.json": {
+    "size": 381,
+    "sha256": "3807fe33ec2eeedb38196720b0a2a1e29645f4df5b8c2eaeb576c958608c99a7"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/run-20261029T003856-60978/http-film/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/run-20261029T003856-60978/http-film/director-workflow-http.json": {
+    "size": 556243,
+    "sha256": "c651e358bf24243719728fddfc3aea43562ebb42324b69043f004caaa2b9b924"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/run-20261029T003856-60978/http-clips/fixed-blue-then-red.mp4": {
+    "size": 2624,
+    "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+  },
+  "docs/evidence/v0.11-分镜共用参考图-后端-20261029/run-20261029T003856-60978/http-clips/director-workflow-http.json": {
+    "size": 648897,
+    "sha256": "383d24d4b059a35bdd52c6f00f44730b0d571c6592b594ae18b8d53bec4b1e5f"
+  },
+  "backend/app/director_creation.py": {
+    "size": 31691,
+    "sha256": "3f03170f5f8849d3cefef79038eddb36404e931a9951c7f1f412e689c128d683"
+  },
+  "backend/app/director_workflow.py": {
+    "size": 38339,
+    "sha256": "889de0d020d2686fe40d3696fa4c7ef64b84b6cb21263641b428cb7e6005a1bd"
+  },
+  "backend/tests/test_director_creation.py": {
+    "size": 37249,
+    "sha256": "e32939e8632fdb64e6b5303cd476dd11c85fc6addeedc41f0471d01bafdb81cd"
+  },
+  "scripts/check-director-workflow-http.py": {
+    "size": 29679,
+    "sha256": "df06aa606fef86cc19042d6e7c00710399facd23531ffc6ddb4de919644d80df"
+  },
+  "verify.sh": {
+    "size": 15256,
+    "sha256": "8227b4fa821f32025fbe579c40de22e0cfbd06d931a9006d8e726edc42d4b542"
+  },
+  "docs/阶段文档/分镜共用参考图-后端-20261029.md": {
+    "size": 4015,
+    "sha256": "aa0294290a6eeb34f33d3594723e1bff1485d2b5d3b6004120752edad46496db"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T163958Z/summary.json": {
+    "size": 3195,
+    "sha256": "7b079c6049b9ad877c4d8c760d4db624610e40b29e695d07ab8f4fad2d3b1040"
+  },
+  "docs/evidence/v0.11-长对话上下文-后端-20261029/recorded-replay-20261028T163958Z/check.py": {
+    "size": 6213,
+    "sha256": "62f5b948a2ce0ed78c8ba7b0e6d6d6cb3ded8c0363e09569c157c844c5ea9aec"
+  }
+}

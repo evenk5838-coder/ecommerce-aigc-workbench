@@ -1,0 +1,4 @@
+{
+  "result": "verification_url_corrected",
+  "detail": "Initial static file check requested /index.html, which has no FastAPI route. The page is served at /. Files had already been copied; recovery only reads live state."
+}

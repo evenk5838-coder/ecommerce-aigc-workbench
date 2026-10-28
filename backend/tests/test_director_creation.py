@@ -225,6 +225,155 @@ class DirectorCreationTests(unittest.TestCase):
         self.assertEqual(self.snapshot(), before)
         self.assert_no_generation()
 
+    def test_storyboard_group_inherits_one_explicit_reference_and_replays(self):
+        self.text_node()
+        asset = self.asset()
+        args = {**self.board_args(), "input_asset_id": asset["id"]}
+        result = service.prepare_storyboards(self.project, args, self.ctx())
+        for node in result["artifacts"]:
+            self.assertEqual(node["config"]["input_asset_id"], asset["id"])
+            self.assertEqual(node["config"]["generation_mode"], "image_to_image")
+            self.assertEqual(node["reference"]["sha256"], asset["sha256"])
+        replay = service.prepare_storyboards(self.project, args, self.ctx())
+        self.assertEqual(replay["node_ids"], result["node_ids"])
+        self.assertTrue(replay["idempotent_replay"])
+        self.assertEqual(len(db.query("SELECT * FROM shots")), 2)
+        self.assert_no_generation()
+
+    def test_shot_can_override_or_explicitly_clear_shared_reference(self):
+        self.text_node()
+        shared, other = self.asset(), self.asset("red")
+        args = {**self.board_args(), "input_asset_id": shared["id"]}
+        args["shots"] += [{"prompt": "No reference, fresh composition"}]
+        args["shots"][1]["input_asset_id"] = other["id"]
+        args["shots"][2]["input_asset_id"] = None
+        nodes = service.prepare_storyboards(self.project, args, self.ctx())["artifacts"]
+        self.assertEqual([n["config"].get("input_asset_id") for n in nodes], [shared["id"], other["id"], None])
+        self.assertEqual([n["config"]["generation_mode"] for n in nodes], ["image_to_image", "image_to_image", "text_to_image"])
+        self.assertIsNone(nodes[2]["reference"])
+        self.assert_no_generation()
+
+    def test_no_shared_reference_preserves_text_to_image_behavior(self):
+        self.text_node()
+        for i, patch_args in enumerate(({}, {"input_asset_id": None})):
+            nodes = service.prepare_storyboards(self.project, {**self.board_args(), **patch_args}, self.ctx(str(i)))["artifacts"]
+            self.assertTrue(all(n["config"]["generation_mode"] == "text_to_image" and not n["reference"] for n in nodes))
+        self.assert_no_generation()
+
+    def test_invalid_shared_reference_fails_before_any_artifact_even_if_overridden(self):
+        self.text_node()
+        asset = self.asset()
+        before = self.snapshot()
+        for value, code in (("missing", "ASSET_NOT_FOUND"), (True, "VALIDATION_FAILED"), ("", "VALIDATION_FAILED"), ([], "VALIDATION_FAILED")):
+            with self.subTest(value=value):
+                args = {**self.board_args(), "input_asset_id": value}
+                for shot in args["shots"]: shot["input_asset_id"] = asset["id"]
+                self.error(code, lambda: service.prepare_storyboards(self.project, args, self.ctx()))
+                self.assertEqual(self.snapshot(), before)
+        self.assert_no_generation()
+
+    def test_changed_shared_reference_file_is_rejected_without_artifacts(self):
+        self.text_node()
+        asset = self.asset()
+        storage.asset_path(asset).write_bytes(b"replaced image")
+        before = self.snapshot()
+        self.error("INVALID_REFERENCE_IMAGE", lambda: service.prepare_storyboards(
+            self.project, {**self.board_args(), "input_asset_id": asset["id"]}, self.ctx()))
+        self.assertEqual(self.snapshot(), before)
+        self.assert_no_generation()
+
+    def test_non_image_shared_reference_is_rejected(self):
+        self.text_node()
+        asset = self.asset()
+        db.update("assets", asset["id"], {"kind": "video"})
+        before = self.snapshot()
+        self.error("INVALID_REFERENCE_IMAGE", lambda: service.prepare_storyboards(
+            self.project, {**self.board_args(), "input_asset_id": asset["id"]}, self.ctx()))
+        self.assertEqual(self.snapshot(), before)
+
+    def test_shared_reference_requires_image_to_image_model_support(self):
+        self.text_node()
+        asset = self.asset()
+        before = self.snapshot()
+        caps = {**config.MODEL_CAPABILITIES[IMAGE], "input_modes": ["text_to_image"]}
+        with patch.dict(config.MODEL_CAPABILITIES, {IMAGE: caps}):
+            self.error("MODEL_CAPABILITY_MISMATCH", lambda: service.prepare_storyboards(
+                self.project, {**self.board_args(), "input_asset_id": asset["id"]}, self.ctx()))
+        self.assertEqual(self.snapshot(), before)
+        self.assert_no_generation()
+
+    def test_invalid_later_reference_rolls_back_the_whole_shared_group(self):
+        self.text_node()
+        asset = self.asset()
+        args = {**self.board_args(), "input_asset_id": asset["id"]}
+        args["shots"][1]["input_asset_id"] = "missing"
+        before = self.snapshot()
+        self.error("ASSET_NOT_FOUND", lambda: service.prepare_storyboards(self.project, args, self.ctx()))
+        self.assertEqual(self.snapshot(), before)
+        self.assert_no_generation()
+
+    def test_replacing_one_reference_invalidates_old_group_and_submits_only_target(self):
+        from app import director_generation as generation
+        self.text_node()
+        shared, other = self.asset(), self.asset("red")
+        nodes = service.prepare_storyboards(self.project, {**self.board_args(), "input_asset_id": shared["id"]}, self.ctx())["artifacts"]
+        ids = [n["node_id"] for n in nodes]
+        old = generation.prepare_generation(self.project, ids, {n: 1 for n in ids}, "old-group")
+        service.update_node(self.project, {"node_id": ids[0], "expected_config_revision": 1,
+            "config": {"input_asset_id": other["id"]}}, self.ctx("change-reference"))
+        self.error("DIRECTOR_ACTION_STALE", lambda: generation.confirm_generation(self.project, old["action_id"],
+            {"client_request_id": "old-confirm", "user_action": "confirm_generate"}))
+        self.assertEqual(db.query("SELECT * FROM tasks"), [])
+        new = generation.prepare_generation(self.project, [ids[0]], {ids[0]: 2}, "one-shot")
+        result = generation.confirm_generation(self.project, new["action_id"], {"client_request_id": "one-confirm", "user_action": "confirm_generate"})
+        task = db.get("tasks", result["tasks"][0]["task_id"])
+        self.assertEqual(task["input_asset_id"], other["id"])
+        self.assertEqual(len(db.query("SELECT * FROM tasks")), 1)
+        untouched = next(n for n in canvas.get_canvas(self.project)["nodes"] if n["node_id"] == ids[1])
+        self.assertEqual(untouched["config_revision"], 1)
+        self.assertEqual(untouched["config"]["input_asset_id"], shared["id"])
+
+    def test_shared_reference_bytes_reach_each_image_provider_request(self):
+        import base64
+        from types import SimpleNamespace
+        from app import cloud_tasks, director_generation as generation
+        self.text_node()
+        asset = self.asset()
+        raw = storage.asset_path(asset).read_bytes()
+        nodes = service.prepare_storyboards(self.project, {**self.board_args(), "input_asset_id": asset["id"]}, self.ctx())["artifacts"]
+        action = generation.prepare_generation(self.project, [n["node_id"] for n in nodes],
+            {n["node_id"]: 1 for n in nodes}, "reference-group")
+        result = generation.confirm_generation(self.project, action["action_id"],
+            {"client_request_id": "confirm-group", "user_action": "confirm_generate"})
+        with patch("app.providers_ark._request", return_value={"data": [{"b64_json": base64.b64encode(raw).decode()}]}) as transport:
+            for item in result["tasks"]:
+                task = db.get("tasks", item["task_id"])
+                self.assertEqual(task["input_asset_id"], asset["id"])
+                output = cloud_tasks.run_image(task["id"], task["model_id"], db.loads(task["params_json"]),
+                    SimpleNamespace(raise_if_canceled=lambda: None))
+                self.assertTrue(output["usage"]["reference_image"])
+            self.assertEqual(transport.call_count, 2)
+            for call in transport.call_args_list:
+                self.assertEqual(call.args[:2], ("POST", "/images/generations"))
+                self.assertEqual(call.args[2]["model"], IMAGE)
+                mime, encoded = call.args[2]["image"].split(",", 1)
+                self.assertEqual(mime, "data:image/png;base64")
+                self.assertEqual(base64.b64decode(encoded), raw)
+
+    def test_reference_file_changed_after_quote_rejects_whole_group(self):
+        from app import director_generation as generation
+        self.text_node()
+        asset = self.asset()
+        nodes = service.prepare_storyboards(self.project, {**self.board_args(), "input_asset_id": asset["id"]}, self.ctx())["artifacts"]
+        action = generation.prepare_generation(self.project, [n["node_id"] for n in nodes],
+            {n["node_id"]: 1 for n in nodes}, "reference-group")
+        storage.asset_path(asset).write_bytes(b"changed after quote")
+        self.error("DIRECTOR_ACTION_STALE", lambda: generation.confirm_generation(self.project, action["action_id"],
+            {"client_request_id": "confirm-group", "user_action": "confirm_generate"}))
+        self.assertEqual(db.query("SELECT * FROM tasks"), [])
+        self.assertEqual(db.query("SELECT * FROM canvas_node_executions"), [])
+        self.assertTrue(all(q["consumed_at"] is None for q in db.query("SELECT * FROM canvas_node_quotes")))
+
     def test_invalid_size_type_is_structured_validation_error(self):
         self.text_node()
         before = self.snapshot()

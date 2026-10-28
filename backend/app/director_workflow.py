@@ -14,6 +14,7 @@ from typing import Any
 from . import config, db, director_chat as legacy, director_creation as creation
 from . import director_generation, node_execution, projects
 from . import director_recovery
+from . import director_context
 from .assistant import provider as prov, service as assistant
 from .assistant.provider import ToolSpec
 from .errors import err
@@ -33,8 +34,9 @@ _PARAMS = _schema({"size": _STRING, "ratio": _STRING, "resolution": _STRING,
                    "generate_audio": {"type": "boolean"}, "seed": {"type": "integer"}})
 _SCRIPT = legacy.ScriptContent.model_json_schema()
 _SCRIPT["properties"]["base_version"] = {"type": "integer", "minimum": 0}
+_REFERENCE = {"type": ["string", "null"], "description": "参考图片素材ID；逐镜省略时继承本组参考图，显式null取消该镜参考图。"}
 _SHOT = _schema({"prompt": _STRING, "title": _STRING, "duration_s": {"type": "integer"},
-                 "motion": _STRING, "input_asset_id": _STRING, "params": _PARAMS}, ["prompt"])
+                 "motion": _STRING, "input_asset_id": _REFERENCE, "params": _PARAMS}, ["prompt"])
 _IMAGE_SOURCE = _schema({"node_id": _STRING, "expected_config_revision": _REVISION,
                          "asset_id": _STRING, "execution_id": _STRING, "prompt": _STRING,
                          "title": _STRING, "params": _PARAMS}, ["asset_id", "prompt"])
@@ -51,9 +53,9 @@ TOOLS = [
     ToolSpec("write_script", "根据已清楚的需求直接保存真实脚本；修改已有脚本必须带当前base_version。无需再让用户点击生成脚本。", _SCRIPT),
     ToolSpec("prepare_script_confirmation", "为已有的当前脚本恢复或更新用户确认入口；不重写脚本，不代用户确认。确认入口缺失或过期时调用。",
              _schema({"script_id": _STRING, "expected_version": _REVISION}, ["script_id", "expected_version"])),
-    ToolSpec("prepare_storyboards", "从已确认的当前script或自由text节点创建逐镜图片节点；自动准备一次整组报价，零生成任务",
+    ToolSpec("prepare_storyboards", "从已确认script或自由text节点创建分镜并准备整组报价，不生成。顶层input_asset_id指定本组共用商品参考图；逐镜可覆盖或显式null取消。",
              _schema({"source_node_id": _STRING, "expected_source_revision": _REVISION,
-                      "model_id": _STRING, "params": _PARAMS,
+                      "model_id": _STRING, "params": _PARAMS, "input_asset_id": _REFERENCE,
                       "shots": {"type": "array", "items": _SHOT, "minItems": 1, "maxItems": 20}},
                      ["source_node_id", "expected_source_revision", "model_id", "shots"])),
     ToolSpec("prepare_video_nodes", "从明确选中的成功图片输出或素材库图片建立视频节点；sources数组就是镜头顺序。用户要整片时output_mode=film，逐段交付为clips；不直接生成",
@@ -81,6 +83,9 @@ PROJECT_TOOLS = TOOLS
 SYSTEM_PROMPT = """你是物料间的创作主控，在同一个项目会话中承担编剧、导演、摄影师、剪辑师职责。
 服务端给出的 current_role 是当前工作参考，不代表你有确认或支付权限。
 本轮已经提供真实 creation/project 上下文，优先直接使用。只有内容缺失或确需刷新状态时才调用get_creation_context。
+content_ref/config_text_ref指向已提供的同一版本正文；get_creation_context返回unchanged时使用initial_context，不能把引用误认为正文缺失。
+历史保存回执只说明当时的结果，当前节点是否存在、当前参数和执行状态以本轮creation/project为准。
+用户指定商品参考图时，用其真实asset_id作为prepare_storyboards顶层input_asset_id，让本组分镜共用；逐镜prompt写清用户要求保留的特征。不猜测图中内容，不擅自选无关图片。某镜需要换图或不用图时，只覆盖该镜的input_asset_id；没有参考图时可文生图，不强制上传。
 需求澄清、讨论拍法和写脚本无需预先查询模型；准备图片/视频参数或用户明确询问模型能力时，才调用list_models读取所需种类。
 用户只会看到respond_to_user.message或服务端根据真实产物生成的回复。普通assistant文本和中间工具结果不展示给用户。
 讨论或澄清时，message必须完整、自洽地包含本轮建议及必要问题；不得说“方案已给到”“如上所述”来指代本轮未展示的内容。
@@ -353,9 +358,11 @@ def conversation(project_id: str, body: dict, provider=None) -> dict:  # noqa: A
 
     ctx = {"project_id": project_id, "session_id": session["id"], "request_id": request_id,
            "selected_node_ids": body["selected_node_ids"]}
+    initial_context = director_context.snapshot(context, project_context)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "context", "content": {
-        "current_role": context["current_role"], "creation": context, "project": project_context}},
-        *legacy._history(project_id), {"role": "user", "content": body["message"]}]
+        "current_role": context["current_role"], **initial_context}},
+        *legacy._history(project_id, compact_artifacts=True, current_nodes=context["nodes"]),
+        {"role": "user", "content": body["message"]}]
     artifacts, actions, tool_results, rounds, failures = [], [], [], [], []
     pending_errors: dict[str, dict] = {}
     repeated: Counter = Counter()
@@ -472,7 +479,9 @@ def conversation(project_id: str, body: dict, provider=None) -> dict:  # noqa: A
                 {"id": call_ids[index], "type": "function", "function": {"name": call.name,
                     "arguments": prov.tool_arguments_json(call)}} for index, call in enumerate(calls)]},
                 *[{"role": "tool", "tool_call_id": entry["tool_call_id"], "name": entry["tool"],
-                   "content": db.dumps(entry.get("result") if entry["ok"] else entry["error"])} for entry in entries]])
+                   "content": db.dumps(director_context.context_tool_reply(entry["result"], initial_context)
+                       if entry["ok"] and entry["tool"] == "get_creation_context"
+                       else entry.get("result") if entry["ok"] else entry["error"])} for entry in entries]])
             if stop_after_artifact or response_to_user and not pending_errors:
                 break
             if any(count >= max(1, config.DIRECTOR_MAX_REPEATED_ERRORS) for count in repeated.values()):

@@ -377,7 +377,7 @@ def _receipt(project_id: str, client_request_id: str) -> dict | None:
     return rows[0] if rows else None
 
 
-def _history(project_id: str) -> list[dict]:
+def _history(project_id: str, *, compact_artifacts: bool = False, current_nodes: list[dict] | None = None) -> list[dict]:
     """Bounded project memory; the complete transcript remains available through messages()."""
     rows = db.query("SELECT user_text,reply_text,structured_json FROM director_turns "
                     "WHERE project_id=? ORDER BY created_at DESC,id DESC LIMIT 8", (project_id,))
@@ -387,6 +387,9 @@ def _history(project_id: str) -> list[dict]:
         user, reply = row["user_text"], row["reply_text"]
         structured = db.loads(row["structured_json"]) or {}
         artifacts = structured.get("artifacts") or []
+        if compact_artifacts:
+            from .director_context import history_artifact
+            artifacts = [history_artifact(artifact, current_nodes or []) for artifact in artifacts]
         assistant = reply + ("\n已保存草案回执：" + db.dumps(artifacts) if artifacts else "")
         if (structured.get("outcome") or {}).get("status") in ("failed", "partial"):
             assistant += "\n实际执行结果：" + db.dumps(structured["outcome"])

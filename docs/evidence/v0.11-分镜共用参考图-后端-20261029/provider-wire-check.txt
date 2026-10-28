@@ -1,0 +1,6 @@
+test_shared_reference_bytes_reach_each_image_provider_request (test_director_creation.DirectorCreationTests.test_shared_reference_bytes_reach_each_image_provider_request) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.553s
+
+OK
