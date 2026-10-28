@@ -1,0 +1,43 @@
+临时库：/tmp/dirchat-iuudjq16/app.db（业务库未打开）
+
+=== 1) 只澄清 → 无产物；脚本草案自动保存并返回真实 ID ===
+  OK  只澄清：无脚本/无任务  {'artifacts': 0, 'tasks': 0, 'reply_type': 'clarify'}
+  OK  脚本草案自动保存（真实 ID/版本，未确认）+ 刷新可取回  {'script_id': 'scr_6c70d3aaca…', 'version': 1, 'confirmed': False, 'actions': ['confirm_script']}
+
+=== 2) 畸形结构 / 伪造确认 / 越权工具 ===
+  OK  LLM 返回畸形结构 → 不保存、不假成功  {'saved': 0, 'error': 'VALIDATION_FAILED'}
+  OK  确认/提交/生成工具不存在；工具不接受 project_id  {'code': 'TOOL_FORBIDDEN', 'http': 400, 'tools': ['get_project_state', 'list_models', 'propose_brief', 'propose_script', 'propose_shot_plan']}
+
+=== 3) 幂等：重复请求 / 同键不同内容 / pending ===
+  OK  同键同内容重发 → 返回原结果，不重复调用 LLM  {'replay': True, 'llm_calls': 1}
+  OK  同键不同内容 → 409 IDEMPOTENCY_CONFLICT  {'code': 'IDEMPOTENCY_CONFLICT', 'http': 409}
+  OK  断线恢复：按 client_request_id 查回执  {'code': 'DIRECTOR_REQUEST_NOT_FOUND', 'http': 404, 'status': 'completed'}
+
+=== 4) 项目隔离 ===
+  OK  A 项目会话不能改绑到 B（PROJECT_SESSION_MISMATCH）  {'code': 'PROJECT_SESSION_MISMATCH', 'http': 409}
+  OK  画布节点引用其它项目对象 → 拒绝  {'code': 'CANVAS_INVALID_REFERENCE', 'http': 400}
+
+=== 5) 自动保存 ≠ 确认 ≠ 生成 ===
+  OK  导演流程不自动创建图片/视频任务  {'tasks': 0, 'script_confirmed': False}
+
+=== 6) 提案应用：brief / shot_plan ===
+  OK  需求提案：应用前不改项目事实，应用后才写入  {'applied': True, 'stale': ['script_confirm', 'shot_plan_confirm']}
+  OK  镜头计划：脚本未确认不可应用；应用不生成任务  {'code': 'SCRIPT_NOT_CONFIRMED', 'http': 409, 'shots': 2}
+  OK  脚本升版后旧镜头计划不可应用（PROPOSAL_NOT_APPLICABLE）  {'code': 'PROPOSAL_NOT_APPLICABLE', 'http': 409}
+
+=== 7) 画布：布局 vs 配置；节点独立持久化 ===
+  OK  只移动节点：布局修订+1，配置与报价不受影响  {'layout_revision': 2, 'config_changed': False}
+  OK  改生成配置：配置修订+1 且整组报价失效  {'config_revision': 2, 'invalidated': ['scope']}
+  OK  多节点各自保存模式/模型/规格/素材（互不串）  {'n1_mode': 'text_to_video', 'n2_mode': 'image_to_video', 'n2_duration': 8}
+  OK  节点配置校验：模式冲突/时长越界/图生缺素材均拒绝  {'t2v_with_img': 'GENERATION_MODE_CONFLICT', 'duration': 'MODEL_CAPABILITY_MISMATCH', 'i2v_no_img': 'REFERENCE_IMAGE_REQUIRED'}
+  OK  连线循环依赖 → CANVAS_CYCLE  {'code': 'CANVAS_CYCLE', 'http': 400}
+  OK  布局并发冲突 → CANVAS_REVISION_CONFLICT  {'code': 'CANVAS_REVISION_CONFLICT', 'http': 409}
+
+=== 8) 预算闸门（每次 LLM 调用前）===
+  OK  单次预估超限 → 429，且未产生产物  {'code': 'ASSISTANT_BUDGET_EXCEEDED', 'http': 429}
+  OK  会话累计超限 → 429（可解释）  {'code': 'ASSISTANT_BUDGET_EXCEEDED', 'http': 429}
+
+============================================================
+结果：21/21 通过
+付费 0｜真实 LLM 0｜业务库未打开
+证据：/Users/niannian/Documents/VScode/电商工作平台/docs/evidence/v0.11-真实联调与整版验收-20261028/final-backend-20261028T085256Z/legacy/免费验收结果.json

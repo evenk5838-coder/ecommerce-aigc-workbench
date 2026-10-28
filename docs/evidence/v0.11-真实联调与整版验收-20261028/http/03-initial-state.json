@@ -1,0 +1,44 @@
+{
+  "method": "GET",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/conversation/state",
+  "request": null,
+  "started_at": 1793175909.729563,
+  "status": 200,
+  "response": {
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "session_id": null,
+    "current_role": "writer",
+    "creation": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "current_role": "writer",
+      "selected_node_ids": [],
+      "layout_revision": 0,
+      "nodes": [],
+      "total_nodes": 0,
+      "nodes_truncated": false,
+      "script": null,
+      "side_effects": {
+        "task_created": false,
+        "model_called": false,
+        "budget_deducted": false
+      }
+    },
+    "project": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "name": "晨光白杯 · 真实联调验收",
+      "brief": {},
+      "current_stage": "requirements",
+      "script": null,
+      "shots": [],
+      "allowed_actions": [
+        "save_brief"
+      ],
+      "draft_proposals": []
+    },
+    "outcome": null,
+    "artifacts": [],
+    "actions": [],
+    "workflow_revision": 3951277942761963
+  },
+  "finished_at": 1793175909.858284
+}

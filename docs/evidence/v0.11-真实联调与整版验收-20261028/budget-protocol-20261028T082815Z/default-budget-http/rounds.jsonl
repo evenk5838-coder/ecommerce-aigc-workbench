@@ -1,0 +1,6 @@
+{"stage": "[CLARIFY]", "old_estimated_cny": 0.033346, "new_estimated_cny": 0.02121, "limit_cny": 0.05, "old_chars_as_tokens": 9038, "max_output_tokens": 1600, "passed_default_per_call": true}
+{"stage": "[SCRIPT]", "old_estimated_cny": 0.033588, "new_estimated_cny": 0.021336, "limit_cny": 0.05, "old_chars_as_tokens": 9150, "max_output_tokens": 1600, "passed_default_per_call": true}
+{"stage": "[STORYBOARDS]", "old_estimated_cny": 0.036644, "new_estimated_cny": 0.0227, "limit_cny": 0.05, "old_chars_as_tokens": 10565, "max_output_tokens": 1600, "passed_default_per_call": true}
+{"stage": "[STORYBOARDS]", "old_estimated_cny": 0.045757, "new_estimated_cny": 0.026052, "limit_cny": 0.05, "old_chars_as_tokens": 14784, "max_output_tokens": 1600, "passed_default_per_call": true}
+{"stage": "[VIDEOS]", "old_estimated_cny": 0.054838, "new_estimated_cny": 0.029612, "limit_cny": 0.05, "old_chars_as_tokens": 18988, "max_output_tokens": 1600, "passed_default_per_call": true}
+{"stage": "[VIDEOS]", "old_estimated_cny": 0.081626, "new_estimated_cny": 0.03909, "limit_cny": 0.05, "old_chars_as_tokens": 31390, "max_output_tokens": 1600, "passed_default_per_call": true}

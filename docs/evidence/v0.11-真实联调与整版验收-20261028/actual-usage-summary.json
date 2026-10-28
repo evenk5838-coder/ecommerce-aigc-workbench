@@ -1,0 +1,100 @@
+{
+  "model_usage": [
+    {
+      "provider": "deepseek",
+      "model": "deepseek-flash",
+      "request_count": 13,
+      "estimated_cny": 0.078429,
+      "input_tokens": 67344,
+      "output_tokens": 3285
+    }
+  ],
+  "media_tasks": [
+    {
+      "id": "task_55bcd3cea5254dfaa264",
+      "kind": "image",
+      "status": "succeeded",
+      "model_id": "doubao-seedream-5-0-flash-260915",
+      "input_asset_id": null,
+      "output_asset_id": "asset_f33e4500f99a4ea9bcfb",
+      "attempts": 1,
+      "cost_cny": 0.12,
+      "width": 2688,
+      "height": 1536,
+      "duration_ms": null,
+      "fps": null
+    },
+    {
+      "id": "task_007ee353d3ad420f9dff",
+      "kind": "image",
+      "status": "succeeded",
+      "model_id": "doubao-seedream-5-0-flash-260915",
+      "input_asset_id": null,
+      "output_asset_id": "asset_4582d814538a4668968e",
+      "attempts": 1,
+      "cost_cny": 0.12,
+      "width": 2688,
+      "height": 1536,
+      "duration_ms": null,
+      "fps": null
+    },
+    {
+      "id": "task_cbd9b1ea84cc4ab5a965",
+      "kind": "video",
+      "status": "succeeded",
+      "model_id": "doubao-seedance-1-0-pro-fast-251015",
+      "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+      "output_asset_id": "asset_0b22960e2ae645e889aa",
+      "attempts": 1,
+      "cost_cny": 0.436,
+      "width": 1248,
+      "height": 704,
+      "duration_ms": 5040,
+      "fps": 24
+    },
+    {
+      "id": "task_9730c70b749440f8a333",
+      "kind": "video",
+      "status": "succeeded",
+      "model_id": "doubao-seedance-1-0-pro-fast-251015",
+      "input_asset_id": "asset_4582d814538a4668968e",
+      "output_asset_id": "asset_03ed4227fc544b66828c",
+      "attempts": 1,
+      "cost_cny": 0.436,
+      "width": 1248,
+      "height": 704,
+      "duration_ms": 5040,
+      "fps": 24
+    },
+    {
+      "id": "task_fa925250883542ca84a0",
+      "kind": "image",
+      "status": "succeeded",
+      "model_id": "doubao-seedream-5-0-flash-260915",
+      "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+      "output_asset_id": "asset_d229fe77760b4712af6f",
+      "attempts": 1,
+      "cost_cny": 0.12,
+      "width": 2688,
+      "height": 1536,
+      "duration_ms": null,
+      "fps": null
+    },
+    {
+      "id": "task_0eee9b87b1704fda895e",
+      "kind": "video",
+      "status": "succeeded",
+      "model_id": "doubao-seedance-1-0-pro-fast-251015",
+      "input_asset_id": null,
+      "output_asset_id": "asset_0bd7e46e9d4f4fa09d2d",
+      "attempts": 1,
+      "cost_cny": 0.436,
+      "width": 1248,
+      "height": 704,
+      "duration_ms": 5040,
+      "fps": 24
+    }
+  ],
+  "application_estimated_total_cny": 1.746429,
+  "supplier_invoice_verified": false
+}

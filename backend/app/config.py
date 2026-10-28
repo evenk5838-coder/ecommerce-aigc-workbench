@@ -145,7 +145,12 @@ DIRECTOR_MAX_COST_PER_CALL_CNY = float(os.getenv("DIRECTOR_MAX_COST_PER_CALL_CNY
 # 单会话累计上限（元）；0 = 不限制
 DIRECTOR_MAX_SESSION_COST_CNY = float(os.getenv("DIRECTOR_MAX_SESSION_COST_CNY", "0.30"))
 # 单轮最多工具调用次数
-DIRECTOR_MAX_TOOL_CALLS = int(os.getenv("DIRECTOR_MAX_TOOL_CALLS", "2"))
+DIRECTOR_MAX_TOOL_CALLS = int(os.getenv("DIRECTOR_MAX_TOOL_CALLS", "4"))
+DIRECTOR_MAX_ROUNDS = int(os.getenv("DIRECTOR_MAX_ROUNDS", "4"))
+DIRECTOR_MAX_REPEATED_ERRORS = int(os.getenv("DIRECTOR_MAX_REPEATED_ERRORS", "2"))
+# Script tool arguments need more room than the ordinary prompt-polishing reply.
+# This is still included in every request's preflight budget estimate.
+DIRECTOR_MAX_OUTPUT_TOKENS = int(os.getenv("DIRECTOR_MAX_OUTPUT_TOKENS", "1600"))
 
 MODEL_REGISTRY.update({
     "doubao-seedream-5-0-pro-260628": {
@@ -356,8 +361,14 @@ def duration_policy(model_id: str) -> dict:
 
 def _duration_error(model_id: str, got, reason: str, policy: dict) -> "AppError":  # noqa: F821
     from .errors import err
+    if reason == "policy_unavailable":
+        message = f"模型 {model_id} 的时长配置暂不可用，请选择其他视频模型"
+    else:
+        explanation = {"not_integer": "请使用整数秒", "out_of_range": "超出模型支持范围",
+                       "step_mismatch": "不符合模型支持的时长间隔", "missing": "请选择视频时长"}.get(reason, reason)
+        message = f"模型 {model_id} 的时长不合法：{got!r}（{explanation}）"
     return err("MODEL_CAPABILITY_MISMATCH",
-               f"模型 {model_id} 的时长不合法：got={got!r}（{reason}）",
+               message,
                detail={"field": "duration", "policy": policy, "reason": reason,
                        "got": got, "got_type": type(got).__name__})
 
@@ -455,10 +466,7 @@ def video_cost_cny(model_id: str, params: dict, *, legacy: bool = False) -> floa
     无法解析 → 直接报错，由调用方决定如何处理。
     """
     resolved = resolve_duration_s(model_id, params.get("duration"),
-                                  strict=False, legacy=legacy)
-    if resolved is None:
-        raise _duration_error(model_id, params.get("duration"), "not_integer",
-                              duration_policy(model_id))
+                                  strict=True, legacy=legacy)
     tokens = video_token_estimate(
         resolved,
         params.get("resolution") or "720p",
@@ -466,6 +474,44 @@ def video_cost_cny(model_id: str, params: dict, *, legacy: bool = False) -> floa
     )
     price = float(VIDEO_PRICE_PER_MTOKEN.get(model_id, 46.0))
     return round(tokens / 1e6 * price, 4)
+
+
+def historical_video_reservation_cny(model_id: str, params: dict) -> float:
+    """Price an already-submitted task, independently of today's submit capability.
+
+    For pre-quote records only: use the recorded, lossless integer duration and
+    explicit known output specification/rate. Never supply a missing duration,
+    assume a rate for an unknown model or allow this path to validate a new job.
+    """
+    import math
+    from .errors import err
+
+    def unavailable():
+        return err("BUDGET_RESERVATION_UNAVAILABLE",
+                   "有历史任务的费用尚无法核算，请先核对该任务后继续生成",
+                   detail={"model_id": model_id})
+
+    if not isinstance(params, dict):
+        raise unavailable()
+    duration = params.get("duration")
+    if isinstance(duration, bool) or not isinstance(duration, int):
+        duration = _legacy_to_int(duration)
+    resolution, ratio = params.get("resolution"), params.get("ratio")
+    price = VIDEO_PRICE_PER_MTOKEN.get(model_id)
+    if (duration is None or duration <= 0 or not isinstance(resolution, str)
+            or resolution not in RESOLUTION_WH or not isinstance(ratio, str)
+            or ratio not in {"9:16", "16:9", "1:1", "4:3", "3:4", "21:9", "9:21"}
+            or isinstance(price, bool) or not isinstance(price, (int, float))
+            or not math.isfinite(price) or price <= 0
+            or params.get("generate_audio", False) is not False):
+        raise unavailable()
+    try:
+        cost = round(video_token_estimate(duration, resolution, ratio) / 1e6 * price, 4)
+    except (ValueError, OverflowError):
+        raise unavailable() from None
+    if not math.isfinite(cost) or cost <= 0:
+        raise unavailable()
+    return cost
 
 
 # ---------- 模型生命周期（到期保护） ----------

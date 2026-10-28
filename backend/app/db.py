@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS assembly_errors(
 CREATE TABLE IF NOT EXISTS director_requests(
   id TEXT PRIMARY KEY, project_id TEXT, client_request_id TEXT, payload_hash TEXT,
   status TEXT DEFAULT 'pending', turn_id TEXT, error_code TEXT, error_message TEXT,
-  response_json TEXT, created_at REAL, updated_at REAL,
+  response_json TEXT, request_json TEXT, created_at REAL, updated_at REAL,
   UNIQUE(project_id, client_request_id));
 
 CREATE TABLE IF NOT EXISTS director_turns(
@@ -147,6 +147,49 @@ CREATE TABLE IF NOT EXISTS canvas_nodes(
   position_json TEXT, config_json TEXT, binding_json TEXT,
   config_revision INTEGER DEFAULT 1, created_at REAL, updated_at REAL,
   UNIQUE(project_id, node_id));
+
+-- v0.11: recoverable canvas edits and action-scoped media execution.
+CREATE TABLE IF NOT EXISTS canvas_deletions(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL,
+  deleted_nodes_json TEXT NOT NULL, removed_edges_json TEXT NOT NULL,
+  delete_layout_revision INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'deleted',
+  created_at REAL NOT NULL, restored_at REAL, restore_layout_revision INTEGER);
+
+CREATE TABLE IF NOT EXISTS canvas_node_quotes(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL, node_id TEXT NOT NULL,
+  node_record_id TEXT NOT NULL, config_revision INTEGER NOT NULL,
+  input_hash TEXT NOT NULL, frozen_json TEXT NOT NULL, estimated_cost_cny REAL NOT NULL,
+  expires_at REAL NOT NULL, consumed_at REAL, execution_id TEXT, created_at REAL NOT NULL);
+
+CREATE TABLE IF NOT EXISTS canvas_node_executions(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL, node_id TEXT NOT NULL,
+  node_record_id TEXT NOT NULL, quote_id TEXT UNIQUE NOT NULL,
+  client_request_id TEXT NOT NULL, payload_hash TEXT NOT NULL, task_id TEXT UNIQUE NOT NULL,
+  input_hash TEXT NOT NULL, config_revision INTEGER NOT NULL, created_at REAL NOT NULL,
+  UNIQUE(project_id, client_request_id));
+
+-- A tool's durable result survives a lost conversation response.
+CREATE TABLE IF NOT EXISTS director_tool_operations(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL, request_id TEXT NOT NULL,
+  tool_name TEXT NOT NULL, input_hash TEXT NOT NULL, response_json TEXT NOT NULL,
+  created_at REAL NOT NULL,
+  UNIQUE(project_id, request_id, tool_name, input_hash));
+
+-- Model tools may prepare these scopes; only the user confirmation endpoint submits.
+CREATE TABLE IF NOT EXISTS director_actions(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL, request_id TEXT NOT NULL,
+  kind TEXT NOT NULL, input_hash TEXT NOT NULL, frozen_json TEXT NOT NULL,
+  estimated_cost_cny REAL NOT NULL DEFAULT 0, expires_at REAL NOT NULL,
+  status TEXT NOT NULL DEFAULT 'proposed', submit_client_request_id TEXT,
+  result_json TEXT, created_at REAL NOT NULL, updated_at REAL NOT NULL,
+  UNIQUE(project_id, request_id, kind, input_hash),
+  UNIQUE(project_id, submit_client_request_id));
+
+CREATE TABLE IF NOT EXISTS director_compositions(
+  id TEXT PRIMARY KEY, project_id TEXT NOT NULL, action_id TEXT UNIQUE NOT NULL,
+  status TEXT NOT NULL DEFAULT 'queued', input_json TEXT NOT NULL,
+  output_asset_id TEXT, result_node_id TEXT, error_json TEXT,
+  created_at REAL NOT NULL, updated_at REAL NOT NULL, started_at REAL, finished_at REAL);
 
 CREATE TABLE IF NOT EXISTS confirmations(
   id TEXT PRIMARY KEY, project_id TEXT, object_type TEXT, object_id TEXT,
@@ -197,6 +240,12 @@ CREATE INDEX IF NOT EXISTS idx_scopes ON generation_scopes(project_id, status);
 CREATE INDEX IF NOT EXISTS idx_films ON films(project_id, version);
 CREATE INDEX IF NOT EXISTS idx_director_turns ON director_turns(project_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_director_proposals ON director_proposals(project_id, kind, version);
+CREATE INDEX IF NOT EXISTS idx_canvas_deletions ON canvas_deletions(project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_node_executions ON canvas_node_executions(project_id, node_record_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_node_quotes ON canvas_node_quotes(project_id, node_record_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_director_actions ON director_actions(project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_director_tool_operations ON director_tool_operations(project_id, request_id);
+CREATE INDEX IF NOT EXISTS idx_director_compositions ON director_compositions(status, created_at);
 """
 
 
@@ -276,6 +325,7 @@ MIGRATIONS = [
     ("storyboards", "shot_revision", "INTEGER"),
     ("canvas_states", "edges_json", "TEXT"),
     ("projects", "deleted_at", "REAL"),
+    ("director_requests", "request_json", "TEXT"),
 ]
 
 
@@ -293,6 +343,8 @@ def _install_project_guards(c) -> None:
     direct = ("shots", "script_versions", "generation_scopes", "submit_receipts",
               "films", "project_exports", "assembly_errors", "director_requests",
               "director_turns", "director_proposals", "canvas_states", "canvas_nodes",
+              "canvas_deletions", "canvas_node_quotes", "canvas_node_executions",
+              "director_tool_operations", "director_actions", "director_compositions",
               "confirmations", "confirmation_events", "assistant_sessions", "assistant_briefs", "assistant_quotes",
               "assistant_approvals")
     predicates = {table: "EXISTS(SELECT 1 FROM projects p WHERE p.id={row}.project_id "

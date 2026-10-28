@@ -1,0 +1,14 @@
+{
+  "suite": "four-modes",
+  "real_provider_calls": 0,
+  "network_attempts_blocked": 0,
+  "business_database_opened": false,
+  "dotenv_read": false,
+  "sqlite_paths": [
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-keyfvlx6/modes-7fk68gr4/app.db"
+  ],
+  "fixture_budget_cny": 1000,
+  "total": 12,
+  "failed": 0,
+  "exit_code": 0
+}

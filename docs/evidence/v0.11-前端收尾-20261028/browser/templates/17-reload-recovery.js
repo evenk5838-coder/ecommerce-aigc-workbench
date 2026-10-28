@@ -1,0 +1,1 @@
+return {url:page.url(),dialogs:globalThis.dialogLog,buildScripts:await page.locator('script[src]').evaluateAll(scripts=>scripts.map(script=>script.src)),mutations:globalThis.networkLog.filter(item=>!['GET','HEAD'].includes(item.method)),state:await tabbit.observe({frames:'none',maxChars:8000})};

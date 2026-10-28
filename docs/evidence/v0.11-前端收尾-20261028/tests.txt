@@ -1,0 +1,54 @@
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run --run --reporter=default --reporter=json --outputFile=../docs/evidence/v0.11-前端收尾-20261028/test-results.json
+
+
+ RUN  v5.0.5 /Users/niannian/Documents/VScode/电商工作平台/frontend
+
+ ✓ src/creative/state.test.ts (20 tests) 52ms
+ ✓ src/assistant/api.test.ts (31 tests) 71ms
+ ✓ src/creative/production-api.test.ts (22 tests) 174ms
+ ✓ src/creative/canvas-layout-sync.test.ts (59 tests) 185ms
+ ✓ src/creative/api.test.ts (69 tests) 234ms
+ ✓ src/creative/canvas-state.test.ts (20 tests) 176ms
+ ✓ src/creative/production-wire.test.ts (10 tests) 129ms
+ ✓ src/creative/director-workflow-api.test.ts (32 tests) 111ms
+ ✓ src/creative/workflow-conversation-state.test.ts (25 tests) 140ms
+ ✓ src/creative/director-project-api.test.ts (39 tests) 217ms
+ ✓ src/creative/director.test.ts (25 tests) 69ms
+ ✓ src/creative/director-chat-state.test.ts (13 tests) 14ms
+ ✓ src/assistant/guards.test.ts (41 tests) 11ms
+ ✓ src/creative/ProductionFlow.test.ts (13 tests) 385ms
+ ✓ src/creative/canvas-node-actions.test.ts (28 tests) 143ms
+ ✓ src/creative/production-state.test.ts (31 tests) 45ms
+ ✓ src/creative/director-action-view.test.tsx (38 tests) 208ms
+ ✓ src/capabilities.test.ts (29 tests) 34ms
+ ✓ src/creative/free-canvas-state.test.ts (45 tests) 99ms
+ ✓ src/editor.test.ts (9 tests) 7ms
+ ✓ src/generation.test.ts (16 tests) 21ms
+ ✓ src/creative/production-guards.test.ts (27 tests) 16ms
+ ✓ src/creative/confirmScriptDraft.test.ts (11 tests) 48ms
+ ✓ src/estimates.test.ts (57 tests) 14ms
+ ✓ src/creative/StructureTemplates.test.ts (17 tests) 121ms
+ ✓ src/creative/node-config.test.ts (10 tests) 5ms
+ ✓ src/generation-modes.test.ts (9 tests) 5ms
+ ✓ src/creative/creative-location.test.ts (23 tests) 7ms
+ ✓ src/creative/director-conversation-state.test.ts (7 tests) 6ms
+ ✓ src/creative/director-draft-state.test.ts (13 tests) 9ms
+ ✓ src/single-templates.test.ts (5 tests) 49ms
+ ✓ src/creative/free-canvas-reference.test.ts (6 tests) 7ms
+ ✓ src/creative/canvas-reference-connection.test.ts (8 tests) 6ms
+ ✓ src/creative/director-canvas-projection.test.ts (4 tests) 4ms
+ ✓ src/creative/workflow-draft-scope.test.ts (6 tests) 4ms
+ ✓ src/image-specs.test.ts (3 tests) 52ms
+ ✓ src/creative/canvas-progress-sync.test.ts (3 tests) 4ms
+
+ Test Files  37 passed (37)
+      Tests  824 passed (824)
+   Start at  17:24:24
+   Duration  2.16s (tests 44%, import 31%, transform 19%, worker 6%)
+
+    Isolate  37 workers spawned · ~156ms startup each (spawn + environment, per file)
+             at least ~667ms faster with isolate: false — reuses workers across files instead of one per file
+
+JSON report written to /Users/niannian/Documents/VScode/电商工作平台/docs/evidence/v0.11-前端收尾-20261028/test-results.json

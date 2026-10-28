@@ -1,0 +1,190 @@
+{
+  "recorded_at_utc": "2026-10-28T09:31:56.402934+00:00",
+  "scope": "Isolated fixed-provider frontend navigation acceptance",
+  "origin": "http://127.0.0.1:52663",
+  "project_id": "prj_d903b55c0a68434482a8",
+  "browser_task": "收尾离开保护验收",
+  "browser_task_id": "task-3bfd98aa-bcd7-43b7-b4bb-84a9da7b1090",
+  "browser_group_id": "F466DB4A8D2A07082DCA44259202DD0F",
+  "build": {
+    "scripts": [
+      "http://127.0.0.1:52663/assets/index-ejv3ijxD.js"
+    ],
+    "styles": [
+      "http://127.0.0.1:52663/assets/index-CyoWOAtM.css"
+    ]
+  },
+  "checks": {
+    "draft": {
+      "persisted": {
+        "draft": "离开保护验收：水杯短片，先保留这份未发送想法。",
+        "pending": null,
+        "actionPending": null
+      },
+      "dialogs": [],
+      "pass": true,
+      "returnedDraft": "离开保护验收：水杯短片，先保留这份未发送想法。"
+    },
+    "historyRead": {
+      "dialogs": [],
+      "heldGetRequests": [
+        "http://127.0.0.1:52663/api/projects/prj_d903b55c0a68434482a8/director/conversation/state",
+        "http://127.0.0.1:52663/api/projects/prj_d903b55c0a68434482a8/director/messages"
+      ],
+      "pass": true,
+      "url": "http://127.0.0.1:52663/#/director"
+    },
+    "pendingWrite": {
+      "url": "http://127.0.0.1:52663/#/director/prj_d903b55c0a68434482a8",
+      "requestId": "67afade7-4ccd-4116-9958-dd90a696e5e0",
+      "pass": true,
+      "dialog": {
+        "type": "confirm",
+        "message": "引导创作还有未保存内容或正在处理的请求，确定离开吗？"
+      },
+      "pendingIdentityPreserved": true
+    },
+    "completed": {
+      "dialogs": [],
+      "pass": true,
+      "completed": {
+        "draft": "",
+        "pending": null,
+        "turns": [
+          {
+            "reply": "想为哪件商品拍摄？可以告诉我风格和想表达的画面。",
+            "outcome": {
+              "status": "clarify",
+              "node_ids": [],
+              "missing_fields": [
+                "商品和创作方向"
+              ]
+            },
+            "requestId": "67afade7-4ccd-4116-9958-dd90a696e5e0",
+            "user": "[慢速测试]水杯脚本"
+          }
+        ],
+        "actionPending": null
+      },
+      "url": "http://127.0.0.1:52663/#/director"
+    },
+    "initialRead": {
+      "dialogs": [],
+      "heldGetRequests": [
+        "http://127.0.0.1:52663/api/projects/prj_d903b55c0a68434482a8/director/conversation/state",
+        "http://127.0.0.1:52663/api/projects/prj_d903b55c0a68434482a8/director/messages"
+      ],
+      "pass": true,
+      "url": "http://127.0.0.1:52663/#/director"
+    }
+  },
+  "final_state": {
+    "draft": "",
+    "pending": null,
+    "actionPending": null,
+    "turnCount": 1
+  },
+  "finish": {
+    "finished": true,
+    "keep": true,
+    "forcedCleanup": false
+  },
+  "expected_browser_issue": "BLOCKING_DIALOG is the deliberately triggered pending-write leave confirmation, dismissed and verified.",
+  "limitations": [
+    "Fixed provider returned clarify, not a generated script. This run tests navigation only.",
+    "History endpoint refresh tested with actual delayed GET; older-page pagination not separately tested.",
+    "No real provider or media generation was invoked in this run.",
+    "Native window-close/beforeunload was not tested; tested in-app return navigation."
+  ],
+  "source_fingerprints": [
+    {
+      "path": "frontend/src/creative/DirectorChat.tsx",
+      "sha256": "0b770a8964b8f3dbd95bde12a2aa28dff75a39fa42c9416e7937dafc1eec2576"
+    },
+    {
+      "path": "frontend/src/creative/director-draft-state.ts",
+      "sha256": "d61dd559468174d92aa54e580a4cfb5290f388d82336fc23e78891c537bc1da5"
+    },
+    {
+      "path": "frontend/src/creative/director-draft-state.test.ts",
+      "sha256": "43f0be0368ab9df510e75348848571dcc37bce980b7908ae6d4b82d26afd40eb"
+    }
+  ],
+  "files": [
+    {
+      "path": "02-home-observe.json",
+      "bytes": 9129,
+      "sha256": "cf603d4db612423fa08db5d61bed1e2169e742d9847ed33d726801438c4b6800"
+    },
+    {
+      "path": "03-new-project.json",
+      "bytes": 5211,
+      "sha256": "c40865d92563668fdf8b5537de964919ec224ac99ce70ba61fcd97f9cf15f7a8"
+    },
+    {
+      "path": "04-created.json",
+      "bytes": 7095,
+      "sha256": "143f0aeff1cd54295b1e67713bf7a15ecf9d2ff858bc042b9a88261748474a1b"
+    },
+    {
+      "path": "05-read-capability.json",
+      "bytes": 2251,
+      "sha256": "8e10f3786323ff7eb275f373d45164ea966a7feedc23001ca94e5ce47cf4546a"
+    },
+    {
+      "path": "06-initial-read-leave.json",
+      "bytes": 547,
+      "sha256": "5b57c76cc938b14c2eae823c55a765144df8d120bfce918ed42662daab7c2f43"
+    },
+    {
+      "path": "07-project-list.json",
+      "bytes": 371,
+      "sha256": "a651a2f138ce6b0c93adce40ba681729f4670c9e06a5a6f41c88b0806e522a61"
+    },
+    {
+      "path": "08-draft-roundtrip.json",
+      "bytes": 772,
+      "sha256": "2cf989cc5cd160fa7fdd89f45fb85f44a5f713e13ea01a1fe133fc65f5e10d42"
+    },
+    {
+      "path": "09-pending-write-cancel.json",
+      "bytes": 792,
+      "sha256": "fbef616e4ba807b6996d061f40c7d6d38de56e08668a7275882866daa3b6a3a5"
+    },
+    {
+      "path": "10-completed-leave.json",
+      "bytes": 672,
+      "sha256": "b83edcbb156c223e37a63de0a288d4c615bd458cd8c381208ecf2f56f5c22555"
+    },
+    {
+      "path": "11-history-refresh-leave.json",
+      "bytes": 555,
+      "sha256": "8edf74f61c9188299fba336bacb04f29d366b6e734f5db79a773afd7e7e8f632"
+    },
+    {
+      "path": "12-final-state.json",
+      "bytes": 8302,
+      "sha256": "e62c7b09394a8fd3d779f69a5453036e2cc0263e11de33e91f14072fad8da887"
+    },
+    {
+      "path": "13-final-state.png",
+      "bytes": 188514,
+      "sha256": "9c7773de49fe76694ab4a328d7e491435d8c5cb9ad6ee162e9cb59d2ac60e9fd"
+    },
+    {
+      "path": "13-screenshot-receipt.json",
+      "bytes": 2016,
+      "sha256": "cb15d7820b50caa4a2027609045f109600eba26a2fc2caacb2f55216114ff4e1"
+    },
+    {
+      "path": "14-build.json",
+      "bytes": 502,
+      "sha256": "ed13940745e775d8b37c21b3b49225d1db91c345d54a7ee9769c712687526590"
+    },
+    {
+      "path": "15-finish.json",
+      "bytes": 735,
+      "sha256": "cc2ebb66bfc274bdd2cc39713af5ab9d58c849614987930adf423067263fd966"
+    }
+  ]
+}

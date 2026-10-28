@@ -1,0 +1,18 @@
+const dialogStart=globalThis.dialogLog.length;
+await page.getByRole('button',{name:'关闭结构模板',exact:true}).click();
+await page.getByRole('button',{name:'返回导演台',exact:true}).click();
+await expect(page.getByRole('heading',{name:'你的导演台。',exact:true})).toBeVisible();
+const firstReturnUrl=page.url();
+expect(globalThis.dialogLog.length).toBe(dialogStart);
+await page.getByRole('button',{name:'打开项目：结构模板收尾 · 保存与离开 · 1028',exact:true}).click();
+await page.getByRole('button',{name:'结构模板',exact:true}).click();
+const dialog=page.getByRole('dialog',{name:'结构模板',exact:true});
+await expect(dialog.getByRole('textbox',{name:'模板名称',exact:true})).toHaveValue('结构收尾专用 · 双镜节奏 · 1028');
+await expect(dialog.getByRole('textbox',{name:'镜头职能',exact:true}).nth(0)).toHaveValue('环境开场');
+await expect(dialog.getByRole('textbox',{name:'镜头职能',exact:true}).nth(1)).toHaveValue('细节收尾');
+const restored={name:await dialog.getByRole('textbox',{name:'模板名称',exact:true}).inputValue(),roles:await dialog.getByRole('textbox',{name:'镜头职能',exact:true}).evaluateAll(inputs=>inputs.map(input=>input.value))};
+await page.getByRole('button',{name:'关闭结构模板',exact:true}).click();
+await page.getByRole('button',{name:'返回导演台',exact:true}).click();
+await expect(page.getByRole('heading',{name:'你的导演台。',exact:true})).toBeVisible();
+expect(globalThis.dialogLog.length).toBe(dialogStart);
+return {firstReturnUrl,restored,secondReturnUrl:page.url(),dialogs:globalThis.dialogLog,cleanLeave:true,restoredCleanLeave:true};

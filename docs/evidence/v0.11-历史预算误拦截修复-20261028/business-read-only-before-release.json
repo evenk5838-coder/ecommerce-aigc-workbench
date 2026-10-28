@@ -1,0 +1,19 @@
+{
+  "read_only": true,
+  "real_model_calls": 0,
+  "proposed_two_image_cost_cny": 0.24,
+  "gate_total_cny": [
+    5.6616
+  ],
+  "historical_reservation_cny": 5.4216,
+  "legacy_record_sha256": "40805c65aa8c2e1330084a352af5175dab4a0d923b33dd8a05e6503b44df4cdb",
+  "counts": {
+    "projects": 4,
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 10
+  },
+  "quick_check": "ok"
+}

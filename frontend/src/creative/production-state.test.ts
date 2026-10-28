@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Model, Task } from '../types';
 import type { ProductionStatus, ScopeInput, Shot } from './production-types';
-import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, shotDraftChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
+import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, savedShotPlan, shotDraftChanged, shotPlanChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
 const model: Model = { id:'video', name:'video', kind:'video', provider:'ark', downloaded:true, loaded:false, weights_mb:0, submittability:{submittable:true,reasons:[]}, capabilities:{duration_policy:{kind:'range',min:2,max:12,step:1}} };
 const shot: Shot = {shot_id:'s1',project_id:'p',revision:2,seq:1,duration_s:6,description:'保留产品',input_asset_id:'a1'};
 const status: ProductionStatus = {project_id:'p',mode:'clips',shots:[],batch:null,film:null};
@@ -19,6 +19,83 @@ describe('production UI state safety',()=>{
   it('only active production or explicit task receipts require polling',()=>{expect(hasActiveProduction(status,[],[])).toBe(false);expect(hasActiveProduction(status,[],['new'])).toBe(true);expect(hasActiveProduction(status,[{id:'new',status:'failed'} as Task],['new'])).toBe(false);expect(hasActiveProduction({...status,batch:{batch_id:'b',queued:1,running:0,succeeded:0,failed:0}},[],[])).toBe(true);});
   it('does not invent film history from missing server fields',()=>{expect(unionFilms([],status)).toEqual([]);expect(unionFilms([],{...status,film:{film_id:'f',status:'ready'}})).toEqual([{film_id:'f',status:'ready'}]);});
   it('restores only valid local input without any approval object',()=>{const draft={version:1,rows:[draftFromShot(shot)],videoModelId:'video',ratio:'9:16',resolution:'720p',imageModelId:'img',imageSize:'2048x2048',mode:'clips',selectedIds:['s1']};expect(parseProductionEditor(JSON.stringify(draft))).toEqual(draft);expect(parseProductionEditor('{"version":1,"rows":[]}')).toBeNull();});
+});
+
+describe('saved shot plan baseline during initial reads', () => {
+  const second: Shot = { ...shot, shot_id: 's2', seq: 2, description: '细节镜头', motion: '缓慢推进' };
+  const shots = [shot, second];
+  const cache = () => ({ version: 1, rows: shots.map(draftFromShot), savedPlan: savedShotPlan(shots),
+    videoModelId: 'video', ratio: '16:9', resolution: '720p', imageModelId: 'image', imageSize: '2K',
+    mode: 'clips', selectedIds: ['s1', 's2'] });
+
+  it('restores a clean saved plan before the first shot GET has returned', () => {
+    const restored = parseProductionEditor(JSON.stringify(cache()))!;
+    expect(restored.savedPlan).toEqual(savedShotPlan(shots));
+    expect(shotPlanChanged(restored.rows, restored.savedPlan)).toBe(false);
+    // Comparing these same restored rows with an unloaded [] was the false warning.
+    expect(planOrderChanged(restored.rows, [])).toBe(true);
+  });
+
+  it.each([
+    { description: '尚未保存的画面修改' }, { motion: '尚未保存的运镜' }, { duration: '7' },
+  ])('protects local edits during loading or a failed initial read: %j', patch => {
+    const value = cache(); value.rows[0] = { ...value.rows[0], ...patch };
+    const restored = parseProductionEditor(JSON.stringify(value))!;
+    expect(shotPlanChanged(restored.rows, restored.savedPlan)).toBe(true);
+    expect(restored.rows[0]).toMatchObject(patch);
+    expect(restored.savedPlan?.[0]).toEqual(savedShotPlan(shots)[0]);
+  });
+
+  it('protects unsaved order, removal and newly added rows against the saved plan', () => {
+    const value = cache();
+    for (const rows of [[...value.rows].reverse(), value.rows.slice(1), [...value.rows, { ...draftFromShot(shot), key: 'new-row', shot_id: undefined }]]) {
+      expect(shotPlanChanged(rows, value.savedPlan)).toBe(true);
+    }
+    expect(shotPlanChanged([], value.savedPlan)).toBe(true);
+  });
+
+  it('keeps legacy nonempty drafts conservative until a real saved plan is read', () => {
+    const value = cache(), legacy = { ...value, savedPlan: undefined };
+    const restored = parseProductionEditor(JSON.stringify(legacy))!;
+    expect(restored.savedPlan).toBeUndefined();
+    expect(restored.rows).toEqual(value.rows);
+    expect(shotPlanChanged(restored.rows, restored.savedPlan)).toBe(true);
+    expect(shotPlanChanged(restored.rows, savedShotPlan(shots))).toBe(false);
+    expect(shotPlanChanged([], undefined)).toBe(false);
+  });
+
+  it.each([
+    { savedPlan: [{ shot_id: 's1', seq: 1, description: 'broken', duration_s: 6 }] },
+    { savedPlan: [savedShotPlan(shots)[0], savedShotPlan(shots)[0]] },
+    { savedPlan: [{ ...savedShotPlan(shots)[0], duration_s: 0 }] },
+  ])('drops an invalid baseline without discarding the recoverable draft: %j', ({ savedPlan }) => {
+    const value = cache(), restored = parseProductionEditor(JSON.stringify({ ...value, savedPlan }))!;
+    expect(restored.rows).toEqual(value.rows);
+    expect(restored.savedPlan).toBeUndefined();
+    expect(shotPlanChanged(restored.rows, restored.savedPlan)).toBe(true);
+  });
+
+  it('stores only acknowledged plan fields, excluding prompts, references and result data', () => {
+    const baseline = savedShotPlan([{ ...shot, prompt: '生成提示词', input_asset_id: 'ref', takes: [{ take_id: 'take', status: 'succeeded' }] }]);
+    expect(baseline).toEqual([{ shot_id: 's1', seq: 1, description: '保留产品', motion: '', duration_s: 6 }]);
+    const restored = parseProductionEditor(JSON.stringify({ ...cache(), savedPlan: [{ ...baseline[0], approval: true, input_asset_id: 'ref' }] }))!;
+    expect(restored.savedPlan).toEqual(baseline);
+  });
+
+  it('compares new server results without overwriting a different local draft', () => {
+    const value = cache(), originalRows = structuredClone(value.rows);
+    const nextSaved = savedShotPlan([{ ...shot, description: '另一处更新' }, second]);
+    expect(shotPlanChanged(value.rows, nextSaved)).toBe(true);
+    expect(value.rows).toEqual(originalRows);
+  });
+
+  it('recognizes acknowledged save, deletion and reorder baselines as clean', () => {
+    const saved = [{ ...second, seq: 1, description: '已保存的新内容' }];
+    expect(shotPlanChanged(saved.map(draftFromShot), savedShotPlan(saved))).toBe(false);
+    const restored = parseProductionEditor(JSON.stringify({ ...cache(), rows: [], savedPlan: [] }))!;
+    expect(restored.savedPlan).toEqual([]);
+    expect(shotPlanChanged(restored.rows, restored.savedPlan)).toBe(false);
+  });
 });
 
 

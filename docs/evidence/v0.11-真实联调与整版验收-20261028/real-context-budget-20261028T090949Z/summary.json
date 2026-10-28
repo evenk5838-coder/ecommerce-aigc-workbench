@@ -1,0 +1,41 @@
+{
+  "project_id": "prj_7d52f89107db4ce4b9b4",
+  "selected_node_ids": [],
+  "context_node_count": 6,
+  "context_role": "editor",
+  "history_messages": 12,
+  "initial_before_simulation_cny": 0.046658,
+  "default_cap_cny": 0.05,
+  "default_session_cap_cny": 0.3,
+  "actual_default_result": {
+    "status": "message",
+    "node_ids": []
+  },
+  "default_provider_calls": 2,
+  "capture_rounds": [
+    {
+      "round": 1,
+      "estimated_cny": 0.047048,
+      "blocked_by_default_005": false,
+      "characters": 26146,
+      "messages_sha256": "b2086ba2558a6bcffd7ac6505df67688859e7d609dee08ade3b2ce61eab400b1"
+    },
+    {
+      "round": 2,
+      "estimated_cny": 0.049424,
+      "blocked_by_default_005": false,
+      "characters": 29277,
+      "messages_sha256": "211bce288d67a9752fd9f05e8dff354564f2624ca9140e0287669bd2218ca6f6"
+    }
+  ],
+  "capture_result": {
+    "status": "message",
+    "node_ids": []
+  },
+  "real_model_calls": 0,
+  "network_blocked": true,
+  "original_db_opened_readonly": true,
+  "only_copy_mutated": true,
+  "copy_directory": "/private/tmp/real-context-budget-y1upxjk1",
+  "product_sha256": "48bc1f00f9cefb8a96868018fa45a94deecd537472cf7f860580d35bdf8409c0"
+}

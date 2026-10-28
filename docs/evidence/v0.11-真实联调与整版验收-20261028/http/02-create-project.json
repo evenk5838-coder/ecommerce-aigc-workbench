@@ -1,0 +1,21 @@
+{
+  "method": "POST",
+  "path": "/api/projects",
+  "request": {
+    "name": "晨光白杯 · 真实联调验收",
+    "brief": {}
+  },
+  "started_at": 1793175909.710453,
+  "status": 200,
+  "response": {
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "name": "晨光白杯 · 真实联调验收",
+    "brief": {},
+    "status": "draft",
+    "structure_template_id": null,
+    "structure_template_version": null,
+    "created_at": 1793175909.724246,
+    "updated_at": 1793175909.724246
+  },
+  "finished_at": 1793175909.729256
+}

@@ -10,7 +10,7 @@ import type { CreativeProjectDetail, CreativeScript } from './types';
 import { productionApi } from './production-api';
 import { inspectFailedSelection, inspectScope } from './production-guards';
 import type { Film, ProductionStatus, ProjectExport, ScopeInput, ScopeQuote, Shot, Storyboard, StoryboardCreation, StoryboardInput } from './production-types';
-import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, isActiveStatus, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, shotDraftChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
+import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, isActiveStatus, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, savedShotPlan, shotDraftChanged, shotPlanChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
 import type { ProductionEditorState, ShotDraft } from './production-state';
 import { displayDate } from './state';
 import './ProductionFlow.css';
@@ -89,6 +89,10 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   const [local] = useState(() => readEdit(projectId));
   const [rows, setRows] = useState<ShotDraft[]>(local?.rows ?? []);
   const [shots, setShots] = useState<Shot[]>([]);
+  // A failed refresh must not discard the last successful plan comparison.
+  const [hasPlanBaseline, setHasPlanBaseline] = useState(false);
+  const savedPlan = useMemo(() => hasPlanBaseline ? savedShotPlan(shots) : local?.savedPlan, [hasPlanBaseline, shots, local]);
+  const savedPlanRef = useRef(savedPlan); savedPlanRef.current = savedPlan;
   const focusedRow = focusedId ? rows.find(row => row.shot_id === focusedId || row.key === focusedId) : undefined;
   const videoFocusedRow = panel === 'generation' && focusShotId ? rows.find(row => row.shot_id === focusShotId || row.key === focusShotId) : undefined;
   const [shotsLoaded, setShotsLoaded] = useState(false);
@@ -143,7 +147,7 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   const nodeImageModel = models.find(model => model.id === nodeImageSettings.modelId);
   const nodeImageUnavailable = getModelUnavailableReason(nodeImageModel);
 
-  const dirty = rows.some(row => shotDraftChanged(row, shots.find(shot => shot.shot_id === row.shot_id))) || planOrderChanged(rows,shots);
+  const dirty = shotPlanChanged(rows, savedPlan);
   const disabled = blocked || !!busy || !!uncertain;
   const scopeInput: ScopeInput = { mode, shot_ids: rows.filter(row => row.shot_id && selectedIds.includes(row.shot_id)).map(row => row.shot_id!), specs: { model_id: videoModelId, ratio, resolution } };
   const preview = useMemo(() => buildProductionPreview(shots,status,createdBoards,tasks,films), [shots,status,createdBoards,tasks,films]);
@@ -167,7 +171,7 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   useEffect(() => () => pendingCallback.current?.(false), []);
   useEffect(() => { onDirtyChange?.(dirty || !!busy || !!uncertain); }, [dirty,busy,uncertain,onDirtyChange]);
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
-  useEffect(() => { if (!initialized) return; const data:ProductionEditorState={version:1,rows,videoModelId,ratio,resolution,imageModelId,imageSize,mode,selectedIds}; try { localStorage.setItem(EDIT_KEY+projectId,JSON.stringify(data)); } catch { setStorageError(true); } },[initialized,rows,videoModelId,ratio,resolution,imageModelId,imageSize,mode,selectedIds,projectId]);
+  useEffect(() => { if (!initialized) return; const data:ProductionEditorState={version:1,rows,videoModelId,ratio,resolution,imageModelId,imageSize,mode,selectedIds,...(savedPlan ? { savedPlan } : {})}; try { localStorage.setItem(EDIT_KEY+projectId,JSON.stringify(data)); } catch { setStorageError(true); } },[initialized,rows,videoModelId,ratio,resolution,imageModelId,imageSize,mode,selectedIds,savedPlan,projectId]);
   useEffect(() => { if (blocked) { clearScope(); setStoryQuote(null); setFilmConfirm(null); setPartialAccepted(false); } }, [blocked]);
   useEffect(() => { if (scope && scope.fingerprint !== fingerprint) clearScope(); if (storyQuote && storyQuote.fingerprint !== storyFingerprint) setStoryQuote(null); },[fingerprint,storyFingerprint,scope,storyQuote]);
   useEffect(() => { if (filmConfirm && filmConfirm.fingerprint !== filmFingerprint) {setFilmConfirm(null);setPartialAccepted(false);} },[filmFingerprint,filmConfirm]);
@@ -186,7 +190,7 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
     const sequence=++loadSequence.current;setLoading(true);setRecovered(false);pausedReads.current.clear();
     const results=await Promise.allSettled([productionApi.listShots(projectId),productionApi.getStatus(projectId),productionApi.listFilms(projectId)]);
     if(!mounted.current||sequence!==loadSequence.current)return;
-    if(results[0].status==='fulfilled'){const list=results[0].value.items.slice().sort((a,b)=>a.seq-b.seq);const previous=shotsRef.current;const currentRows=rowsRef.current;const hasChanges=currentRows.some(row=>shotDraftChanged(row,previous.find(shot=>shot.shot_id===row.shot_id)))||planOrderChanged(currentRows,previous);setShots(list);setShotsLoaded(true);setShotError('');if((initial&&!local)||(!initial&&!hasChanges)){setRows(list.map(shot=>restoreShotDraft(shot,currentRows.find(row=>row.shot_id===shot.shot_id))));if(initial)setSelectedIds(list.map(shot=>shot.shot_id));}else if(!initial){setRows(current=>current.map(row=>{const incoming=list.find(shot=>shot.shot_id===row.shot_id);return incoming&&!shotDraftChanged(row,previous.find(shot=>shot.shot_id===row.shot_id))?restoreShotDraft(incoming,row):row;}));}setTrackedTaskIds(current=>[...new Set([...current,...list.flatMap(shot=>(shot.storyboards??[]).map(board=>board.task_id).filter((id):id is string=>!!id))])]);setInitialized(true);}else{setShotError(message(results[0].reason));setShotsLoaded(false);setInitialized(true);}
+    if(results[0].status==='fulfilled'){const list=results[0].value.items.slice().sort((a,b)=>a.seq-b.seq);const previous=savedPlanRef.current??shotsRef.current;const currentRows=rowsRef.current;const hasChanges=shotPlanChanged(currentRows,savedPlanRef.current);setShots(list);setHasPlanBaseline(true);setShotsLoaded(true);setShotError('');if((initial&&!local)||(!initial&&!hasChanges)){setRows(list.map(shot=>restoreShotDraft(shot,currentRows.find(row=>row.shot_id===shot.shot_id))));if(initial)setSelectedIds(list.map(shot=>shot.shot_id));}else if(!initial){setRows(current=>current.map(row=>{const incoming=list.find(shot=>shot.shot_id===row.shot_id);return incoming&&!shotDraftChanged(row,previous.find(shot=>shot.shot_id===row.shot_id))?restoreShotDraft(incoming,row):row;}));}setTrackedTaskIds(current=>[...new Set([...current,...list.flatMap(shot=>(shot.storyboards??[]).map(board=>board.task_id).filter((id):id is string=>!!id))])]);setInitialized(true);}else{setShotError(message(results[0].reason));setShotsLoaded(false);setInitialized(true);}
     if(results[1].status==='fulfilled'){const next=results[1].value;setStatus(next);setFilms(current=>unionFilms(current,next));setStatusError('');setPollAllowed(true);}else{setStatusError(message(results[1].reason));setPollAllowed(false);}
     if(results[2].status==='fulfilled'){const history=results[2].value.items;setFilms(current=>unionFilms([...current,...history],null));setHistoryError('');}else setHistoryError(message(results[2].reason));
     setRecovered(results[0].status==='fulfilled'&&(results[1].status==='fulfilled'||results[2].status==='fulfilled'));setLoading(false);

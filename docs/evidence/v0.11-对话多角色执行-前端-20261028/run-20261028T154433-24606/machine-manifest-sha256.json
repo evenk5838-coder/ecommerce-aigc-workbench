@@ -1,0 +1,16 @@
+{
+  "run_id": "20261028T154433-24606",
+  "scope": "Machine evidence only; excludes mutable narrative and browser evidence",
+  "sha256": {
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/verify-20261028T154433-24606.txt": "d9e76e00ff288f378d1e1d8d8fef3ee115fe33e823f9072032a743a282c039a1",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/backend-code-sha256-after-run.json": "511c220bce1b1aa70f1d905d225ca4b3c4c909790e18e5bcda51d0158b51c4d3",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/frontend-input-sha256.json": "eeaa2263dc77f6bdb9e1f69ed4dc89ffe1bd00411b32eb26a43236c08d51f002",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-clips/director-workflow-http.json": "ca9e40313a3d70ec81a0c53a0704f7712d3213c3be9b3e2b6b8321c3a68553bd",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-clips/fixed-blue-then-red.mp4": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-film/director-workflow-http.json": "e9a33d002226a984e35dd7bc32f2bfb8740e42b078a7b2305fbdcf0815c5aca8",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-film/fixed-blue-then-red.mp4": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/live-build-before.json": "321bbb3fd71f472bfc6de7048966eccf9a8f29dc06f2dbde06cddd02051639fc",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/machine-summary.json": "fa2e45ea764c8c24f08672e1decf98af04a7f0f4f2d1d98ccaa70d77169a987e",
+    "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/workflow-build-sha256.json": "65c1672db29a9b2ec2f8d5b9163f403de6ff6b44790c1ff92dff904161d82b60"
+  }
+}

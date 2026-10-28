@@ -1,0 +1,12 @@
+const dialog=page.getByRole('dialog',{name:'结构模板',exact:true});
+await dialog.getByRole('checkbox',{name:'套用会改变当前镜头计划。我会重新补充商品资料、选择素材，并确认模型与镜头时长。',exact:true}).check();
+const responsePromise=page.waitForResponse(response=>response.url().endsWith('/api/projects/prj_cc92eec369714cba85a8/apply-structure')&&response.request().method()==='POST');
+await dialog.getByRole('button',{name:'套用此结构 · v1',exact:true}).click();
+const response=await responsePromise;
+globalThis.appliedTemplate=await response.json();
+await expect(dialog.getByText('镜头时长符合当前模型要求',{exact:true})).toBeVisible();
+await expect(dialog.getByText('生成前，请完成：补充本项目的商品资料与创作需求；为镜头选择本项目素材。',{exact:true})).toBeVisible();
+await expect(dialog.getByText('结构已套用。',{exact:true})).toHaveCount(0);
+const text=await dialog.innerText();
+expect(text).not.toMatch(/brief|assets|服务端|校验|成功回执|本地保护/);
+return {status:response.status(),body:globalThis.appliedTemplate,text,dialogs:globalThis.dialogLog};

@@ -1,0 +1,17 @@
+const dialogCount=globalThis.dialogLog.length;
+await page.getByRole('button',{name:'关闭结构模板',exact:true}).click();
+await page.getByRole('button',{name:'返回导演台',exact:true}).click();
+await expect(page.getByRole('heading',{name:'你的导演台。',exact:true})).toBeVisible();
+expect(globalThis.dialogLog.length).toBe(dialogCount);
+await page.getByRole('button',{name:'打开项目：结构模板收尾 · 保存与离开 · 1028',exact:true}).click();
+await expect(page.getByRole('button',{name:'结构模板',exact:true})).toBeVisible();
+await page.reload({waitUntil:'domcontentloaded'});
+await expect(page.getByRole('button',{name:'结构模板',exact:true})).toBeVisible();
+expect(globalThis.dialogLog.length).toBe(dialogCount);
+await page.getByRole('button',{name:'结构模板',exact:true}).click();
+const dialog=page.getByRole('dialog',{name:'结构模板',exact:true});
+await expect(dialog.getByRole('textbox',{name:'模板名称',exact:true})).toHaveValue('结构收尾专用 · 双镜节奏 · 1028');
+await dialog.getByRole('combobox',{name:'模板',exact:true}).selectOption(globalThis.savedTemplateResult.template_id);
+await dialog.getByRole('button',{name:'查看此版本',exact:true}).click();
+await expect(dialog.getByRole('button',{name:'套用此结构 · v1',exact:true})).toBeVisible();
+return {projectUrl:page.url(),afterApplyLeaveClean:true,reloadClean:true,restoredSavedName:await dialog.getByRole('textbox',{name:'模板名称',exact:true}).inputValue(),dialogs:globalThis.dialogLog,buildScripts:await page.locator('script[src]').evaluateAll(scripts=>scripts.map(script=>script.src)),mutations:globalThis.networkLog.filter(item=>!['GET','HEAD'].includes(item.method)),externalRequests:globalThis.networkLog.filter(item=>!item.url.startsWith('http://127.0.0.1:52663/'))};

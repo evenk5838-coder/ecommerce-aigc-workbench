@@ -1,0 +1,204 @@
+{
+  "recorded_at_utc": "2026-10-28T09:48:25.517605+00:00",
+  "scope": "Final build saved-shot baseline and template navigation browser acceptance",
+  "result": {
+    "dialogs": [
+      {
+        "type": "confirm",
+        "message": "引导创作还有未保存内容或正在处理的请求，确定离开吗？",
+        "action": "dismiss"
+      }
+    ],
+    "mutations": [
+      {
+        "url": "http://127.0.0.1:52663/api/structure-templates",
+        "method": "POST",
+        "status": 200
+      }
+    ],
+    "state": {
+      "savedPlanRows": 2,
+      "productionPending": null,
+      "templatePending": null,
+      "templateSavedMatches": true,
+      "planRows": 2
+    },
+    "url": "http://127.0.0.1:52663/#/director/prj_cc92eec369714cba85a8",
+    "checks": {
+      "delayedSavedPlan": {
+        "pass": true,
+        "requestsBeforeImmediateReload": 1,
+        "url": "http://127.0.0.1:52663/#/director",
+        "inAppReturnWhileReadHeld": true,
+        "immediateNativeReload": true,
+        "dialogs": [],
+        "heldGets": [
+          {
+            "url": "http://127.0.0.1:52663/api/projects/prj_cc92eec369714cba85a8/shots",
+            "method": "GET"
+          },
+          {
+            "url": "http://127.0.0.1:52663/api/projects/prj_cc92eec369714cba85a8/shots",
+            "method": "GET"
+          }
+        ]
+      },
+      "actualUnsavedEdit": {
+        "dialogs": [
+          {
+            "type": "confirm",
+            "message": "引导创作还有未保存内容或正在处理的请求，确定离开吗？",
+            "action": "dismiss"
+          }
+        ],
+        "pass": true,
+        "local": {
+          "pending": null,
+          "draftName": "最终基线复验 · 双镜结构 · 1028",
+          "savedName": "结构收尾专用 · 双镜节奏 · 1028"
+        },
+        "draftRetainedAfterCanceledLeave": true
+      },
+      "savedTemplate": {
+        "dialogs": [],
+        "postSaveNativeReload": true,
+        "pass": true,
+        "saved": {
+          "savedName": "最终基线复验 · 双镜结构 · 1028",
+          "pending": null,
+          "savedMatches": true,
+          "name": "最终基线复验 · 双镜结构 · 1028"
+        },
+        "mutations": [
+          {
+            "url": "http://127.0.0.1:52663/api/structure-templates",
+            "method": "POST",
+            "status": 200
+          }
+        ]
+      }
+    },
+    "build": [
+      "http://127.0.0.1:52663/assets/index-1ZyR850h.js"
+    ]
+  },
+  "finish": {
+    "taskId": "task-08bf18ad-345b-4a99-b569-4e4c82ea9e75",
+    "issues": [
+      {
+        "source": "site",
+        "origin": "http://127.0.0.1:52663",
+        "operation": "dialog",
+        "details": {
+          "type": "confirm"
+        },
+        "code": "BLOCKING_DIALOG",
+        "severity": "warning",
+        "recoverable": true,
+        "timestamp": 1793180822086
+      }
+    ],
+    "finished": true,
+    "recommendedScreenshotLimit": 3,
+    "closedTabIds": [],
+    "downloads": [],
+    "keep": true,
+    "screenshotCount": 0,
+    "forcedCleanup": false,
+    "artifacts": [],
+    "groupId": "FFBCD6D6CE68C10AB4A7D98CD34BCC3D"
+  },
+  "prior_pending_write_evidence": {
+    "file": "../09-pending-write-cancel.json",
+    "completion_file": "../10-completed-leave.json",
+    "original_build": "index-ejv3ijxD.js",
+    "source_fingerprint_comparison": [
+      {
+        "path": "frontend/src/creative/DirectorChat.tsx",
+        "previous_sha256": "0b770a8964b8f3dbd95bde12a2aa28dff75a39fa42c9416e7937dafc1eec2576",
+        "current_sha256": "0b770a8964b8f3dbd95bde12a2aa28dff75a39fa42c9416e7937dafc1eec2576",
+        "unchanged": true
+      },
+      {
+        "path": "frontend/src/creative/director-draft-state.ts",
+        "previous_sha256": "d61dd559468174d92aa54e580a4cfb5290f388d82336fc23e78891c537bc1da5",
+        "current_sha256": "d61dd559468174d92aa54e580a4cfb5290f388d82336fc23e78891c537bc1da5",
+        "unchanged": true
+      },
+      {
+        "path": "frontend/src/creative/director-draft-state.test.ts",
+        "previous_sha256": "43f0be0368ab9df510e75348848571dcc37bce980b7908ae6d4b82d26afd40eb",
+        "current_sha256": "43f0be0368ab9df510e75348848571dcc37bce980b7908ae6d4b82d26afd40eb",
+        "unchanged": true
+      }
+    ],
+    "boundary": "Original unresolved in-flight conversation request protection was actually tested on preceding build; unchanged DirectorChat source verified here. No new model request in this final run."
+  },
+  "previous_failure_preserved": "../../templates/16-applied-clean-leave-receipt.json",
+  "limitations": [
+    "Legacy cache without baseline remains guarded until first successful shot read; final test primes baseline using actual successful GET.",
+    "Actual unsaved edit browser case uses template name; shot plan edit/order/delete and failed-read preservation covered by targeted unit tests.",
+    "No real provider was called; only mutation was creation of one isolated structure template."
+  ],
+  "source_fingerprints": [
+    {
+      "path": "frontend/src/creative/ProductionFlow.tsx",
+      "sha256": "e3d399a86fa27db0bf60e46aa3e0e013b1be051d49a29a666eecde880ea1e365"
+    },
+    {
+      "path": "frontend/src/creative/production-state.ts",
+      "sha256": "f069dac86d9414b8b63a440c60b130a10b4863e8540cfec389c51c0606e4bccd"
+    },
+    {
+      "path": "frontend/src/creative/production-state.test.ts",
+      "sha256": "b657255c3c2d848cae7faabfdca91f6866333c57cd4630ec7f918bd39aced963"
+    }
+  ],
+  "files": [
+    {
+      "path": "01-resume.json",
+      "bytes": 6580,
+      "sha256": "5c3e1496a1a9cb09e61cce3cb1c9137369af38d536b03dd736b1239c72f0c66e"
+    },
+    {
+      "path": "02-prime-final-build.json",
+      "bytes": 4707,
+      "sha256": "420ded301c07012608918fa172d0b51bb22ab424cce89078105bf3cfbb6fbdb3"
+    },
+    {
+      "path": "03-delayed-shots-reload.json",
+      "bytes": 651,
+      "sha256": "c67ece8b9828eaba2b1a34dc9d549089fd97d8eb64389d3e2a8a79f18bb6765d"
+    },
+    {
+      "path": "04-template-controls.json",
+      "bytes": 9869,
+      "sha256": "dcdc9eb924a2d47d1b26322c662f96214a8e71ae4cec7cbc0ef5883f5b0cdc88"
+    },
+    {
+      "path": "05-template-modal.json",
+      "bytes": 3458,
+      "sha256": "d5dec6c46aec7106706474489fc4a888fc97166120a3c499e546ed06a04c6120"
+    },
+    {
+      "path": "06-actual-unsaved-edit-guard.json",
+      "bytes": 836,
+      "sha256": "ac05c4f9e23d5535a0f927dc0fa5ca729aff220c0708306ef8f20a3c7405f123"
+    },
+    {
+      "path": "07-final-template-save-clean.json",
+      "bytes": 605,
+      "sha256": "b282216b716d47cc4ef7a2ae778658c0701035d026d1ea1fe5f2033d525b2c18"
+    },
+    {
+      "path": "08-final-results.json",
+      "bytes": 2103,
+      "sha256": "d2d03f59f090b44dad7dcbf85fe75c08b99b5b5838fb4f28e5c052b4392eb179"
+    },
+    {
+      "path": "09-finish.json",
+      "bytes": 455,
+      "sha256": "d9b30aa1342beeab1d8632ad7c8bd273bb229f1ee0a20e0dadfce9ae0fc79eed"
+    }
+  ]
+}

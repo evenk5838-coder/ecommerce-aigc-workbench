@@ -1,0 +1,23 @@
+{
+  "method": "GET",
+  "path": "/api/health",
+  "request": null,
+  "started_at": 1793175909.580451,
+  "status": 200,
+  "response": {
+    "status": "ok",
+    "version": "0.1.0",
+    "uptime_s": 78,
+    "recovery": {
+      "interrupted": 0,
+      "queued": 0,
+      "director_requests": {
+        "interrupted": 0,
+        "active": 0,
+        "unknown_owner": 0
+      }
+    },
+    "tasks": {}
+  },
+  "finished_at": 1793175909.710005
+}

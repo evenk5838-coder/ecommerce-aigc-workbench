@@ -1,0 +1,66 @@
+Director conversation workflow frontend verification: 20261028T155619-25754
+Scope: current frontend source, isolated workflow build and fixed-provider HTTP workflows; no business data, real model call or browser acceptance
+Recorded live frontend build fingerprint: 3 files
+Recorded frontend verification input fingerprint: 132 files
+1/5 Frontend lint, strict types and isolated workflow production build
+v24.18.0
+11.16.0
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+
+
+> ecommerce-local-studio@0.1.0 typecheck
+> tsc --noEmit
+
+
+> ecommerce-local-studio@0.1.0 build
+> tsc --noEmit && vite build --outDir /private/tmp/ecom-v011-frontend-preview/workflow-dist --emptyOutDir
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1657 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../../../../private/tmp/ecom-v011-frontend-preview/workflow-dist/index.html                   0.60 kB │ gzip:   0.45 kB
+../../../../../../private/tmp/ecom-v011-frontend-preview/workflow-dist/assets/index-CyoWOAtM.css  216.76 kB │ gzip:  39.99 kB
+../../../../../../private/tmp/ecom-v011-frontend-preview/workflow-dist/assets/index-BKY1HEBH.js   670.11 kB │ gzip: 210.35 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.88s
+Recorded isolated frontend build fingerprint: 3 files (/private/tmp/ecom-v011-frontend-preview/workflow-dist)
+2/5 Full frontend test suite
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run --run
+
+
+ RUN  v5.0.5 /Users/niannian/Documents/VScode/电商工作平台/frontend
+
+
+ Test Files  37 passed (37)
+      Tests  806 passed (806)
+   Start at  15:56:33
+   Duration  1.65s (tests 41%, import 35%, transform 18%, worker 7%)
+
+    Isolate  37 workers spawned · ~155ms startup each (spawn + environment, per file)
+             at least ~663ms faster with isolate: false — reuses workers across files instead of one per file
+
+3/5 Credential pattern exclusion, including the isolated workflow build
+PASS: .env ignored and untracked; production source/built text assets contain no scanned credential patterns
+Scope: pattern scan only; historical Git objects and arbitrary archives were not scanned
+Isolated served output included: /private/tmp/ecom-v011-frontend-preview/workflow-dist
+4/5 Independent HTTP workflow and process restart with fixed LLM/media and real local FFmpeg
+{"passed": true, "evidence": "/Users/niannian/Documents/VScode/电商工作平台/docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T155619-25754/http-clips/director-workflow-http.json", "real_model_calls": 0}
+{"passed": true, "evidence": "/Users/niannian/Documents/VScode/电商工作平台/docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T155619-25754/http-film/director-workflow-http.json", "real_model_calls": 0}
+5/5 Required technical files, whitespace and unchanged existing frontend build
+PASS: 44 director workflow frontend technical files; git diff --check
+Scope: technical files only; browser evidence, real-model evidence and final acceptance checked separately
+PASS: existing frontend/dist unchanged (3 file fingerprints)
+PASS: frontend verification inputs unchanged during the run (132 file fingerprints)
+PASS: isolated workflow build unchanged during the run (3 file fingerprints)
+PASS: frontend automated checks and fixed-provider HTTP recovery only; browser, real-model quality and final product acceptance remain separate
+Evidence: docs/evidence/v0.11-对话多角色执行-前端-20261028/verify-20261028T155619-25754.txt

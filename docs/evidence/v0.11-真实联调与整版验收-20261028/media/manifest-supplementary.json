@@ -1,0 +1,98 @@
+{
+  "source_database": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/acceptance.db",
+  "database_mode": "read_only",
+  "archived_at_utc": "2026-10-28T08:48:09.119856+00:00",
+  "scope": "Supplementary quick-workbench media selected only by the two explicitly assigned acceptance task IDs; no project association inferred.",
+  "assets": [
+    {
+      "task_id": "task_fa925250883542ca84a0",
+      "asset_id": "asset_d229fe77760b4712af6f",
+      "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+      "kind": "image",
+      "model_id": "doubao-seedream-5-0-flash-260915",
+      "archive_file": "supplementary-image-to-image.jpg",
+      "source_file": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/assets/de/26/de26e30dc7b1a1110af461c1867760a5f445db1927b6373982b3aac12ed0878f.jpg",
+      "sha256": "de26e30dc7b1a1110af461c1867760a5f445db1927b6373982b3aac12ed0878f",
+      "size_bytes": 151779,
+      "database_metadata": {
+        "mime": "image/jpeg",
+        "width": 2688,
+        "height": 1536,
+        "duration_ms": null,
+        "fps": null
+      },
+      "requested": {
+        "generation_mode": "image_to_image",
+        "size": "2688x1536",
+        "ratio": null,
+        "resolution": null,
+        "duration": null,
+        "generate_audio": null
+      },
+      "archive_hash_matches_source_and_db": true,
+      "decoded": {
+        "format": "JPEG",
+        "width": 2688,
+        "height": 1536
+      }
+    },
+    {
+      "task_id": "task_0eee9b87b1704fda895e",
+      "asset_id": "asset_0bd7e46e9d4f4fa09d2d",
+      "input_asset_id": null,
+      "kind": "video",
+      "model_id": "doubao-seedance-1-0-pro-fast-251015",
+      "archive_file": "supplementary-text-to-video.mp4",
+      "source_file": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/assets/2a/28/2a287475d9cdd071d04328bc6f3720db614093950e5487340a77764749dcfd2d.mp4",
+      "sha256": "2a287475d9cdd071d04328bc6f3720db614093950e5487340a77764749dcfd2d",
+      "size_bytes": 3425479,
+      "database_metadata": {
+        "mime": "video/mp4",
+        "width": 1248,
+        "height": 704,
+        "duration_ms": 5040,
+        "fps": 24
+      },
+      "requested": {
+        "generation_mode": "text_to_video",
+        "size": null,
+        "ratio": "16:9",
+        "resolution": "720p",
+        "duration": 5,
+        "generate_audio": false
+      },
+      "archive_hash_matches_source_and_db": true,
+      "ffprobe": {
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1248,
+            "height": 704,
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "duration": "5.041667",
+            "nb_frames": "121",
+            "nb_read_frames": "121"
+          }
+        ],
+        "format": {
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "duration": "5.041667",
+          "size": "3425479"
+        }
+      },
+      "full_decode": {
+        "exit_code": 0,
+        "stderr": ""
+      }
+    }
+  ],
+  "network_calls_by_archiver": 0,
+  "provider_calls_by_archiver": 0,
+  "database_writes_by_archiver": 0,
+  "quality_acceptance": "pending_human_review"
+}

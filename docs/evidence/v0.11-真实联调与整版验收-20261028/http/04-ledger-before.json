@@ -1,0 +1,16 @@
+{
+  "method": "GET",
+  "path": "/__acceptance__/ledger",
+  "request": null,
+  "started_at": 1793175909.858954,
+  "status": 200,
+  "response": {
+    "schema_version": 1,
+    "approval_sha256": "3521ca6943cce00abe067037c8ffb7a5ec81d2e48e2f9fbf2eddf28727db5945",
+    "run_id": "run-20261028-real-v011",
+    "created_at": "2026-10-28T08:23:50.812078+00:00",
+    "calls": [],
+    "blocked": false
+  },
+  "finished_at": 1793175909.87622
+}

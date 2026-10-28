@@ -1,0 +1,56 @@
+{
+  "timestamp_utc": "20261028T095029Z",
+  "url": "http://127.0.0.1:8100/",
+  "released_bundle": [
+    "/assets/index-1ZyR850h.js"
+  ],
+  "served_sha256": {
+    "assets/index-1ZyR850h.js": "94fbc85a08519b03f9961ee7026ab2eb0094383d9c6966e0412036416106d745",
+    "assets/index-CyoWOAtM.css": "92989c08a0f29f2b1e1ed23c87e6530700ba8c5010a185ed135ed21f3ebaa809",
+    "index.html": "75ec599ae50393b5b24c7b77a7929694c08aef3293cf40c8eac9b4de4d3af98d"
+  },
+  "counts_before": {
+    "projects": 3,
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 6
+  },
+  "counts_after": {
+    "projects": 3,
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 6
+  },
+  "counts_unchanged": true,
+  "quick_check": "ok",
+  "health": {
+    "status": "ok",
+    "version": "0.1.0",
+    "uptime_s": 2519,
+    "recovery": {
+      "interrupted": 0,
+      "queued": 0,
+      "director_requests": {
+        "interrupted": 0,
+        "active": 0,
+        "unknown_owner": 0
+      }
+    },
+    "tasks": {
+      "canceled": 6,
+      "failed": 26,
+      "interrupted": 1,
+      "succeeded": 37
+    }
+  },
+  "backend_unchanged": true,
+  "service_restarted": false,
+  "real_model_requests_by_release": 0,
+  "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/frontend-closing-20261028T095029Z",
+  "previous_assets_retained": true,
+  "python": "backend/.venv/bin/python"
+}

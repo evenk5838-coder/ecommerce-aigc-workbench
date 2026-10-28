@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-28 16:53:59",
+  "scope": "对话导演（D1/D2/D4）+ 自由画布（D3）免费验收",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "provider": "FixedReplyProvider（不联网）",
+    "worker": "未启动"
+  },
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "image_video_tasks_executed": 0,
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "只澄清：无脚本/无任务",
+      "ok": true,
+      "detail": {
+        "artifacts": 0,
+        "tasks": 0,
+        "reply_type": "clarify"
+      }
+    },
+    {
+      "case": "脚本草案自动保存（真实 ID/版本，未确认）+ 刷新可取回",
+      "ok": true,
+      "detail": {
+        "script_id": "scr_6c70d3aaca…",
+        "version": 1,
+        "confirmed": false,
+        "actions": [
+          "confirm_script"
+        ]
+      }
+    },
+    {
+      "case": "LLM 返回畸形结构 → 不保存、不假成功",
+      "ok": true,
+      "detail": {
+        "saved": 0,
+        "error": "VALIDATION_FAILED"
+      }
+    },
+    {
+      "case": "确认/提交/生成工具不存在；工具不接受 project_id",
+      "ok": true,
+      "detail": {
+        "code": "TOOL_FORBIDDEN",
+        "http": 400,
+        "tools": [
+          "get_project_state",
+          "list_models",
+          "propose_brief",
+          "propose_script",
+          "propose_shot_plan"
+        ]
+      }
+    },
+    {
+      "case": "同键同内容重发 → 返回原结果，不重复调用 LLM",
+      "ok": true,
+      "detail": {
+        "replay": true,
+        "llm_calls": 1
+      }
+    },
+    {
+      "case": "同键不同内容 → 409 IDEMPOTENCY_CONFLICT",
+      "ok": true,
+      "detail": {
+        "code": "IDEMPOTENCY_CONFLICT",
+        "http": 409
+      }
+    },
+    {
+      "case": "断线恢复：按 client_request_id 查回执",
+      "ok": true,
+      "detail": {
+        "code": "DIRECTOR_REQUEST_NOT_FOUND",
+        "http": 404,
+        "status": "completed"
+      }
+    },
+    {
+      "case": "A 项目会话不能改绑到 B（PROJECT_SESSION_MISMATCH）",
+      "ok": true,
+      "detail": {
+        "code": "PROJECT_SESSION_MISMATCH",
+        "http": 409
+      }
+    },
+    {
+      "case": "画布节点引用其它项目对象 → 拒绝",
+      "ok": true,
+      "detail": {
+        "code": "CANVAS_INVALID_REFERENCE",
+        "http": 400
+      }
+    },
+    {
+      "case": "导演流程不自动创建图片/视频任务",
+      "ok": true,
+      "detail": {
+        "tasks": 0,
+        "script_confirmed": false
+      }
+    },
+    {
+      "case": "需求提案：应用前不改项目事实，应用后才写入",
+      "ok": true,
+      "detail": {
+        "applied": true,
+        "stale": [
+          "script_confirm",
+          "shot_plan_confirm"
+        ]
+      }
+    },
+    {
+      "case": "镜头计划：脚本未确认不可应用；应用不生成任务",
+      "ok": true,
+      "detail": {
+        "code": "SCRIPT_NOT_CONFIRMED",
+        "http": 409,
+        "shots": 2
+      }
+    },
+    {
+      "case": "脚本升版后旧镜头计划不可应用（PROPOSAL_NOT_APPLICABLE）",
+      "ok": true,
+      "detail": {
+        "code": "PROPOSAL_NOT_APPLICABLE",
+        "http": 409
+      }
+    },
+    {
+      "case": "只移动节点：布局修订+1，配置与报价不受影响",
+      "ok": true,
+      "detail": {
+        "layout_revision": 2,
+        "config_changed": false
+      }
+    },
+    {
+      "case": "改生成配置：配置修订+1 且整组报价失效",
+      "ok": true,
+      "detail": {
+        "config_revision": 2,
+        "invalidated": [
+          "scope"
+        ]
+      }
+    },
+    {
+      "case": "多节点各自保存模式/模型/规格/素材（互不串）",
+      "ok": true,
+      "detail": {
+        "n1_mode": "text_to_video",
+        "n2_mode": "image_to_video",
+        "n2_duration": 8
+      }
+    },
+    {
+      "case": "节点配置校验：模式冲突/时长越界/图生缺素材均拒绝",
+      "ok": true,
+      "detail": {
+        "t2v_with_img": "GENERATION_MODE_CONFLICT",
+        "duration": "MODEL_CAPABILITY_MISMATCH",
+        "i2v_no_img": "REFERENCE_IMAGE_REQUIRED"
+      }
+    },
+    {
+      "case": "连线循环依赖 → CANVAS_CYCLE",
+      "ok": true,
+      "detail": {
+        "code": "CANVAS_CYCLE",
+        "http": 400
+      }
+    },
+    {
+      "case": "布局并发冲突 → CANVAS_REVISION_CONFLICT",
+      "ok": true,
+      "detail": {
+        "code": "CANVAS_REVISION_CONFLICT",
+        "http": 409
+      }
+    },
+    {
+      "case": "单次预估超限 → 429，且未产生产物",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_BUDGET_EXCEEDED",
+        "http": 429
+      }
+    },
+    {
+      "case": "会话累计超限 → 429（可解释）",
+      "ok": true,
+      "detail": {
+        "code": "ASSISTANT_BUDGET_EXCEEDED",
+        "http": 429
+      }
+    }
+  ],
+  "disclaimer": "全部为替身验证；真实 DeepSeek 导演质量未验证。"
+}

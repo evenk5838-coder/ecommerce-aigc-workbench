@@ -1,0 +1,19 @@
+{
+  "scope": "isolated frontend built assets after automated verification",
+  "isolated_dist": "/private/tmp/ecom-v011-frontend-preview/dist",
+  "files": {
+    "assets/index-CcI_4NDC.js": {
+      "bytes": 599222,
+      "sha256": "73a505c99c958581537ebaac0faab4c8628d5a00e9a9bffb31963c1207c49d73"
+    },
+    "assets/index-Cn3DM1Dr.css": {
+      "bytes": 198138,
+      "sha256": "d84924653a8d1942907eef9f2e17c7dfc6845216caf68635a2a181d5e4be689d"
+    },
+    "index.html": {
+      "bytes": 598,
+      "sha256": "43b7efb27599f6acccb43d56f379c0756f1d4248c7d2f04e390cc8079be4839c"
+    }
+  },
+  "test_log": "verify-20261027T152414-63896.txt"
+}

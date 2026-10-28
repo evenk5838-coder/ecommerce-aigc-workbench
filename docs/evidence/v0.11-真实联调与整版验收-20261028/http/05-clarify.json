@@ -1,0 +1,468 @@
+{
+  "method": "POST",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/conversation",
+  "request": {
+    "message": "我想拍一条水杯的产品短片，请先帮我明确一下该怎么拍。",
+    "client_request_id": "real-v011-clarify",
+    "selected_node_ids": [],
+    "expected_workflow_revision": 3951277942761963
+  },
+  "started_at": 1793175927.394778,
+  "status": 200,
+  "response": {
+    "flow_version": 2,
+    "session_id": "asst_2ee44925968b4202a6d6",
+    "request_id": "real-v011-clarify",
+    "request_status": "completed",
+    "reply": "方案已给到（5 镜、约 20 秒、16:9、1080p）。存脚本前只差两个信息，你回一句我就直接保存：\n\n1. 5 镜结构和时长是否照此执行？（晨光开场 4s → 质感特写 4s → 注水瞬间 5s → 手持场景 4s → 收尾定格 3s）\n2. 画面里是否出现人手/人物？纯产品空镜更干净，带手更有生活感。\n\n另外确认一下画幅：默认 16:9 横屏，如果这条短片要投竖屏信息流，我改成 9:16。",
+    "reply_type": "clarify",
+    "outcome": {
+      "status": "clarify",
+      "node_ids": [],
+      "missing_fields": [
+        "5镜结构与时长是否确认",
+        "是否出现人手/人物",
+        "画幅比例（16:9 横屏 / 9:16 竖屏）"
+      ]
+    },
+    "artifacts": [],
+    "actions": [],
+    "current_role": "writer",
+    "current": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "name": "晨光白杯 · 真实联调验收",
+      "brief": {},
+      "current_stage": "requirements",
+      "script": null,
+      "shots": [],
+      "allowed_actions": [
+        "save_brief"
+      ],
+      "draft_proposals": []
+    },
+    "usage": {
+      "input_tokens": 17925,
+      "output_tokens": 815,
+      "cost_cny": 0.017533,
+      "estimated_cny": 0.098652
+    },
+    "tool_calls": [
+      {
+        "tool": "get_creation_context",
+        "tool_call_id": "call_00_BujAC4cyGYtpXS6UJ2Nw3349",
+        "ok": true,
+        "result": {
+          "creation": {
+            "project_id": "prj_7d52f89107db4ce4b9b4",
+            "current_role": "writer",
+            "selected_node_ids": [],
+            "layout_revision": 0,
+            "nodes": [],
+            "total_nodes": 0,
+            "nodes_truncated": false,
+            "script": null,
+            "side_effects": {
+              "task_created": false,
+              "model_called": false,
+              "budget_deducted": false
+            }
+          },
+          "project": {
+            "project_id": "prj_7d52f89107db4ce4b9b4",
+            "name": "晨光白杯 · 真实联调验收",
+            "brief": {},
+            "current_stage": "requirements",
+            "script": null,
+            "shots": [],
+            "allowed_actions": [
+              "save_brief"
+            ],
+            "draft_proposals": []
+          }
+        }
+      },
+      {
+        "tool": "list_models",
+        "tool_call_id": "call_01_PYznboxWuPAtZzQ94ucE1510",
+        "ok": true,
+        "result": {
+          "items": [
+            {
+              "id": "i2vgen-xl",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_DOWNLOADED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-2-0-260128",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-1-0-pro-fast-251015",
+              "kind": "video",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [
+                "image_to_video",
+                "text_to_video"
+              ],
+              "duration_policy": {
+                "kind": "range",
+                "min": 2,
+                "max": 12,
+                "step": 1,
+                "allowed": null
+              },
+              "capabilities": {
+                "input_modes": [
+                  "image_to_video",
+                  "text_to_video"
+                ],
+                "max_reference_images": 1,
+                "ratios": [
+                  "9:16",
+                  "16:9",
+                  "1:1"
+                ],
+                "resolutions": [
+                  "480p",
+                  "720p",
+                  "1080p"
+                ],
+                "sizes": [],
+                "duration_s": [
+                  5,
+                  10
+                ],
+                "duration_range_s": [
+                  2,
+                  12
+                ],
+                "duration_step_s": 1,
+                "supports": [
+                  "首帧生视频",
+                  "文生视频"
+                ],
+                "fps": 24,
+                "pricing": {
+                  "kind": "per_mtoken",
+                  "cny_per_mtoken": 4.2,
+                  "billing": "仅成功生成计费"
+                }
+              }
+            },
+            {
+              "id": "doubao-seedance-2-0-mini-260615",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED"
+              ],
+              "input_modes": [
+                "image_to_video",
+                "text_to_video"
+              ],
+              "duration_policy": {
+                "kind": "range",
+                "min": 4,
+                "max": 15,
+                "step": 1,
+                "allowed": null
+              },
+              "capabilities": {
+                "input_modes": [
+                  "image_to_video",
+                  "text_to_video"
+                ],
+                "max_reference_images": 1,
+                "ratios": [
+                  "9:16",
+                  "16:9",
+                  "1:1"
+                ],
+                "resolutions": [
+                  "480p",
+                  "720p"
+                ],
+                "sizes": [],
+                "duration_s": [
+                  5,
+                  10
+                ],
+                "duration_range_s": [
+                  4,
+                  15
+                ],
+                "duration_step_s": 1,
+                "supports": [
+                  "全模态参考生视频",
+                  "参考生视频",
+                  "编辑视频",
+                  "延长视频",
+                  "首尾帧生视频",
+                  "首帧生视频",
+                  "文生视频"
+                ],
+                "fps": 24,
+                "pricing": {
+                  "kind": "per_mtoken",
+                  "cny_per_mtoken": 23.0,
+                  "cny_per_mtoken_with_input_video": 14.0,
+                  "billing": "仅成功生成计费"
+                },
+                "limits": {
+                  "rpm_personal": 180,
+                  "concurrency_personal": 3
+                }
+              }
+            },
+            {
+              "id": "doubao-seedance-2-5-260628",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-2-0-fast-260128",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            }
+          ]
+        }
+      },
+      {
+        "tool": "list_models",
+        "tool_call_id": "call_00_L1dYw6KiBMQft36NuYC53652",
+        "ok": true,
+        "result": {
+          "items": [
+            {
+              "id": "sd15",
+              "kind": "image",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [],
+              "duration_policy": null,
+              "capabilities": {}
+            },
+            {
+              "id": "sdxl-base-1.0",
+              "kind": "image",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_DOWNLOADED"
+              ],
+              "input_modes": [],
+              "duration_policy": null,
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedream-5-0-pro-260628",
+              "kind": "image",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED"
+              ],
+              "input_modes": [
+                "text_to_image",
+                "image_to_image"
+              ],
+              "duration_policy": null,
+              "capabilities": {
+                "input_modes": [
+                  "text_to_image",
+                  "image_to_image"
+                ],
+                "max_reference_images": 10,
+                "ratios": [
+                  "1:1",
+                  "3:4",
+                  "4:3",
+                  "9:16",
+                  "16:9"
+                ],
+                "resolutions": [],
+                "sizes": [
+                  "1024x1024",
+                  "2048x2048",
+                  "1728x2304",
+                  "2304x1728",
+                  "1536x2688",
+                  "2688x1536"
+                ],
+                "duration_s": [],
+                "supports": [
+                  "图层拆分",
+                  "单图生成",
+                  "文生图",
+                  "单张图生图",
+                  "多参考图生图"
+                ],
+                "max_ipm": 500,
+                "pricing": {
+                  "kind": "per_pixel_tier",
+                  "tiers": [
+                    {
+                      "max_mp": 2.61,
+                      "cny": 0.3
+                    },
+                    {
+                      "max_mp": null,
+                      "cny": 0.6
+                    }
+                  ],
+                  "input_image": {
+                    "first_free": true,
+                    "from_second_cny": 0.02
+                  }
+                },
+                "note": "能力项与 flash 一致；画质/速度差异待同题实测"
+              }
+            },
+            {
+              "id": "doubao-seedream-5-0-flash-260915",
+              "kind": "image",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [
+                "text_to_image",
+                "image_to_image"
+              ],
+              "duration_policy": null,
+              "capabilities": {
+                "input_modes": [
+                  "text_to_image",
+                  "image_to_image"
+                ],
+                "max_reference_images": 10,
+                "ratios": [
+                  "1:1",
+                  "3:4",
+                  "4:3",
+                  "9:16",
+                  "16:9"
+                ],
+                "resolutions": [],
+                "sizes": [
+                  "1024x1024",
+                  "2048x2048",
+                  "1728x2304",
+                  "2304x1728",
+                  "1536x2688",
+                  "2688x1536"
+                ],
+                "duration_s": [],
+                "supports": [
+                  "图层拆分",
+                  "单图生成",
+                  "文生图",
+                  "单张图生图",
+                  "多参考图生图"
+                ],
+                "max_ipm": 500,
+                "pricing": {
+                  "kind": "per_image",
+                  "cny_per_image": 0.12,
+                  "input_image": "免费"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "tool": "respond_to_user",
+        "tool_call_id": "call_00_OrfhurzX7tL9CfekIL1P6465",
+        "ok": true,
+        "result": {
+          "kind": "clarify",
+          "message": "方案已给到（5 镜、约 20 秒、16:9、1080p）。存脚本前只差两个信息，你回一句我就直接保存：\n\n1. 5 镜结构和时长是否照此执行？（晨光开场 4s → 质感特写 4s → 注水瞬间 5s → 手持场景 4s → 收尾定格 3s）\n2. 画面里是否出现人手/人物？纯产品空镜更干净，带手更有生活感。\n\n另外确认一下画幅：默认 16:9 横屏，如果这条短片要投竖屏信息流，我改成 9:16。",
+          "missing_fields": [
+            "5镜结构与时长是否确认",
+            "是否出现人手/人物",
+            "画幅比例（16:9 横屏 / 9:16 竖屏）"
+          ]
+        }
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "finish_reason": "tool_calls",
+        "input_tokens": 3088,
+        "output_tokens": 67
+      },
+      {
+        "round": 2,
+        "finish_reason": "tool_calls",
+        "input_tokens": 4304,
+        "output_tokens": 38
+      },
+      {
+        "round": 3,
+        "finish_reason": "stop",
+        "input_tokens": 5020,
+        "output_tokens": 460
+      },
+      {
+        "round": 4,
+        "finish_reason": "tool_calls",
+        "input_tokens": 5513,
+        "output_tokens": 250
+      }
+    ],
+    "workflow_revision": 4248773515933610
+  },
+  "finished_at": 1793175948.2062972
+}

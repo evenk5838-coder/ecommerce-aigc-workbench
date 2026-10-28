@@ -1,0 +1,246 @@
+{
+  "project_id": "prj_7d52f89107db4ce4b9b4",
+  "source_database": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/acceptance.db",
+  "database_mode": "read_only",
+  "archived_at_utc": "2026-10-28T08:46:24.360541+00:00",
+  "ffmpeg_executable": "/private/tmp/ecom-v011-backend-20261027/lib/python3.12/site-packages/imageio_ffmpeg/binaries/ffmpeg-macos-aarch64-v7.1",
+  "ffprobe_executable": "/Applications/ChatCut.app/Contents/Resources/app.asar.unpacked/node_modules/ffmpeg-ffprobe-static/ffprobe",
+  "assets": [
+    {
+      "archive_file": "shot-01-cup-wide.mp4",
+      "shot_number": 1,
+      "requested": {
+        "ratio": "16:9",
+        "resolution": "720p",
+        "duration": 5,
+        "generate_audio": false
+      },
+      "node_id": "director-video-179511978c1f8ff9f9fa-1",
+      "execution_id": "nexec_f02f3b9ad8944f319837",
+      "task_id": "task_cbd9b1ea84cc4ab5a965",
+      "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+      "model_id": "doubao-seedance-1-0-pro-fast-251015",
+      "asset_id": "asset_0b22960e2ae645e889aa",
+      "source_file": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/assets/e2/2d/e22dff75e7909bfac892ad415492a857a9d4aadad03d99c29079b9ef0c5ce6fd.mp4",
+      "sha256": "e22dff75e7909bfac892ad415492a857a9d4aadad03d99c29079b9ef0c5ce6fd",
+      "size_bytes": 1992852,
+      "database_metadata": {
+        "mime": "video/mp4",
+        "width": 1248,
+        "height": 704,
+        "duration_ms": 5040,
+        "fps": 24
+      },
+      "ffprobe": {
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1248,
+            "height": 704,
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "duration": "5.041667",
+            "nb_frames": "121",
+            "nb_read_frames": "121"
+          }
+        ],
+        "format": {
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "duration": "5.041667",
+          "size": "1992852"
+        }
+      },
+      "full_decode": {
+        "exit_code": 0,
+        "stderr": "",
+        "decoded_video_frames": 121
+      },
+      "archive_hash_matches_source_and_db": true
+    },
+    {
+      "archive_file": "shot-02-cup-rim-closeup.mp4",
+      "shot_number": 2,
+      "requested": {
+        "ratio": "16:9",
+        "resolution": "720p",
+        "duration": 5,
+        "generate_audio": false
+      },
+      "node_id": "director-video-179511978c1f8ff9f9fa-2",
+      "execution_id": "nexec_1f1b3363cc7042659884",
+      "task_id": "task_9730c70b749440f8a333",
+      "input_asset_id": "asset_4582d814538a4668968e",
+      "model_id": "doubao-seedance-1-0-pro-fast-251015",
+      "asset_id": "asset_03ed4227fc544b66828c",
+      "source_file": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/assets/a7/90/a790eef459298e17e337f2c4913a11470d61ed6dfe634b2e11cf747edc5c7cdf.mp4",
+      "sha256": "a790eef459298e17e337f2c4913a11470d61ed6dfe634b2e11cf747edc5c7cdf",
+      "size_bytes": 1717001,
+      "database_metadata": {
+        "mime": "video/mp4",
+        "width": 1248,
+        "height": 704,
+        "duration_ms": 5040,
+        "fps": 24
+      },
+      "ffprobe": {
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1248,
+            "height": 704,
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "duration": "5.041667",
+            "nb_frames": "121",
+            "nb_read_frames": "121"
+          }
+        ],
+        "format": {
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "duration": "5.041667",
+          "size": "1717001"
+        }
+      },
+      "full_decode": {
+        "exit_code": 0,
+        "stderr": "",
+        "decoded_video_frames": 121
+      },
+      "archive_hash_matches_source_and_db": true
+    },
+    {
+      "archive_file": "film-01-then-02.mp4",
+      "composition_id": "comp_09c2a3cd153744818a66",
+      "node_id": "composition_comp_09c2a3cd153744818a66",
+      "asset_id": "asset_eb92ba6675554a4d8e96",
+      "source_file": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011/assets/30/a2/30a2b71b01fb12c22bde40de79f18eeac2e6ba1e0558172d86409871e1cbe403.mp4",
+      "sha256": "30a2b71b01fb12c22bde40de79f18eeac2e6ba1e0558172d86409871e1cbe403",
+      "size_bytes": 3709147,
+      "database_metadata": {
+        "mime": "video/mp4",
+        "width": 1248,
+        "height": 704,
+        "duration_ms": 10080,
+        "fps": 24
+      },
+      "ffprobe": {
+        "programs": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1248,
+            "height": 704,
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/12288",
+            "duration": "10.083333",
+            "nb_frames": "242",
+            "nb_read_frames": "242"
+          }
+        ],
+        "format": {
+          "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+          "duration": "10.083333",
+          "size": "3709147"
+        }
+      },
+      "full_decode": {
+        "exit_code": 0,
+        "stderr": "",
+        "decoded_video_frames": 242
+      },
+      "archive_hash_matches_source_and_db": true
+    }
+  ],
+  "composition": {
+    "composition_id": "comp_09c2a3cd153744818a66",
+    "source_order": [
+      {
+        "asset_id": "asset_0b22960e2ae645e889aa",
+        "node_id": "director-video-179511978c1f8ff9f9fa-1",
+        "node_record_id": "node_5118b9e7ecb7404fb1bb",
+        "execution_id": "nexec_f02f3b9ad8944f319837",
+        "sha256": "e22dff75e7909bfac892ad415492a857a9d4aadad03d99c29079b9ef0c5ce6fd",
+        "metadata": {
+          "duration_ms": 5040,
+          "width": 1248,
+          "height": 704,
+          "fps": 24
+        }
+      },
+      {
+        "asset_id": "asset_03ed4227fc544b66828c",
+        "node_id": "director-video-179511978c1f8ff9f9fa-2",
+        "node_record_id": "node_11a53fd11de44c2c8276",
+        "execution_id": "nexec_1f1b3363cc7042659884",
+        "sha256": "a790eef459298e17e337f2c4913a11470d61ed6dfe634b2e11cf747edc5c7cdf",
+        "metadata": {
+          "duration_ms": 5040,
+          "width": 1248,
+          "height": 704,
+          "fps": 24
+        }
+      }
+    ],
+    "decoded_frame_order_exact_match": true,
+    "source_frame_counts": [
+      121,
+      121
+    ],
+    "film_frame_count": 242,
+    "no_trim": true
+  },
+  "review_frames": [
+    {
+      "requested_time_s": 0,
+      "file": "film-review-frames/film-00-000.png",
+      "sha256": "944158a944040a893218d53968fbdeffa0fa40d13642fd952247020e03b941ea",
+      "selection": "first decoded frame at or after requested timestamp"
+    },
+    {
+      "requested_time_s": 2,
+      "file": "film-review-frames/film-02-000.png",
+      "sha256": "72dbf8dd9adddaf7183e2d83d822008220b37969a79a5e44fba8d6a4147364bf",
+      "selection": "first decoded frame at or after requested timestamp"
+    },
+    {
+      "requested_time_s": 4,
+      "file": "film-review-frames/film-04-000.png",
+      "sha256": "da0ee19a2dd81bedec7dbb48fae671914f2b014998f3e90719e161da73a8f5a0",
+      "selection": "first decoded frame at or after requested timestamp"
+    },
+    {
+      "requested_time_s": 5.04,
+      "file": "film-review-frames/film-05-040.png",
+      "sha256": "4f4e5d400b9a0be8ca3b59b0aff1464b7e0b534538547ed32803bf48e9ca004b",
+      "selection": "first decoded frame at or after requested timestamp"
+    },
+    {
+      "requested_time_s": 7,
+      "file": "film-review-frames/film-07-000.png",
+      "sha256": "a43b8a6ebee3f242dbfec3a584873ecc954245e36d6e3c27ee83479e289817af",
+      "selection": "first decoded frame at or after requested timestamp"
+    },
+    {
+      "requested_time_s": 9,
+      "file": "film-review-frames/film-09-000.png",
+      "sha256": "6ee15eb4387f99997695b032a6f8956c7c058122d39b1b4d5965d594ba19d7ac",
+      "selection": "first decoded frame at or after requested timestamp"
+    }
+  ],
+  "dimensions_note": "Requested 720p / 16:9; provider delivered actual 1248x704. Do not label this file as 1280x720.",
+  "network_calls_by_archiver": 0,
+  "provider_calls_by_archiver": 0,
+  "database_writes_by_archiver": 0,
+  "quality_acceptance": "pending_human_review"
+}

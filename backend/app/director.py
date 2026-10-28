@@ -27,34 +27,49 @@ OBJECT_TYPES = ("script", "shot_plan", "storyboard", "scope", "film")
 
 
 # ---------------- 确认 ----------------
-@projects.project_guard()
-def confirm_object(project_id: str, object_type: str, object_id: str,
-                   object_version: int) -> dict:
+def confirm_object_in_tx(connection, project_id: str, object_type: str, object_id: str,
+                         object_version: int) -> dict:
+    """Persist or reuse confirmation on the caller's transaction, without committing."""
     if object_type not in OBJECT_TYPES:
         raise err("VALIDATION_FAILED", f"未知确认对象类型：{object_type}",
                   detail={"allowed": list(OBJECT_TYPES)})
-    projects.get_project(project_id)      # 校验项目存在
-    with db.transaction() as c:
-        row = c.execute("SELECT * FROM confirmations WHERE object_type=? AND object_id=? "
-                        "AND object_version=?", (object_type, object_id, object_version)).fetchone()
-        if row and row["status"] == "active":
-            return {"confirmation_id": row["id"], "status": "active",
-                    "object_type": object_type, "object_id": object_id,
-                    "object_version": object_version, "reused": True}
-        cid = row["id"] if row else db.new_id("cfm")
-        if row:
-            # The version has a UNIQUE row. Archive its previous state before reactivation.
-            c.execute("INSERT INTO confirmation_events(id,confirmation_id,project_id,event,snapshot_json,created_at) "
-                      "VALUES(?,?,?,?,?,?)", (db.new_id("cfme"), cid, project_id, "reconfirmed",
-                                              db.dumps(dict(row)), db.now()))
-            c.execute("UPDATE confirmations SET status='active', reason=NULL, created_at=?, "
-                      "invalidated_at=NULL WHERE id=?", (db.now(), cid))
-        else:
-            c.execute("INSERT INTO confirmations(id,project_id,object_type,object_id,object_version,status,"
-                      "reason,created_at,invalidated_at) VALUES(?,?,?,?,?,'active',NULL,?,NULL)",
-                      (cid, project_id, object_type, object_id, int(object_version), db.now()))
+    c = connection
+    project = c.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+    if not project:
+        raise err("PROJECT_NOT_FOUND", f"项目不存在：{project_id}",
+                  detail={"project_id": project_id})
+    if project["deleted_at"] is not None:
+        raise err("PROJECT_DELETED", "该项目已删除，素材和历史任务仍保留。",
+                  detail={"project_id": project_id, "deleted_at": project["deleted_at"]})
+    row = c.execute("SELECT * FROM confirmations WHERE object_type=? AND object_id=? "
+                    "AND object_version=?", (object_type, object_id, object_version)).fetchone()
+    if row and row["project_id"] != project_id:
+        raise err("VALIDATION_FAILED", "确认对象不属于当前项目。")
+    if row and row["status"] == "active":
+        return {"confirmation_id": row["id"], "status": "active",
+                "object_type": object_type, "object_id": object_id,
+                "object_version": object_version, "reused": True}
+    cid = row["id"] if row else db.new_id("cfm")
+    if row:
+        # The version has a UNIQUE row. Archive its previous state before reactivation.
+        c.execute("INSERT INTO confirmation_events(id,confirmation_id,project_id,event,snapshot_json,created_at) "
+                  "VALUES(?,?,?,?,?,?)", (db.new_id("cfme"), cid, project_id, "reconfirmed",
+                                          db.dumps(dict(row)), db.now()))
+        c.execute("UPDATE confirmations SET status='active', reason=NULL, created_at=?, "
+                  "invalidated_at=NULL WHERE id=?", (db.now(), cid))
+    else:
+        c.execute("INSERT INTO confirmations(id,project_id,object_type,object_id,object_version,status,"
+                  "reason,created_at,invalidated_at) VALUES(?,?,?,?,?,'active',NULL,?,NULL)",
+                  (cid, project_id, object_type, object_id, int(object_version), db.now()))
     return {"confirmation_id": cid, "status": "active", "object_type": object_type,
             "object_id": object_id, "object_version": int(object_version), "reused": False}
+
+
+@projects.project_guard()
+def confirm_object(project_id: str, object_type: str, object_id: str,
+                   object_version: int) -> dict:
+    with db.transaction() as c:
+        return confirm_object_in_tx(c, project_id, object_type, object_id, object_version)
 
 
 def current_confirmation(object_type: str, object_id: str,

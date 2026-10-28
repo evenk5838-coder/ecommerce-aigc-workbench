@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import StructureTemplates, { buildStructureTemplateDraft } from './StructureTemplates';
+import StructureTemplates, { buildStructureTemplateDraft, isStructureTemplateDraftDirty } from './StructureTemplates';
 import type { StructureDraftRow } from './StructureTemplates';
 import type { StructureShot } from './production-types';
 
@@ -46,7 +46,7 @@ describe('structure template display and local safeguards', () => {
   it('starts with an empty manual editor and requires fact-free confirmation without invented template results', () => {
     const onApplied = vi.fn(), onSaved = vi.fn();
     const html = renderToStaticMarkup(createElement(StructureTemplates, { projectId: 'p', onApplied, onSaved }));
-    expect(html).toContain('尚未读取到结构模板');
+    expect(html).toContain('还没有结构模板');
     expect(html).toContain('请填写结构模板名称');
     expect(html).toContain('不含商品名称、数量、卖点');
     expect(html).not.toContain('套用此结构');
@@ -59,7 +59,7 @@ describe('structure template display and local safeguards', () => {
     const source = [{ seq: 1, role: '来自父组件的实际角色', duration_s: 4, motion: '', rhythm: '', asset_id: 'asset_secret' }];
     const snapshot: StructureShot[] = source;
     const html = renderToStaticMarkup(createElement(StructureTemplates, { projectId: 'p', snapshot }));
-    expect(html).toContain('传入内容不是完整的纯结构');
+    expect(html).toContain('当前内容不能直接保存为结构模板');
     expect(html).not.toContain('来自父组件的实际角色');
     expect(html).not.toContain('asset_secret');
   });
@@ -71,11 +71,34 @@ describe('structure template display and local safeguards', () => {
     const html = renderToStaticMarkup(createElement(StructureTemplates, { projectId: 'project/2' }));
     expect(getItem).toHaveBeenCalledWith('material-studio-structure-template-draft-v1:project%2F2');
     expect(html).toContain('本地结构草稿');
-    expect(html).toContain('结果尚需核对');
-    expect(html).not.toContain('已收到成功回执');
+    expect(html).toContain('结果暂未确认');
+    expect(html).not.toContain('已完成，请核对最新内容');
     expect(html).toContain('不会自动重试');
     expect(setItem).not.toHaveBeenCalled();
     expect(clear).not.toHaveBeenCalled();
     expect(removeItem).not.toHaveBeenCalled();
+  });
+});
+
+describe('structure template saved draft boundary', () => {
+  const content = { name: '双镜节奏', rows: [row(), row({ role: '收尾' })] };
+
+  it('protects unsaved and legacy drafts, but leaves a fresh empty editor clean', () => {
+    expect(isStructureTemplateDraftDirty({ name: '', rows: [row({ role: '', duration_s: '', motion: '', rhythm: '' })] })).toBe(false);
+    expect(isStructureTemplateDraftDirty(content)).toBe(true);
+  });
+
+  it('recognizes the saved draft after serialization and protects subsequent edits', () => {
+    const restored = JSON.parse(JSON.stringify(content));
+    expect(isStructureTemplateDraftDirty(restored, content)).toBe(false);
+    expect(isStructureTemplateDraftDirty({ ...restored, name: '新的结构' }, content)).toBe(true);
+    expect(isStructureTemplateDraftDirty({ ...restored, rows: [row({ duration_s: '8' }), row({ role: '收尾' })] }, content)).toBe(true);
+    expect(isStructureTemplateDraftDirty({ ...restored, rows: [] }, content)).toBe(true);
+    expect(isStructureTemplateDraftDirty(content, restored)).toBe(false);
+  });
+
+  it('keeps pending or unknown writes protected even when the saved content matches', () => {
+    expect(isStructureTemplateDraftDirty(content, content, true)).toBe(true);
+    expect(isStructureTemplateDraftDirty(content, content, false)).toBe(false);
   });
 });

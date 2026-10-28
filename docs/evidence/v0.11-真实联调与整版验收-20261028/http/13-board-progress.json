@@ -1,0 +1,200 @@
+{
+  "method": "GET",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/actions/dact_04379d8f01b646e3be62",
+  "request": null,
+  "started_at": 1793176711.310503,
+  "status": 200,
+  "response": {
+    "action_id": "dact_04379d8f01b646e3be62",
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "kind": "generation",
+    "status": "running",
+    "action_status": "submitted",
+    "request_id": "a7f5bea4-c19d-45a9-97b2-b1af38f39d11",
+    "node_ids": [
+      "director-image-958ab41985e36955b60f-1",
+      "director-image-958ab41985e36955b60f-2"
+    ],
+    "quotes": [
+      {
+        "quote_id": "nquote_582707fe5d5540358299",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-image-958ab41985e36955b60f-1",
+        "config_revision": 1,
+        "input_hash": "sha256:66369adacab346daf1b5d64bf617dabe0a59438856f620a20e206f02c41c76ff",
+        "estimated_cost_cny": 0.12,
+        "expires_at": 1793176823.431618,
+        "input": {
+          "kind": "image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536",
+            "watermark": false,
+            "prompt": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。",
+            "generation_mode": "text_to_image"
+          },
+          "input_asset_id": null,
+          "reference": null
+        },
+        "side_effects": {
+          "task_created": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      },
+      {
+        "quote_id": "nquote_25214ee6398d4a029593",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-image-958ab41985e36955b60f-2",
+        "config_revision": 1,
+        "input_hash": "sha256:aa3806c5f0705dfd0ce8f487bf8e2809bcaa906250f5c7ac59e56e3fe348fc78",
+        "estimated_cost_cny": 0.12,
+        "expires_at": 1793176823.432016,
+        "input": {
+          "kind": "image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536",
+            "watermark": false,
+            "prompt": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。",
+            "generation_mode": "text_to_image"
+          },
+          "input_asset_id": null,
+          "reference": null
+        },
+        "side_effects": {
+          "task_created": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      }
+    ],
+    "output_mode": "clips",
+    "estimated_cost_cny": 0.24,
+    "expires_at": 1793176823.431618,
+    "expired": false,
+    "requires_user_action": false,
+    "batch_id": "batch_f8fb50cc72554da1a0ac",
+    "tasks": [
+      {
+        "node_id": "director-image-958ab41985e36955b60f-1",
+        "execution_id": "nexec_8fca527a8a7145128d7c",
+        "task_id": "task_55bcd3cea5254dfaa264",
+        "quote_id": "nquote_582707fe5d5540358299"
+      },
+      {
+        "node_id": "director-image-958ab41985e36955b60f-2",
+        "execution_id": "nexec_f34c0fbd61ec43119123",
+        "task_id": "task_007ee353d3ad420f9dff",
+        "quote_id": "nquote_25214ee6398d4a029593"
+      }
+    ],
+    "executions": [
+      {
+        "execution_id": "nexec_8fca527a8a7145128d7c",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-image-958ab41985e36955b60f-1",
+        "quote_id": "nquote_582707fe5d5540358299",
+        "client_request_id": "director:dact_04379d8f01b646e3be62:0",
+        "task_id": "task_55bcd3cea5254dfaa264",
+        "status": "succeeded",
+        "stage": "done",
+        "progress": 1.0,
+        "active": false,
+        "output_asset_id": "asset_f33e4500f99a4ea9bcfb",
+        "asset_id": "asset_f33e4500f99a4ea9bcfb",
+        "asset": {
+          "id": "asset_f33e4500f99a4ea9bcfb",
+          "kind": "image",
+          "mime": "image/jpeg",
+          "width": 2688,
+          "height": 1536,
+          "duration_ms": null
+        },
+        "asset_available": true,
+        "asset_error": null,
+        "result_status": "available",
+        "error": null,
+        "estimated_cost_cny": 0.12,
+        "input": {
+          "kind": "image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536",
+            "watermark": false,
+            "prompt": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。",
+            "generation_mode": "text_to_image"
+          },
+          "input_asset_id": null,
+          "reference": null
+        },
+        "cost_cny": 0.12,
+        "created_at": 1793176679.922003,
+        "finished_at": 1793176699.1624708,
+        "config_revision": 1,
+        "input_hash": "sha256:66369adacab346daf1b5d64bf617dabe0a59438856f620a20e206f02c41c76ff"
+      },
+      {
+        "execution_id": "nexec_f34c0fbd61ec43119123",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-image-958ab41985e36955b60f-2",
+        "quote_id": "nquote_25214ee6398d4a029593",
+        "client_request_id": "director:dact_04379d8f01b646e3be62:1",
+        "task_id": "task_007ee353d3ad420f9dff",
+        "status": "running",
+        "stage": "running",
+        "progress": 0.3,
+        "active": true,
+        "output_asset_id": null,
+        "asset_id": null,
+        "asset": null,
+        "asset_available": false,
+        "asset_error": null,
+        "result_status": "pending",
+        "error": null,
+        "estimated_cost_cny": 0.12,
+        "input": {
+          "kind": "image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536",
+            "watermark": false,
+            "prompt": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。",
+            "generation_mode": "text_to_image"
+          },
+          "input_asset_id": null,
+          "reference": null
+        },
+        "cost_cny": null,
+        "created_at": 1793176679.92309,
+        "finished_at": null,
+        "config_revision": 1,
+        "input_hash": "sha256:aa3806c5f0705dfd0ce8f487bf8e2809bcaa906250f5c7ac59e56e3fe348fc78"
+      }
+    ],
+    "submit_client_request_id": "93c9467f-812b-4c22-a44c-ceb9a7662006",
+    "auto_film": false,
+    "media_status": "running",
+    "composition": null,
+    "error": null,
+    "scope": {
+      "generate": true,
+      "compose": false,
+      "ordered_node_ids": [
+        "director-image-958ab41985e36955b60f-1",
+        "director-image-958ab41985e36955b60f-2"
+      ],
+      "no_trim": false,
+      "composition_cost_cny": 0
+    },
+    "created_at": 1793176223.432079,
+    "submitted_at": 1793176679.921417,
+    "current_role": "cinematographer",
+    "workflow_revision": 3195257394777277
+  },
+  "finished_at": 1793176711.45337
+}

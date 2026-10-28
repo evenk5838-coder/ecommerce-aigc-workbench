@@ -1,0 +1,736 @@
+{
+  "status": 200,
+  "body": {
+    "flow_version": 2,
+    "session_id": "asst_2ee44925968b4202a6d6",
+    "request_id": "8adece98-7b6d-423d-80d7-17f6fe046ae6",
+    "request_status": "completed",
+    "reply": "节点设置和生成方案已准备好，请确认本次素材与费用后开始生成。",
+    "reply_type": "saved",
+    "outcome": {
+      "status": "saved",
+      "node_ids": [
+        "director-video-179511978c1f8ff9f9fa-1",
+        "director-video-179511978c1f8ff9f9fa-2"
+      ]
+    },
+    "artifacts": [
+      {
+        "type": "video",
+        "node_id": "director-video-179511978c1f8ff9f9fa-1",
+        "config_revision": 1,
+        "config": {
+          "generation_mode": "image_to_video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "prompt": "以首帧画面为起点，镜头缓慢平稳推近并轻微右移，晨光在白色陶瓷杯釉面上缓慢流动，杯身完整保持在画面中央偏右。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+          "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+          "params": {
+            "ratio": "16:9",
+            "resolution": "720p",
+            "duration": 5,
+            "generate_audio": false
+          },
+          "title": "镜1 杯身全景 · 视频"
+        },
+        "binding": {
+          "shot_id": "shot_958ab41985e36955b60f_1"
+        },
+        "position": {
+          "x": 1040,
+          "y": 100
+        },
+        "saved": true,
+        "confirmed": false,
+        "source": {
+          "node_id": "director-image-958ab41985e36955b60f-1",
+          "config_revision": 1,
+          "asset": {
+            "id": "asset_f33e4500f99a4ea9bcfb",
+            "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "width": 2688,
+            "height": 1536
+          },
+          "type": "image_execution",
+          "execution_id": "nexec_8fca527a8a7145128d7c",
+          "execution_config_revision": 1
+        },
+        "persistence": "saved"
+      },
+      {
+        "type": "video",
+        "node_id": "director-video-179511978c1f8ff9f9fa-2",
+        "config_revision": 1,
+        "config": {
+          "generation_mode": "image_to_video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "prompt": "以首帧画面为起点，镜头极缓慢轻微环绕杯口半圈，晨光高光沿白色陶瓷杯沿平滑滑动，杯内保持空无一物，背景持续虚化。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+          "input_asset_id": "asset_4582d814538a4668968e",
+          "params": {
+            "ratio": "16:9",
+            "resolution": "720p",
+            "duration": 5,
+            "generate_audio": false
+          },
+          "title": "镜2 杯口特写 · 视频"
+        },
+        "binding": {
+          "shot_id": "shot_958ab41985e36955b60f_2"
+        },
+        "position": {
+          "x": 1040,
+          "y": 440
+        },
+        "saved": true,
+        "confirmed": false,
+        "source": {
+          "node_id": "director-image-958ab41985e36955b60f-2",
+          "config_revision": 1,
+          "asset": {
+            "id": "asset_4582d814538a4668968e",
+            "sha256": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609",
+            "kind": "image",
+            "mime": "image/jpeg",
+            "width": 2688,
+            "height": 1536
+          },
+          "type": "image_execution",
+          "execution_id": "nexec_f34c0fbd61ec43119123",
+          "execution_config_revision": 1
+        },
+        "persistence": "saved"
+      }
+    ],
+    "actions": [
+      {
+        "action_id": "dact_d1bd6a3a7c46468383f8",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "kind": "generation",
+        "status": "proposed",
+        "action_status": "proposed",
+        "request_id": "8adece98-7b6d-423d-80d7-17f6fe046ae6",
+        "node_ids": [
+          "director-video-179511978c1f8ff9f9fa-1",
+          "director-video-179511978c1f8ff9f9fa-2"
+        ],
+        "quotes": [
+          {
+            "quote_id": "nquote_a6fb8c2304cf43d4a28e",
+            "project_id": "prj_7d52f89107db4ce4b9b4",
+            "node_id": "director-video-179511978c1f8ff9f9fa-1",
+            "config_revision": 1,
+            "input_hash": "sha256:82f7bfbc9df11657815416030b058e734751f84050dbcc811bcf0886d8927aed",
+            "estimated_cost_cny": 0.4536,
+            "expires_at": 1793177367.204431,
+            "input": {
+              "kind": "video",
+              "model_id": "doubao-seedance-1-0-pro-fast-251015",
+              "params": {
+                "ratio": "16:9",
+                "resolution": "720p",
+                "duration": 5,
+                "generate_audio": false,
+                "watermark": false,
+                "prompt": "以首帧画面为起点，镜头缓慢平稳推近并轻微右移，晨光在白色陶瓷杯釉面上缓慢流动，杯身完整保持在画面中央偏右。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+                "generation_mode": "image_to_video",
+                "input_asset_id": "asset_f33e4500f99a4ea9bcfb"
+              },
+              "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+              "reference": {
+                "asset_id": "asset_f33e4500f99a4ea9bcfb",
+                "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+                "mime": "image/jpeg"
+              }
+            },
+            "side_effects": {
+              "task_created": false,
+              "model_called": false,
+              "budget_deducted": false
+            }
+          },
+          {
+            "quote_id": "nquote_1a0c75657b1347ada2fb",
+            "project_id": "prj_7d52f89107db4ce4b9b4",
+            "node_id": "director-video-179511978c1f8ff9f9fa-2",
+            "config_revision": 1,
+            "input_hash": "sha256:6421327e806ca24f5ac37dba5d9c1a5c044055dfb706a9617f0d89b8d712b44e",
+            "estimated_cost_cny": 0.4536,
+            "expires_at": 1793177367.208268,
+            "input": {
+              "kind": "video",
+              "model_id": "doubao-seedance-1-0-pro-fast-251015",
+              "params": {
+                "ratio": "16:9",
+                "resolution": "720p",
+                "duration": 5,
+                "generate_audio": false,
+                "watermark": false,
+                "prompt": "以首帧画面为起点，镜头极缓慢轻微环绕杯口半圈，晨光高光沿白色陶瓷杯沿平滑滑动，杯内保持空无一物，背景持续虚化。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+                "generation_mode": "image_to_video",
+                "input_asset_id": "asset_4582d814538a4668968e"
+              },
+              "input_asset_id": "asset_4582d814538a4668968e",
+              "reference": {
+                "asset_id": "asset_4582d814538a4668968e",
+                "sha256": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609",
+                "mime": "image/jpeg"
+              }
+            },
+            "side_effects": {
+              "task_created": false,
+              "model_called": false,
+              "budget_deducted": false
+            }
+          }
+        ],
+        "output_mode": "film",
+        "estimated_cost_cny": 0.9072,
+        "expires_at": 1793177367.204431,
+        "expired": false,
+        "requires_user_action": true,
+        "batch_id": null,
+        "tasks": [],
+        "executions": [],
+        "submit_client_request_id": null,
+        "auto_film": true,
+        "media_status": "proposed",
+        "composition": null,
+        "error": null,
+        "scope": {
+          "generate": true,
+          "compose": true,
+          "ordered_node_ids": [
+            "director-video-179511978c1f8ff9f9fa-1",
+            "director-video-179511978c1f8ff9f9fa-2"
+          ],
+          "no_trim": true,
+          "composition_cost_cny": 0
+        },
+        "created_at": 1793176767.208351,
+        "submitted_at": null,
+        "idempotent_replay": false,
+        "side_effects": {
+          "tasks_created": 0,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      }
+    ],
+    "current_role": "cinematographer",
+    "current": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "name": "晨光白杯 · 真实联调验收",
+      "brief": {},
+      "current_stage": "requirements",
+      "script": {
+        "script_id": "scr_c20b514506334e0f94c6",
+        "version": 1,
+        "content": {
+          "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+          "shots": [
+            {
+              "seq": 1,
+              "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+              "duration_s": 5,
+              "motion": "缓慢推近，轻微右移"
+            },
+            {
+              "seq": 2,
+              "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+              "duration_s": 5,
+              "motion": "极缓慢环绕，高光滑动"
+            }
+          ]
+        },
+        "confirmed": true
+      },
+      "shots": [
+        {
+          "shot_id": "shot_958ab41985e36955b60f_1",
+          "seq": 1,
+          "duration_s": 5,
+          "description": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。"
+        },
+        {
+          "shot_id": "shot_958ab41985e36955b60f_2",
+          "seq": 2,
+          "duration_s": 5,
+          "description": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。"
+        }
+      ],
+      "allowed_actions": [
+        "save_brief"
+      ],
+      "draft_proposals": [
+        {
+          "kind": "script",
+          "version": 1,
+          "proposal_id": "prop_aaf0e777922f480d8522",
+          "content": {
+            "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+            "shots": [
+              {
+                "seq": 1,
+                "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+                "duration_s": 5,
+                "motion": "缓慢推近，轻微右移"
+              },
+              {
+                "seq": 2,
+                "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+                "duration_s": 5,
+                "motion": "极缓慢环绕，高光滑动"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "usage": {
+      "input_tokens": 19101,
+      "output_tokens": 541,
+      "cost_cny": 0.01945,
+      "estimated_cny": 0.073368
+    },
+    "tool_calls": [
+      {
+        "tool": "list_models",
+        "tool_call_id": "call_00_j3tG7VatdMCvplEZLbiU2300",
+        "ok": true,
+        "result": {
+          "items": [
+            {
+              "id": "i2vgen-xl",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_DOWNLOADED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-2-0-260128",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-1-0-pro-fast-251015",
+              "kind": "video",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [
+                "image_to_video",
+                "text_to_video"
+              ],
+              "duration_policy": {
+                "kind": "range",
+                "min": 2,
+                "max": 12,
+                "step": 1,
+                "allowed": null
+              },
+              "capabilities": {
+                "input_modes": [
+                  "image_to_video",
+                  "text_to_video"
+                ],
+                "max_reference_images": 1,
+                "ratios": [
+                  "9:16",
+                  "16:9",
+                  "1:1"
+                ],
+                "resolutions": [
+                  "480p",
+                  "720p",
+                  "1080p"
+                ],
+                "sizes": [],
+                "duration_s": [
+                  5,
+                  10
+                ],
+                "duration_range_s": [
+                  2,
+                  12
+                ],
+                "duration_step_s": 1,
+                "supports": [
+                  "首帧生视频",
+                  "文生视频"
+                ],
+                "fps": 24,
+                "pricing": {
+                  "kind": "per_mtoken",
+                  "cny_per_mtoken": 4.2,
+                  "billing": "仅成功生成计费"
+                }
+              }
+            },
+            {
+              "id": "doubao-seedance-2-0-mini-260615",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED"
+              ],
+              "input_modes": [
+                "image_to_video",
+                "text_to_video"
+              ],
+              "duration_policy": {
+                "kind": "range",
+                "min": 4,
+                "max": 15,
+                "step": 1,
+                "allowed": null
+              },
+              "capabilities": {
+                "input_modes": [
+                  "image_to_video",
+                  "text_to_video"
+                ],
+                "max_reference_images": 1,
+                "ratios": [
+                  "9:16",
+                  "16:9",
+                  "1:1"
+                ],
+                "resolutions": [
+                  "480p",
+                  "720p"
+                ],
+                "sizes": [],
+                "duration_s": [
+                  5,
+                  10
+                ],
+                "duration_range_s": [
+                  4,
+                  15
+                ],
+                "duration_step_s": 1,
+                "supports": [
+                  "全模态参考生视频",
+                  "参考生视频",
+                  "编辑视频",
+                  "延长视频",
+                  "首尾帧生视频",
+                  "首帧生视频",
+                  "文生视频"
+                ],
+                "fps": 24,
+                "pricing": {
+                  "kind": "per_mtoken",
+                  "cny_per_mtoken": 23,
+                  "cny_per_mtoken_with_input_video": 14,
+                  "billing": "仅成功生成计费"
+                },
+                "limits": {
+                  "rpm_personal": 180,
+                  "concurrency_personal": 3
+                }
+              }
+            },
+            {
+              "id": "doubao-seedance-2-5-260628",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-2-0-fast-260128",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            }
+          ]
+        }
+      },
+      {
+        "tool": "prepare_video_nodes",
+        "tool_call_id": "call_00_ge7GYRlT3G1r32pGshzG1333",
+        "ok": true,
+        "result": {
+          "saved": true,
+          "confirmed": false,
+          "artifacts": [
+            {
+              "type": "video",
+              "node_id": "director-video-179511978c1f8ff9f9fa-1",
+              "config_revision": 1,
+              "config": {
+                "generation_mode": "image_to_video",
+                "model_id": "doubao-seedance-1-0-pro-fast-251015",
+                "prompt": "以首帧画面为起点，镜头缓慢平稳推近并轻微右移，晨光在白色陶瓷杯釉面上缓慢流动，杯身完整保持在画面中央偏右。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+                "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+                "params": {
+                  "ratio": "16:9",
+                  "resolution": "720p",
+                  "duration": 5,
+                  "generate_audio": false
+                },
+                "title": "镜1 杯身全景 · 视频"
+              },
+              "binding": {
+                "shot_id": "shot_958ab41985e36955b60f_1"
+              },
+              "position": {
+                "x": 1040,
+                "y": 100
+              },
+              "saved": true,
+              "confirmed": false,
+              "source": {
+                "node_id": "director-image-958ab41985e36955b60f-1",
+                "config_revision": 1,
+                "asset": {
+                  "id": "asset_f33e4500f99a4ea9bcfb",
+                  "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+                  "kind": "image",
+                  "mime": "image/jpeg",
+                  "width": 2688,
+                  "height": 1536
+                },
+                "type": "image_execution",
+                "execution_id": "nexec_8fca527a8a7145128d7c",
+                "execution_config_revision": 1
+              }
+            },
+            {
+              "type": "video",
+              "node_id": "director-video-179511978c1f8ff9f9fa-2",
+              "config_revision": 1,
+              "config": {
+                "generation_mode": "image_to_video",
+                "model_id": "doubao-seedance-1-0-pro-fast-251015",
+                "prompt": "以首帧画面为起点，镜头极缓慢轻微环绕杯口半圈，晨光高光沿白色陶瓷杯沿平滑滑动，杯内保持空无一物，背景持续虚化。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+                "input_asset_id": "asset_4582d814538a4668968e",
+                "params": {
+                  "ratio": "16:9",
+                  "resolution": "720p",
+                  "duration": 5,
+                  "generate_audio": false
+                },
+                "title": "镜2 杯口特写 · 视频"
+              },
+              "binding": {
+                "shot_id": "shot_958ab41985e36955b60f_2"
+              },
+              "position": {
+                "x": 1040,
+                "y": 440
+              },
+              "saved": true,
+              "confirmed": false,
+              "source": {
+                "node_id": "director-image-958ab41985e36955b60f-2",
+                "config_revision": 1,
+                "asset": {
+                  "id": "asset_4582d814538a4668968e",
+                  "sha256": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609",
+                  "kind": "image",
+                  "mime": "image/jpeg",
+                  "width": 2688,
+                  "height": 1536
+                },
+                "type": "image_execution",
+                "execution_id": "nexec_f34c0fbd61ec43119123",
+                "execution_config_revision": 1
+              }
+            }
+          ],
+          "node_ids": [
+            "director-video-179511978c1f8ff9f9fa-1",
+            "director-video-179511978c1f8ff9f9fa-2"
+          ],
+          "layout_revision": 5,
+          "legacy_media_created": false,
+          "side_effects": {
+            "task_created": false,
+            "model_called": false,
+            "budget_deducted": false
+          },
+          "idempotent_replay": false,
+          "actions": [
+            {
+              "action_id": "dact_d1bd6a3a7c46468383f8",
+              "project_id": "prj_7d52f89107db4ce4b9b4",
+              "kind": "generation",
+              "status": "proposed",
+              "action_status": "proposed",
+              "request_id": "8adece98-7b6d-423d-80d7-17f6fe046ae6",
+              "node_ids": [
+                "director-video-179511978c1f8ff9f9fa-1",
+                "director-video-179511978c1f8ff9f9fa-2"
+              ],
+              "quotes": [
+                {
+                  "quote_id": "nquote_a6fb8c2304cf43d4a28e",
+                  "project_id": "prj_7d52f89107db4ce4b9b4",
+                  "node_id": "director-video-179511978c1f8ff9f9fa-1",
+                  "config_revision": 1,
+                  "input_hash": "sha256:82f7bfbc9df11657815416030b058e734751f84050dbcc811bcf0886d8927aed",
+                  "estimated_cost_cny": 0.4536,
+                  "expires_at": 1793177367.204431,
+                  "input": {
+                    "kind": "video",
+                    "model_id": "doubao-seedance-1-0-pro-fast-251015",
+                    "params": {
+                      "ratio": "16:9",
+                      "resolution": "720p",
+                      "duration": 5,
+                      "generate_audio": false,
+                      "watermark": false,
+                      "prompt": "以首帧画面为起点，镜头缓慢平稳推近并轻微右移，晨光在白色陶瓷杯釉面上缓慢流动，杯身完整保持在画面中央偏右。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+                      "generation_mode": "image_to_video",
+                      "input_asset_id": "asset_f33e4500f99a4ea9bcfb"
+                    },
+                    "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+                    "reference": {
+                      "asset_id": "asset_f33e4500f99a4ea9bcfb",
+                      "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+                      "mime": "image/jpeg"
+                    }
+                  },
+                  "side_effects": {
+                    "task_created": false,
+                    "model_called": false,
+                    "budget_deducted": false
+                  }
+                },
+                {
+                  "quote_id": "nquote_1a0c75657b1347ada2fb",
+                  "project_id": "prj_7d52f89107db4ce4b9b4",
+                  "node_id": "director-video-179511978c1f8ff9f9fa-2",
+                  "config_revision": 1,
+                  "input_hash": "sha256:6421327e806ca24f5ac37dba5d9c1a5c044055dfb706a9617f0d89b8d712b44e",
+                  "estimated_cost_cny": 0.4536,
+                  "expires_at": 1793177367.208268,
+                  "input": {
+                    "kind": "video",
+                    "model_id": "doubao-seedance-1-0-pro-fast-251015",
+                    "params": {
+                      "ratio": "16:9",
+                      "resolution": "720p",
+                      "duration": 5,
+                      "generate_audio": false,
+                      "watermark": false,
+                      "prompt": "以首帧画面为起点，镜头极缓慢轻微环绕杯口半圈，晨光高光沿白色陶瓷杯沿平滑滑动，杯内保持空无一物，背景持续虚化。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+                      "generation_mode": "image_to_video",
+                      "input_asset_id": "asset_4582d814538a4668968e"
+                    },
+                    "input_asset_id": "asset_4582d814538a4668968e",
+                    "reference": {
+                      "asset_id": "asset_4582d814538a4668968e",
+                      "sha256": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609",
+                      "mime": "image/jpeg"
+                    }
+                  },
+                  "side_effects": {
+                    "task_created": false,
+                    "model_called": false,
+                    "budget_deducted": false
+                  }
+                }
+              ],
+              "output_mode": "film",
+              "estimated_cost_cny": 0.9072,
+              "expires_at": 1793177367.204431,
+              "expired": false,
+              "requires_user_action": true,
+              "batch_id": null,
+              "tasks": [],
+              "executions": [],
+              "submit_client_request_id": null,
+              "auto_film": true,
+              "media_status": "proposed",
+              "composition": null,
+              "error": null,
+              "scope": {
+                "generate": true,
+                "compose": true,
+                "ordered_node_ids": [
+                  "director-video-179511978c1f8ff9f9fa-1",
+                  "director-video-179511978c1f8ff9f9fa-2"
+                ],
+                "no_trim": true,
+                "composition_cost_cny": 0
+              },
+              "created_at": 1793176767.208351,
+              "submitted_at": null,
+              "idempotent_replay": false,
+              "side_effects": {
+                "tasks_created": 0,
+                "model_called": false,
+                "budget_deducted": false
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "finish_reason": "tool_calls",
+        "input_tokens": 9050,
+        "output_tokens": 38
+      },
+      {
+        "round": 2,
+        "finish_reason": "tool_calls",
+        "input_tokens": 10051,
+        "output_tokens": 503
+      }
+    ],
+    "workflow_revision": 3215281416670307
+  }
+}

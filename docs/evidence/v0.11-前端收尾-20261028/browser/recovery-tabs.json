@@ -1,0 +1,14 @@
+{
+  "nextCursor": "v1.976E18E42D4FCC4BD7C56562D5DE35B2E1C962448B41E2A6A3117112A5881526.100",
+  "truncated": true,
+  "tabs": [],
+  "currentTabId": null,
+  "total": 111,
+  "focusedWindowId": null,
+  "scope": "Only task-relevant local preview tabs retained; unrelated inventory omitted",
+  "matched_original_canvas": {
+    "tabId": 2005045022,
+    "groupId": "70E6588026DB690B1778092E44F8E176",
+    "url": "http://127.0.0.1:52663/#/director/prj_7d52f89107db4ce4b9b4"
+  }
+}

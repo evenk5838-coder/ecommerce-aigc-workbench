@@ -1,0 +1,43 @@
+{
+  "sheets": [
+    {
+      "video_file": "film-01-then-02.mp4",
+      "contact_sheet": "film-01-then-02-contact-sheet.png",
+      "frame_indices_zero_based": [
+        0,
+        48,
+        96,
+        121,
+        168,
+        216
+      ],
+      "times_s": [
+        0.0,
+        2.0,
+        4.0,
+        5.041666666666667,
+        7.0,
+        9.0
+      ],
+      "reading_order": "left-to-right, then top-to-bottom",
+      "sha256": "a36f9853cdeffa9c7d88234507005327d4a54da4d79ad8e991a3ad5653dadd27"
+    },
+    {
+      "video_file": "supplementary-text-to-video.mp4",
+      "contact_sheet": "supplementary-text-to-video-contact-sheet.png",
+      "frame_indices_zero_based": [
+        0,
+        48,
+        96
+      ],
+      "times_s": [
+        0.0,
+        2.0,
+        4.0
+      ],
+      "reading_order": "left-to-right, then top-to-bottom",
+      "sha256": "80502fbbc72ddece2b9852d4bf652be157ef761d9ef81d7176c751f0b2aac5b6"
+    }
+  ],
+  "method": "FFmpeg decoded frame extraction and tiling; original videos unchanged"
+}

@@ -1,0 +1,58 @@
+{
+  "timestamp_utc": "20261028T095029Z",
+  "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/frontend-closing-20261028T095029Z",
+  "before_counts": {
+    "projects": 3,
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 6
+  },
+  "old_dist": {
+    "assets/index-BKY1HEBH.js": "e1c1489ec5c84e7dc047ad4df573dc8d9a38d0e2cae9861a3437b0d3e49724e3",
+    "assets/index-CyoWOAtM.css": "92989c08a0f29f2b1e1ed23c87e6530700ba8c5010a185ed135ed21f3ebaa809",
+    "index.html": "02ae2c1cacc2eb0c96355a8aec07aac5d4ed57bbc69fce7f8ae9183d20332e6f"
+  },
+  "candidate_dist": {
+    "assets/index-1ZyR850h.js": "94fbc85a08519b03f9961ee7026ab2eb0094383d9c6966e0412036416106d745",
+    "assets/index-CyoWOAtM.css": "92989c08a0f29f2b1e1ed23c87e6530700ba8c5010a185ed135ed21f3ebaa809",
+    "index.html": "75ec599ae50393b5b24c7b77a7929694c08aef3293cf40c8eac9b4de4d3af98d"
+  },
+  "backend_sha256": {
+    "backend/app/shots.py": "e01cf9f45234b247342304a482db87d1de6a8a7aecf3fb06ca3a169134220e99",
+    "backend/app/worker.py": "efd5b4cebdd170228c87a6c4162ab33b2b855dfd5af70c610e035d30b28b1427",
+    "backend/app/db.py": "37439f46686fd5c82413b17fd3eccb8ac6056e5bb68f4617aac2a51ad99cc37d",
+    "backend/app/director_generation.py": "e10d463501f91ff17fad8ff597b52d044414a844375036347f8e5cd755a4bc41",
+    "backend/app/director_chat.py": "e788e29c67d1f665852a1fd098d8ca1d4e673e62d927637df30c6684405a5c42",
+    "backend/app/config.py": "ea673b5afef1052d4642fd7293ca749cb47789a7fdd7f538a00ef382d670b26d",
+    "backend/app/engines.py": "9055f3626f40ad933a56a71e59fb0f341f7342da61e738e2bf1a2a4ac03413dd",
+    "backend/app/canvas_history.py": "cd49652f820b9f4e74ca109cf1caf3a787aa6e0b7b9661caaacaf0e411c1f6cf",
+    "backend/app/director_workflow.py": "48bc1f00f9cefb8a96868018fa45a94deecd537472cf7f860580d35bdf8409c0",
+    "backend/app/director_creation.py": "1911e66f625fcd14b27baadedaf4ecae0aa7e9a541c1a48a584ac407b03df548",
+    "backend/app/templates.py": "5bb33a0704c3fb638cfcf2f9010ac4340b40b47dbcf0e468040baf7c362c0d80",
+    "backend/app/director_recovery.py": "9195f9f16bfd1c1c8baecb09151f5761ffe0f210e876792327997e982127846e",
+    "backend/app/assembly.py": "de6ebad97743d23d46d459535e9bdd53300e92a5124dadc3b9e20bef7d9eb0f3",
+    "backend/app/node_execution.py": "ff388072b91d99ddb0f7a96ef0ebb9419c7ef2a2a5d76e6f9477917b6081699f",
+    "backend/app/pipeline.py": "006d0dd05d2399da52172d455e7e6f87cb6f3c8b2939088954e621c09df0d403",
+    "backend/app/providers_ark.py": "54985ad7efe3547b8b2c14ce1b7104538fc521330b01a706a8d9072a2c1c2e0e",
+    "backend/app/storage.py": "1a960b7dbe615614e3335076841283d00bb1a9dab9ce09fa4a535027bb89a029",
+    "backend/app/errors.py": "4c93779e6053f353e1f18c27ab4dccac484112ba3b358cbcdf315273b9ad9b8d",
+    "backend/app/director_composition.py": "e1a53d98e779163ea92177b7b4be019141070d5317c99adb82a1f5180847d536",
+    "backend/app/projects.py": "7dd6677962c4e52d376910b9c1452a4faa2feff3f712bd16aaa0f94ac1062e1f",
+    "backend/app/main.py": "b3aef74f4146866d68d3eeaa2e3906518aeb5380cf8051694de337acadd188dd",
+    "backend/app/director.py": "0398854a70fd03f7a4e3a836e5087c42fc10996efe2b0236b2207815bcd0a23e",
+    "backend/app/scope.py": "ddce6bc8c9c4423b49f22d99d62a49f5a3976f1aeb4dd29d6c354e9754b5be06",
+    "backend/app/cloud_tasks.py": "2d9a2ee5728a71cbb5f47c3bf91a3a6d763b4190d3383ee0f28ca6dbef39ff35",
+    "backend/app/canvas.py": "bbacddcd52f5161531d68147fad04019aa6cd5fc619753c18f8d21314f81af09",
+    "backend/app/routers/__init__.py": "8a3152d994ddbe63d953158d6ccd1804b60818f96d6cde8ff13770495609ed03",
+    "backend/app/routers/creative.py": "d3b255207d02e3d09ff14ec10ad84b1a2b9b443aecbc465c76404a3e055e50f1",
+    "backend/app/assistant/service.py": "16f8f710aff462c2bdf1191c3ed7b8400e2643b6bf78aa4a191bd7c0e285f7a9",
+    "backend/app/assistant/provider.py": "dd5315ef3825753609664ea0f94624713cdb70e5f64b0f3b7538a63254fa5b04",
+    "backend/app/assistant/tools.py": "abff516e8afc9e4a4cd1d35cb63073b26222530760166cd634f61f8f11960ead",
+    "backend/app/assistant/__init__.py": "e2471386b1f27823577b73e9df9d95ef33fae2fa7a8dd4ba11bd42d19a2a672c",
+    "backend/app/assistant/approval.py": "587c67888e850746c259e401653cf3323157cdaea474446f893431ee05ce5b4f",
+    "backend/app/assistant/router.py": "7fdd234d394157153ba83bcce9343c00a65fc8dc9137f8310882d2baaaf56a82"
+  },
+  "db_backup_sha256": "ea4cc991112701f4e9ab50c58d17d777be193d21c26da82f210032e9f9dde279"
+}

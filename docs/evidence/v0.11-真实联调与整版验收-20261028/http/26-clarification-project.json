@@ -1,0 +1,21 @@
+{
+  "method": "POST",
+  "path": "/api/projects",
+  "request": {
+    "name": "对话澄清 · 修正复验",
+    "brief": {}
+  },
+  "started_at": 1793177413.942674,
+  "status": 200,
+  "response": {
+    "project_id": "prj_4d5f45b60c3c4be39abe",
+    "name": "对话澄清 · 修正复验",
+    "brief": {},
+    "status": "draft",
+    "structure_template_id": null,
+    "structure_template_version": null,
+    "created_at": 1793177413.96228,
+    "updated_at": 1793177413.96228
+  },
+  "finished_at": 1793177413.966458
+}

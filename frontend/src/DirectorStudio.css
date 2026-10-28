@@ -57,3 +57,72 @@
 @media(max-width:1250px){.director-workspace{grid-template-columns:275px minmax(0,1fr);gap:12px}.app-shell .creative-space{padding:0 14px 12px}}
 @media(max-width:900px){.director-workspace{grid-template-columns:245px minmax(0,1fr);gap:10px}.app-shell .creative-space{padding:0 10px 10px}.app-shell .creative-space .cs-heading .cs-eyebrow{font-size:10px}.app-shell .creative-space .cs-project-heading{padding:10px 0}.app-shell .creative-space .cs-project-heading h2{font-size:16px}.director-chat .dc-header{padding:14px 12px 10px}.director-chat .dc-boundary{margin:0 12px 10px}.director-chat .dc-scroll{padding:0 12px 12px}.director-chat .dc-composer{padding:10px 12px}.director-chat .dc-empty{min-height:160px;padding:15px 0}.director-chat .dc-empty h3{font-size:17px}}
 @media(max-width:700px){.app-shell.view-creative .editor-main{overflow-y:auto;display:block}.app-shell .creative-space{height:auto;min-height:100%;overflow:visible}.app-shell .creative-space .cs-shell{height:auto;min-height:100%}.app-shell .creative-space .cs-layout{display:block}.app-shell .creative-space .cs-heading{padding-top:12px}.app-shell .creative-space .cs-heading .cs-eyebrow{display:none}.app-shell .creative-space .cs-heading .cs-actions{margin-left:auto}.director-workspace{display:flex;flex-direction:column;min-height:0;gap:14px}.director-conversation{height:390px;flex:none;border-radius:13px}.director-workspace>.free-creation-canvas{height:620px;min-height:620px;flex:none}.app-shell .creative-space .cs-projects{top:0;max-height:600px}.app-shell .creative-space .cs-project-heading{padding:15px 0}.director-project-tools input,.director-project-tools textarea{font-size:16px!important}}
+
+/* v0.11: the workspace itself is the canvas. Conversation floats above it. */
+.app-shell.view-creative .c-topbar{height:64px}
+.app-shell.view-creative .creative-space{padding:0!important;position:relative;height:100%;min-height:0;overflow:hidden}
+.app-shell.view-creative .creative-space .cs-shell,.app-shell.view-creative .creative-space .cs-layout,.app-shell.view-creative .creative-space .cs-main{display:flex;flex:1;height:100%;min-height:0;overflow:hidden}
+.app-shell.view-creative .creative-space .cs-shell{position:absolute;inset:0;height:auto;width:100%}
+.app-shell.view-creative .creative-space .cs-main{position:relative}
+.app-shell.view-creative .director-workspace{display:block;position:relative;width:100%;height:100%;flex:1;min-height:0;overflow:hidden}
+.app-shell.view-creative .director-workspace>.free-creation-canvas{position:absolute;inset:0;height:100%;min-height:0;border:0;border-radius:0}
+.app-shell.view-creative .director-conversation{position:absolute;left:16px;top:78px;bottom:18px;width:310px;height:auto;z-index:14;border:1px solid var(--studio-line);border-radius:16px;box-shadow:0 12px 48px #00000012;background:var(--studio-panel);overflow:hidden}
+.app-shell.view-creative .fcc-caption{left:auto!important;right:22px;top:27px}
+.director-project-pill{position:absolute;left:16px;top:16px;z-index:16;max-width:calc(100% - 190px);height:44px;display:flex;align-items:center;gap:10px;padding:0 8px;border:1px solid var(--studio-line);border-radius:12px;background:var(--studio-panel);box-shadow:0 4px 20px #00000008}
+.director-project-pill strong{font-size:13px;font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--studio-text)}
+.director-project-pill button,.director-dialog>header button{display:grid;place-items:center;flex:none;width:30px;height:32px;background:none;border:0;border-radius:6px;color:var(--studio-muted);cursor:pointer}
+.director-project-pill button:hover,.director-dialog>header button:hover{background:var(--studio-soft);color:var(--studio-text)}
+.director-pill-divider{width:1px;height:18px;background:var(--studio-line)}
+.director-chat-launch{position:absolute;left:18px;bottom:24px;z-index:15;display:flex;align-items:center;gap:9px;height:44px;padding:0 16px;border:1px solid var(--studio-line);border-radius:12px;background:var(--studio-panel);color:var(--studio-text);font-size:12px;box-shadow:0 5px 20px #0001;cursor:pointer}
+.director-chat-launch svg{color:var(--studio-accent)}
+.app-shell.view-creative .ds-alerts{position:absolute;z-index:25;top:70px;left:50%;transform:translateX(-50%);width:min(600px,calc(100% - 32px));max-height:180px;overflow:auto;pointer-events:none}
+.app-shell.view-creative .ds-alerts>*{pointer-events:auto;box-shadow:0 4px 18px #0001}
+.app-shell.view-creative .ds-alerts:empty{display:none}
+.director-operation{position:absolute;right:20px;top:80px;z-index:24;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--studio-panel);border:1px solid var(--studio-line);border-radius:9px;color:var(--studio-muted);font-size:12px}
+.director-dialog{width:min(820px,calc(100% - 32px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--studio-line);border-radius:16px;background:var(--studio-panel);color:var(--studio-text);box-shadow:0 24px 90px #0005;overflow:hidden}
+.director-dialog::backdrop{background:#05070b88;backdrop-filter:blur(4px)}
+.director-dialog>header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--studio-line)}
+.director-dialog h2{font-size:17px;margin:0}
+.director-dialog-content{padding:20px;overflow:auto;max-height:calc(100dvh - 140px)}
+.director-asset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.director-asset-grid button{padding:0;border:1px solid var(--studio-line);border-radius:10px;overflow:hidden;background:var(--studio-soft);color:var(--studio-text);cursor:pointer}
+.director-asset-grid :is(img,video){display:block;width:100%;height:140px;object-fit:contain;background:var(--studio-bg)}
+.director-asset-grid span{display:block;font-size:11px;padding:12px}
+.canvas-node-settings{font-size:12px;color:var(--studio-text)}
+.canvas-node-settings fieldset{display:flex;flex-direction:column;gap:16px;padding:0;border:0;min-width:0;margin:0}
+.canvas-node-settings label{display:flex;flex-direction:column;gap:8px;color:var(--studio-muted);font-size:12px}
+.app-shell .canvas-node-settings :is(input,textarea,select){display:block;width:100%;min-width:0;padding:10px 12px;border:1px solid var(--studio-line);border-radius:8px;color:var(--studio-text);background:var(--studio-soft);font:inherit;line-height:1.7;box-shadow:none}
+.canvas-node-settings textarea{resize:vertical}
+.cn-mode{display:flex;gap:6px;padding:4px;background:var(--studio-soft);border-radius:9px}
+.cn-mode button{flex:1;border:1px solid transparent;background:none;border-radius:7px;padding:8px;color:var(--studio-muted);font:inherit;cursor:pointer}
+.cn-mode button.active{color:var(--studio-accent-ink);background:var(--studio-panel);border-color:var(--studio-line);box-shadow:0 2px 5px #00000008}
+.cn-label{font-size:12px;color:var(--studio-muted)}
+.cn-ratios{display:flex;flex-wrap:wrap;gap:8px;margin-top:-7px}
+.cn-ratios button{display:flex;align-items:center;justify-content:center;gap:8px;min-width:86px;padding:10px;border:1px solid var(--studio-line);border-radius:8px;background:var(--studio-panel);color:var(--studio-muted);font-size:11px;cursor:pointer}
+.cn-ratios button.active{border-color:var(--studio-accent);color:var(--studio-accent-ink);background:var(--studio-accent-soft)}
+.cn-ratios i{display:block;border:1.5px solid currentColor;border-radius:2px;flex:none}
+.cn-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cn-reference{display:block;max-width:120px;max-height:90px;object-fit:contain;border-radius:7px;background:var(--studio-soft)}
+.canvas-node-settings footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:18px;margin-top:18px;border-top:1px solid var(--studio-line)}
+.cn-delete{display:flex;gap:6px;align-items:center;color:var(--studio-muted);background:none;border:0;font-size:11px;cursor:pointer}
+.cn-delete:hover{color:var(--studio-error)}
+.cn-warning{font-size:11px;line-height:1.7;background:var(--studio-warning-bg);color:var(--studio-warning);border-radius:8px;padding:10px;margin:12px 0 0}
+.cn-warning button{background:none;color:inherit;border:0;text-decoration:underline;margin:5px 8px 0 0;cursor:pointer}
+.cn-saved{font-size:11px;color:var(--studio-accent-ink)}
+.cn-asset-info p{color:var(--studio-muted)}
+.cn-asset-info a,.cn-asset-info button{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;margin-top:10px;background:var(--studio-soft);border:1px solid var(--studio-line);border-radius:8px;color:var(--studio-text);font-size:11px;cursor:pointer;text-decoration:none}
+@media(max-width:700px){
+ .app-shell.view-creative .c-topbar{height:auto;min-height:94px;padding-top:9px;row-gap:7px}
+ .app-shell.view-creative .editor-main{display:flex;overflow:hidden}
+ .app-shell.view-creative .creative-space .cs-layout{display:flex}
+ .app-shell.view-creative .fcc-caption{display:none}
+ .app-shell.view-creative .director-conversation{left:10px;right:10px;top:72px;bottom:14px;width:auto;max-height:600px;border-radius:14px}
+ .director-project-pill{left:10px;top:12px;max-width:calc(100% - 20px);height:42px;gap:5px}
+ .director-project-pill strong{max-width:calc(100vw - 208px);font-size:12px}
+ .director-project-pill button{width:28px}
+ .director-chat-launch{bottom:20px;left:12px;width:42px;padding:0;justify-content:center}
+ .director-chat-launch span{display:none}
+ .director-asset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .director-dialog-content{padding:12px}
+ .app-shell .canvas-node-settings :is(input,textarea,select){font-size:16px}
+}

@@ -1,0 +1,9 @@
+{
+  "source": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011",
+  "preview_data": "/private/tmp/ecom-v011-frontend-preview/closing-20261028",
+  "source_database_copied": true,
+  "business_data_not_used": true,
+  "media_provenance": "existing real acceptance media; new fixture execution only",
+  "real_model_calls": 0,
+  "timestamp": 1793179141.573798
+}

@@ -1,0 +1,68 @@
+{
+  "backend_tests": 311,
+  "retained_legacy_cases": 21,
+  "source_date": "2026-10-28",
+  "verify_run": "20261027T235902-4320",
+  "cases": [
+    {
+      "mode": "clips",
+      "http_requests": 41,
+      "user_confirmations": 4,
+      "actual_duration_ms": 1000,
+      "sampled_rgb": [
+        [
+          0,
+          0,
+          253
+        ],
+        [
+          252,
+          0,
+          0
+        ]
+      ],
+      "metrics": {
+        "task_count": 4,
+        "node_count": 6,
+        "script_count": 1,
+        "composition_count": 1,
+        "llm_fixture_calls": 8,
+        "media_fixture_calls": 4
+      },
+      "passed": true,
+      "real_model_calls": 0
+    },
+    {
+      "mode": "film",
+      "http_requests": 35,
+      "user_confirmations": 3,
+      "actual_duration_ms": 1000,
+      "sampled_rgb": [
+        [
+          0,
+          0,
+          253
+        ],
+        [
+          252,
+          0,
+          0
+        ]
+      ],
+      "metrics": {
+        "task_count": 4,
+        "node_count": 6,
+        "script_count": 1,
+        "composition_count": 1,
+        "llm_fixture_calls": 6,
+        "media_fixture_calls": 4
+      },
+      "passed": true,
+      "real_model_calls": 0
+    }
+  ],
+  "real_model_calls": 0,
+  "new_conversation_frontend": "not_integrated",
+  "old_frontend_dist_unchanged": true,
+  "business_database_untouched": true
+}

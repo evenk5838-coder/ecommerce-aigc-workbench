@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import threading
 import time
+import hashlib
 
 from . import config, db
 from . import storage
@@ -41,6 +42,33 @@ def _set(task_id: str, **fields) -> None:
     db.update("tasks", task_id, {**fields, "updated_at": db.now()})
 
 
+def _validate_canvas_reference(task: dict) -> None:
+    """Check a queued node's confirmed reference before the first provider submit.
+
+    Existing remote jobs only need polling/download, so losing a local input
+    must not prevent recovery of an already submitted job.
+    """
+    if task.get("remote_task_id"):
+        return
+    rows = db.query("SELECT q.frozen_json FROM canvas_node_executions e "
+                    "JOIN canvas_node_quotes q ON q.id=e.quote_id WHERE e.task_id=?", (task["id"],))
+    if not rows:
+        return  # Retained non-canvas task contract.
+    frozen = db.loads(rows[0]["frozen_json"]) or {}
+    reference = frozen.get("reference")
+    if not reference:
+        return
+    if task.get("input_asset_id") != reference.get("asset_id"):
+        raise err("INVALID_REFERENCE_IMAGE", "生成任务的参考图片与确认时不一致，请重新确认。")
+    asset = storage.load_asset(reference["asset_id"])
+    try:
+        digest = hashlib.sha256(storage.asset_path(asset).read_bytes()).hexdigest()
+    except OSError as exc:
+        raise err("INVALID_REFERENCE_IMAGE", "参考图片暂时无法读取，请重新上传。") from exc
+    if digest != reference.get("sha256"):
+        raise err("INVALID_REFERENCE_IMAGE", "排队期间参考图片发生变化，请重新确认后生成。")
+
+
 def execute(task: dict) -> None:
     task_id = task["id"]
     params = db.loads(task["params_json"]) or {}
@@ -55,6 +83,7 @@ def execute(task: dict) -> None:
     try:
         _set(task_id, status="running", stage="running")
         token.raise_if_canceled()
+        _validate_canvas_reference(task)
 
         meta = config.MODEL_REGISTRY.get(model_id, {})
         if meta.get("provider") == "ark":

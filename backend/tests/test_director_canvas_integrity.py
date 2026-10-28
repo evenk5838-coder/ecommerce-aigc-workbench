@@ -136,11 +136,11 @@ class DirectorCanvasIntegrity(unittest.TestCase):
         before=canvas.get_canvas(self.pid)
         out=canvas.patch_canvas(self.pid,{"expected_layout_revision":before["layout_revision"],
             "nodes":[{"node_id":"n1","position":{"x":5,"y":6}}]})
-        node=out["canvas"]["nodes"][0]
+        node=next(n for n in out["canvas"]["nodes"] if n["node_id"] == "n1")
         self.assertEqual(node["type"],"image")
         self.assertEqual(node["binding"],{"script_id":script["script_id"]})
         self.assertEqual(node["config"],{"prompt":"keep"})
-        self.assertEqual(node["config_revision"],before["nodes"][0]["config_revision"])
+        self.assertEqual(node["config_revision"],next(n for n in before["nodes"] if n["node_id"] == "n1")["config_revision"])
         self.assertFalse(out["config_changed"])
 
     def test_edges_survive_refresh_and_edges_only_advances_layout(self):

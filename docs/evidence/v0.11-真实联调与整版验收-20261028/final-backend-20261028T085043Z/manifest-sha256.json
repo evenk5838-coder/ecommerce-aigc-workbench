@@ -1,0 +1,17 @@
+{
+  "backend-summary.json": "d53ba3ba5f6927f5e8fccf7f9e232d183c0a92df191c0e6f832dc0871645b735",
+  "backend.log": "7a4b1d62c1a669f2debcc47c7d88d7cce5ec020d46c975e0c4f1f9313f03d5d2",
+  "backend.stderr.txt": "7a4b1d62c1a669f2debcc47c7d88d7cce5ec020d46c975e0c4f1f9313f03d5d2",
+  "backend.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "business-inputs-after.json": "2764357d335adffc00706f3854aabf4aae741e15d48469b2f3afaaca5f020840",
+  "business-inputs-before.json": "2764357d335adffc00706f3854aabf4aae741e15d48469b2f3afaaca5f020840",
+  "legacy/免费验收结果.json": "df53a033c816a85244027217258cb5585e3064d5f0efc2e551ccc64014efa870",
+  "legacy-summary.json": "c2372fdac1bf4b71d6acef2e516809743778aa152bb052594377a271296b79d8",
+  "legacy.log": "7226958bdeaf80bf3a30c71386728014a3802cb6929f5e4c2102f244b7ac0f65",
+  "legacy.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "legacy.stdout.txt": "7226958bdeaf80bf3a30c71386728014a3802cb6929f5e4c2102f244b7ac0f65",
+  "machine-summary.json": "cccd320ece310dd425063b4cbced692ed538952c7c52a20d16b4b3a8ec7b5f53",
+  "source-fingerprints-after.json": "79901a7f6c230bd29f91007b947786869b07d6af632d6e0c60d4ec65b11bf2e9",
+  "source-fingerprints-before.json": "79901a7f6c230bd29f91007b947786869b07d6af632d6e0c60d4ec65b11bf2e9",
+  "verification-runner.py": "4f44a78f101536d490ecc3834712820b90769fc51a0f0fa709bbcd8dbce3116e"
+}

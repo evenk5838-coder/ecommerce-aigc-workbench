@@ -1,0 +1,76 @@
+{
+  "files": {
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/release-verification.json": {
+      "size": 634,
+      "sha256": "29def1d180f38e4822f242489c64a21d08ad63850890a27f1d268ba058b476a9"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/verify-输出.txt": {
+      "size": 67951,
+      "sha256": "3766d2a9dd53b83281035f14c49926830a19d63914ac7fbd779d59aaac6f6d78"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/照着做清单.md": {
+      "size": 886,
+      "sha256": "6004690f0f02beef774e19e8a4efd4726638b7396695247ae1190823a7234e43"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/final-summary.json": {
+      "size": 1319,
+      "sha256": "1162ce707486a6096391e74355756e23fafa81797560673c3bb38d8653eeb077"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/business-read-only-before-release.json": {
+      "size": 421,
+      "sha256": "8559da51527a4d5d92c688862d48c608849593a5d3aedc7159dbbe71c0546377"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/verify-20261028T194851-44300.txt": {
+      "size": 67951,
+      "sha256": "3766d2a9dd53b83281035f14c49926830a19d63914ac7fbd779d59aaac6f6d78"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/是否表.md": {
+      "size": 890,
+      "sha256": "377e14de8e5ea25ca5a692a460157013899afef1fcbeadaa8bcd63beb7cafc66"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/用户原始报错.png": {
+      "size": 21826,
+      "sha256": "82a1dd53feba85e07060f7b380ff3edfb79d871df67d71612ba0bae46ecb094e"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/verify-20261028T194736-43562.txt": {
+      "size": 64839,
+      "sha256": "414ad74a5fdf137277b244a71fc7f35817c5018575f271313e7622b36726a869"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/release-preparation.json": {
+      "size": 5887,
+      "sha256": "7e83aefdb56197f42e9af021491f29b519da95edff235dd3be23faeb6c31cdde"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/run-20261028T194851-44300/live-build-before.json": {
+      "size": 381,
+      "sha256": "3807fe33ec2eeedb38196720b0a2a1e29645f4df5b8c2eaeb576c958608c99a7"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/run-20261028T194736-43562/live-build-before.json": {
+      "size": 381,
+      "sha256": "3807fe33ec2eeedb38196720b0a2a1e29645f4df5b8c2eaeb576c958608c99a7"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/run-20261028T194851-44300/http-film/fixed-blue-then-red.mp4": {
+      "size": 2624,
+      "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/run-20261028T194851-44300/http-film/director-workflow-http.json": {
+      "size": 531506,
+      "sha256": "1ab63a32fdddfab240c9bb83b55ff96c7ad92e455ca4cef1badaf851ee43abb6"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/run-20261028T194851-44300/http-clips/fixed-blue-then-red.mp4": {
+      "size": 2624,
+      "sha256": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4"
+    },
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/run-20261028T194851-44300/http-clips/director-workflow-http.json": {
+      "size": 605979,
+      "sha256": "898897174eaff3f7fcc2b3251cf36774cc6fa671b9e7cb4ed9084654f8d7b8c2"
+    }
+  },
+  "required_current_batch_files": [
+    "README.md",
+    "docs/项目状态.md",
+    "docs/阶段文档/分镜图提交被历史视频预算拦截-20261028.md",
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/照着做清单.md",
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/是否表.md",
+    "docs/evidence/v0.11-历史预算误拦截修复-20261028/verify-输出.txt"
+  ]
+}

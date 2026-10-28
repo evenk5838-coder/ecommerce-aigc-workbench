@@ -1,0 +1,7 @@
+{
+  "status": "stopped_before_release",
+  "error": "System Python sqlite3 read-only connection could not read the live database: unable to open database file",
+  "affected": "only an old frontend copy in backup directory; no frontend entry switched; no DB backup or mutations",
+  "original_frontend_html_sha256": "02ae2c1cacc2eb0c96355a8aec07aac5d4ed57bbc69fce7f8ae9183d20332e6f",
+  "recovery": "Use project backend/.venv Python and pathlib file URI; read-only quick_check and project query succeeded"
+}

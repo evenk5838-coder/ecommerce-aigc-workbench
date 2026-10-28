@@ -1,0 +1,524 @@
+{
+  "cases": [
+    {
+      "pass": true,
+      "case": "test-project-create-persist-delete-regression",
+      "name": "画布回归测试 20261027 1959"
+    },
+    {
+      "pass": true,
+      "case": "quick-four-input-modes-regression"
+    },
+    {
+      "case": "reference-edges-follow-move-delete-source-real-asset-fallback-undo",
+      "edgeCounts": [
+        2,
+        1,
+        2
+      ],
+      "fallback": "image-preview -> video-preview",
+      "pass": true
+    },
+    {
+      "pass": true,
+      "case": "390px-real-generation-quote-click"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "1440-dark-final",
+      "shot": {
+        "nextAction": {
+          "type": "load_image",
+          "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-6ae2b24f-d9d0-48fa-9f36-c02b2ba985ff.png",
+          "mimeType": "image/png"
+        },
+        "recommendedLimitExceeded": false,
+        "bytes": 229182,
+        "screenshotCount": 1,
+        "mimeType": "image/png",
+        "width": 1440,
+        "requiresImageLoad": true,
+        "requestedFullPage": false,
+        "type": "browser_screenshot",
+        "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-6ae2b24f-d9d0-48fa-9f36-c02b2ba985ff.png",
+        "issuesDelta": [],
+        "height": 900,
+        "capturedFullPage": false,
+        "warnings": [],
+        "captureId": "shot-6ae2b24f-d9d0-48fa-9f36-c02b2ba985ff",
+        "sha256": "d31bca95a802764f683d847fa6dd3465a081e8028045ac4aff0c1e0a7078ddd9"
+      }
+    },
+    {
+      "name": "1280-light-final",
+      "shot": {
+        "nextAction": {
+          "type": "load_image",
+          "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-c676da88-b21b-4972-b3d8-484effe1d8f9.png",
+          "mimeType": "image/png"
+        },
+        "recommendedLimitExceeded": false,
+        "bytes": 192220,
+        "screenshotCount": 2,
+        "mimeType": "image/png",
+        "width": 1280,
+        "requiresImageLoad": true,
+        "requestedFullPage": false,
+        "type": "browser_screenshot",
+        "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-c676da88-b21b-4972-b3d8-484effe1d8f9.png",
+        "issuesDelta": [],
+        "height": 800,
+        "capturedFullPage": false,
+        "warnings": [],
+        "captureId": "shot-c676da88-b21b-4972-b3d8-484effe1d8f9",
+        "sha256": "a048a73fa3cb6bd3f71c8adafc9f7c7d360a2017532abe90d29c369455275863"
+      }
+    },
+    {
+      "name": "704-dark-final",
+      "shot": {
+        "nextAction": {
+          "type": "load_image",
+          "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-0a0e2ac0-86cf-4919-a049-587cfd3b152b.png",
+          "mimeType": "image/png"
+        },
+        "recommendedLimitExceeded": false,
+        "bytes": 111778,
+        "screenshotCount": 3,
+        "mimeType": "image/png",
+        "width": 704,
+        "requiresImageLoad": true,
+        "requestedFullPage": false,
+        "type": "browser_screenshot",
+        "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-0a0e2ac0-86cf-4919-a049-587cfd3b152b.png",
+        "issuesDelta": [],
+        "height": 684,
+        "capturedFullPage": false,
+        "warnings": [],
+        "captureId": "shot-0a0e2ac0-86cf-4919-a049-587cfd3b152b",
+        "sha256": "fd0a913f3606fb9cad9d0a81fc9f1e65af8e1c326ccc48e163ac05898488693a"
+      }
+    },
+    {
+      "name": "390-dark-final",
+      "shot": {
+        "nextAction": {
+          "type": "load_image",
+          "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-bcebb4a4-0889-42e4-af18-ad42e0804eca.png",
+          "mimeType": "image/png"
+        },
+        "recommendedLimitExceeded": true,
+        "bytes": 75959,
+        "screenshotCount": 4,
+        "mimeType": "image/png",
+        "width": 390,
+        "requiresImageLoad": true,
+        "requestedFullPage": false,
+        "type": "browser_screenshot",
+        "path": "/Users/niannian/Library/Application Support/Tabbit/LocalAgent/Runtime/artifacts/task-48bb67a2-8dcb-4269-a46a-1717eff99e09/screenshot-shot-bcebb4a4-0889-42e4-af18-ad42e0804eca.png",
+        "issuesDelta": [],
+        "height": 844,
+        "capturedFullPage": false,
+        "warnings": [
+          "Recommended screenshot limit of 3 exceeded"
+        ],
+        "captureId": "shot-bcebb4a4-0889-42e4-af18-ad42e0804eca",
+        "sha256": "daeb6658f9c50511c26bc82d0f8771d3a3f344bae5699af478f35d3a8129e601"
+      }
+    }
+  ],
+  "preview": {
+    "image_asset_id": "asset_09f92ffc30e54860a52d",
+    "label": "隔离节点验收：真实队列与 worker，固定 PNG/MP4 替身，非模型产物／真实账单",
+    "directory": "/private/tmp/ecom-v011-frontend-preview/run-qmqdjynj",
+    "video_asset_id": "asset_d72a92db6a5d47b3b28a",
+    "empty_project_id": "prj_396b030d7abb4123b3ba",
+    "worker_enabled": true,
+    "budget_cny": 20,
+    "url": "http://127.0.0.1:55601",
+    "budget_is_fixture_only": true,
+    "node_fixtures": true,
+    "media_outputs": "fixed PNG 320x240 / MP4 320x240 0.8s",
+    "frontend_dist": "/private/tmp/ecom-v011-frontend-preview/dist",
+    "real_model_calls": 0,
+    "image_file": "/private/tmp/ecom-v011-frontend-preview/run-qmqdjynj/fixtures/fixture-blue.png",
+    "task_count": 6,
+    "project_id": "prj_423c2100de7c4e96a176",
+    "video_file": "/private/tmp/ecom-v011-frontend-preview/run-qmqdjynj/fixtures/fixture-blue.mp4",
+    "pid": 83569
+  },
+  "state": {
+    "edges": [],
+    "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+    "schema_version": 1,
+    "deleted_node_ids": [],
+    "project_id": "prj_423c2100de7c4e96a176",
+    "nodes": [
+      {
+        "config": {
+          "title": "创作笔记",
+          "text": "晨光、干净桌面、自然生活感。\n每个镜头都保持同一只水杯。"
+        },
+        "position": {
+          "x": 424.158940397351,
+          "y": 116.75496688741723
+        },
+        "binding": {},
+        "config_revision": 4,
+        "last_execution": null,
+        "node_id": "note-preview",
+        "type": "text",
+        "asset": null
+      },
+      {
+        "config": {
+          "generation_mode": "image_to_image",
+          "title": "画面灵感",
+          "prompt": "[慢速测试] 使用原请求继续生成水杯",
+          "input_asset_id": "asset_09f92ffc30e54860a52d",
+          "params": {
+            "ratio": "1:1",
+            "size": "1024x1024"
+          },
+          "model_id": "doubao-seedream-5-0-flash-260915"
+        },
+        "position": {
+          "x": 796.158940397351,
+          "y": 116.75496688741723
+        },
+        "binding": {},
+        "config_revision": 6,
+        "last_execution": {
+          "last_successful_execution": {
+            "status": "succeeded",
+            "execution_id": "nexec_52ee8f0aa27e459ab57c",
+            "active": false,
+            "task_id": "task_7943793539cb4a4280d0",
+            "estimated_cost_cny": 0.12,
+            "input": {
+              "kind": "image",
+              "input_asset_id": "asset_09f92ffc30e54860a52d",
+              "params": {
+                "size": "1024x1024",
+                "generation_mode": "image_to_image",
+                "prompt": "[慢速测试] 使用原请求继续生成水杯",
+                "ratio": "1:1",
+                "watermark": false,
+                "input_asset_id": "asset_09f92ffc30e54860a52d"
+              },
+              "reference": {
+                "asset_id": "asset_09f92ffc30e54860a52d",
+                "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+                "mime": "image/png"
+              },
+              "model_id": "doubao-seedream-5-0-flash-260915"
+            },
+            "stage": "done",
+            "client_request_id": "8c039bdb-5807-43a2-89fa-f0c317de09e4",
+            "progress": 1,
+            "project_id": "prj_423c2100de7c4e96a176",
+            "asset_id": "asset_09f92ffc30e54860a52d",
+            "asset": {
+              "id": "asset_09f92ffc30e54860a52d",
+              "kind": "image",
+              "duration_ms": null,
+              "width": 320,
+              "mime": "image/png",
+              "height": 240
+            },
+            "output_asset_id": "asset_09f92ffc30e54860a52d",
+            "error": null,
+            "cost_cny": 0,
+            "finished_at": 1793100371.265097,
+            "quote_id": "nquote_5ddbabde244d4dc098b2",
+            "input_hash": "sha256:6af77569d6e76468df8255ba0cb4f5159c7db7bdacc11327bf7723fb42e08e6e",
+            "created_at": 1793100363.099943,
+            "node_id": "image-preview",
+            "config_revision": 6
+          },
+          "status": "succeeded",
+          "execution_id": "nexec_52ee8f0aa27e459ab57c",
+          "active": false,
+          "task_id": "task_7943793539cb4a4280d0",
+          "estimated_cost_cny": 0.12,
+          "input": {
+            "kind": "image",
+            "input_asset_id": "asset_09f92ffc30e54860a52d",
+            "params": {
+              "size": "1024x1024",
+              "generation_mode": "image_to_image",
+              "prompt": "[慢速测试] 使用原请求继续生成水杯",
+              "ratio": "1:1",
+              "watermark": false,
+              "input_asset_id": "asset_09f92ffc30e54860a52d"
+            },
+            "reference": {
+              "asset_id": "asset_09f92ffc30e54860a52d",
+              "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+              "mime": "image/png"
+            },
+            "model_id": "doubao-seedream-5-0-flash-260915"
+          },
+          "stage": "done",
+          "client_request_id": "8c039bdb-5807-43a2-89fa-f0c317de09e4",
+          "progress": 1,
+          "project_id": "prj_423c2100de7c4e96a176",
+          "asset_id": "asset_09f92ffc30e54860a52d",
+          "asset": {
+            "id": "asset_09f92ffc30e54860a52d",
+            "kind": "image",
+            "duration_ms": null,
+            "width": 320,
+            "mime": "image/png",
+            "height": 240
+          },
+          "output_asset_id": "asset_09f92ffc30e54860a52d",
+          "error": null,
+          "cost_cny": 0,
+          "finished_at": 1793100371.265097,
+          "quote_id": "nquote_5ddbabde244d4dc098b2",
+          "input_hash": "sha256:6af77569d6e76468df8255ba0cb4f5159c7db7bdacc11327bf7723fb42e08e6e",
+          "created_at": 1793100363.099943,
+          "node_id": "image-preview",
+          "config_revision": 6
+        },
+        "node_id": "image-preview",
+        "type": "image",
+        "asset": {
+          "id": "asset_09f92ffc30e54860a52d",
+          "kind": "image",
+          "duration_ms": null,
+          "width": 320,
+          "mime": "image/png",
+          "height": 240
+        }
+      },
+      {
+        "config": {
+          "generation_mode": "image_to_video",
+          "title": "镜头动作",
+          "prompt": "参考图片中的水杯，镜头缓慢推进",
+          "input_asset_id": "asset_09f92ffc30e54860a52d",
+          "params": {
+            "ratio": "16:9",
+            "duration": 5,
+            "resolution": "720p"
+          },
+          "model_id": "doubao-seedance-1-0-pro-fast-251015"
+        },
+        "position": {
+          "x": 1060,
+          "y": 70
+        },
+        "binding": {},
+        "config_revision": 2,
+        "last_execution": {
+          "last_successful_execution": {
+            "status": "succeeded",
+            "execution_id": "nexec_0f7ee07a73e046fd812b",
+            "active": false,
+            "task_id": "task_07cc840c88b84fcb9d3e",
+            "estimated_cost_cny": 0.4536,
+            "input": {
+              "kind": "video",
+              "input_asset_id": "asset_09f92ffc30e54860a52d",
+              "params": {
+                "prompt": "参考图片中的水杯，镜头缓慢推进",
+                "input_asset_id": "asset_09f92ffc30e54860a52d",
+                "generate_audio": false,
+                "watermark": false,
+                "duration": 5,
+                "ratio": "16:9",
+                "resolution": "720p",
+                "generation_mode": "image_to_video"
+              },
+              "reference": {
+                "asset_id": "asset_09f92ffc30e54860a52d",
+                "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+                "mime": "image/png"
+              },
+              "model_id": "doubao-seedance-1-0-pro-fast-251015"
+            },
+            "stage": "done",
+            "client_request_id": "eeed33f8-039d-44db-9d95-ee34fe25d2bf",
+            "progress": 1,
+            "project_id": "prj_423c2100de7c4e96a176",
+            "asset_id": "asset_d72a92db6a5d47b3b28a",
+            "asset": {
+              "id": "asset_d72a92db6a5d47b3b28a",
+              "kind": "video",
+              "duration_ms": 800,
+              "width": 320,
+              "mime": "video/mp4",
+              "height": 240
+            },
+            "output_asset_id": "asset_d72a92db6a5d47b3b28a",
+            "error": null,
+            "cost_cny": 0,
+            "finished_at": 1793100277.604083,
+            "quote_id": "nquote_b95245c2c5634241972b",
+            "input_hash": "sha256:26729b55a829b493a48f175d33010df68e0b907c31266240b1108265a0d87738",
+            "created_at": 1793100276.891314,
+            "node_id": "video-preview",
+            "config_revision": 2
+          },
+          "status": "succeeded",
+          "execution_id": "nexec_0f7ee07a73e046fd812b",
+          "active": false,
+          "task_id": "task_07cc840c88b84fcb9d3e",
+          "estimated_cost_cny": 0.4536,
+          "input": {
+            "kind": "video",
+            "input_asset_id": "asset_09f92ffc30e54860a52d",
+            "params": {
+              "prompt": "参考图片中的水杯，镜头缓慢推进",
+              "input_asset_id": "asset_09f92ffc30e54860a52d",
+              "generate_audio": false,
+              "watermark": false,
+              "duration": 5,
+              "ratio": "16:9",
+              "resolution": "720p",
+              "generation_mode": "image_to_video"
+            },
+            "reference": {
+              "asset_id": "asset_09f92ffc30e54860a52d",
+              "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+              "mime": "image/png"
+            },
+            "model_id": "doubao-seedance-1-0-pro-fast-251015"
+          },
+          "stage": "done",
+          "client_request_id": "eeed33f8-039d-44db-9d95-ee34fe25d2bf",
+          "progress": 1,
+          "project_id": "prj_423c2100de7c4e96a176",
+          "asset_id": "asset_d72a92db6a5d47b3b28a",
+          "asset": {
+            "id": "asset_d72a92db6a5d47b3b28a",
+            "kind": "video",
+            "duration_ms": 800,
+            "width": 320,
+            "mime": "video/mp4",
+            "height": 240
+          },
+          "output_asset_id": "asset_d72a92db6a5d47b3b28a",
+          "error": null,
+          "cost_cny": 0,
+          "finished_at": 1793100277.604083,
+          "quote_id": "nquote_b95245c2c5634241972b",
+          "input_hash": "sha256:26729b55a829b493a48f175d33010df68e0b907c31266240b1108265a0d87738",
+          "created_at": 1793100276.891314,
+          "node_id": "video-preview",
+          "config_revision": 2
+        },
+        "node_id": "video-preview",
+        "type": "video",
+        "asset": {
+          "id": "asset_d72a92db6a5d47b3b28a",
+          "kind": "video",
+          "duration_ms": 800,
+          "width": 320,
+          "mime": "video/mp4",
+          "height": 240
+        }
+      },
+      {
+        "config": {},
+        "position": {
+          "x": 340,
+          "y": 450
+        },
+        "binding": {
+          "asset_id": "asset_09f92ffc30e54860a52d"
+        },
+        "config_revision": 2,
+        "last_execution": null,
+        "node_id": "asset-preview-image",
+        "type": "asset",
+        "asset": {
+          "id": "asset_09f92ffc30e54860a52d",
+          "kind": "image",
+          "duration_ms": null,
+          "width": 320,
+          "mime": "image/png",
+          "height": 240
+        }
+      },
+      {
+        "config": {},
+        "position": {
+          "x": 700,
+          "y": 450
+        },
+        "binding": {
+          "asset_id": "asset_d72a92db6a5d47b3b28a"
+        },
+        "config_revision": 1,
+        "last_execution": null,
+        "node_id": "asset-preview-video",
+        "type": "asset",
+        "asset": {
+          "id": "asset_d72a92db6a5d47b3b28a",
+          "kind": "video",
+          "duration_ms": 800,
+          "width": 320,
+          "mime": "video/mp4",
+          "height": 240
+        }
+      },
+      {
+        "config": {
+          "title": "文本笔记",
+          "text": ""
+        },
+        "position": {
+          "x": 629.8675496688742,
+          "y": 245.65682119205297
+        },
+        "binding": {},
+        "config_revision": 2,
+        "last_execution": null,
+        "node_id": "text-5a83eb6c-6672-4f50-8d7c-6aac3635a01a",
+        "type": "text",
+        "asset": null
+      }
+    ],
+    "viewport": {
+      "x": -114.83865141481033,
+      "y": -16.46086694762191,
+      "zoom": 0.5863636363636363
+    },
+    "layout_revision": 28
+  },
+  "metrics": [
+    {
+      "edges": 2,
+      "overflow": 0,
+      "name": "1440-dark-final",
+      "width": 1440,
+      "generateHitTest": true
+    },
+    {
+      "edges": 2,
+      "overflow": 0,
+      "name": "1280-light-final",
+      "width": 1280,
+      "generateHitTest": true
+    },
+    {
+      "edges": 2,
+      "overflow": 0,
+      "name": "704-dark-final",
+      "width": 704,
+      "generateHitTest": true
+    },
+    {
+      "edges": 2,
+      "overflow": 0,
+      "name": "390-dark-final",
+      "width": 390,
+      "generateHitTest": true
+    }
+  ],
+  "build": "/assets/index-DX4l5pVK.js"
+}

@@ -1,0 +1,59 @@
+{
+  "checked_at": "2026-10-28T10:51:21.305085+00:00",
+  "scope": "Frontend closing batch, no backend or provider change",
+  "frontend_tests": {
+    "files": 37,
+    "passed": 836,
+    "failed": 0
+  },
+  "lint": "passed",
+  "types": "passed",
+  "build": "index-1ZyR850h.js",
+  "verify_log": "verify-20261028T174224-38450.txt",
+  "fixed_provider_http_restart": {
+    "clips": "passed",
+    "film": "passed",
+    "real_model_calls": 0
+  },
+  "browser": {
+    "final_baseline": "browser/navigation/final-baseline/summary.json",
+    "first_navigation_and_pending_protection": "browser/navigation/summary.json",
+    "pending_guard_sources_unchanged_on_final": true,
+    "templates": "browser/templates/验收记录.md",
+    "layout_widths": [
+      1440,
+      1280,
+      768,
+      704,
+      390
+    ],
+    "node_toolbar_collisions": 0,
+    "horizontal_overflow": false,
+    "panel_scale_matches_node": true,
+    "loaded_images": 2,
+    "loaded_videos": 3,
+    "media_errors": 0,
+    "page_errors": 0,
+    "request_aborts": "net::ERR_ABORTED during reload/media remount retained; media later loaded readyState 4",
+    "formal": "browser/formal-recovered-settled.json"
+  },
+  "release": "release-verification.json",
+  "real_model_calls_in_batch": 0,
+  "project_final_acceptance": "pending",
+  "remaining": [
+    "cross-shot product consistency and strict prompt adherence",
+    "real single-node regeneration",
+    "long context budget efficiency",
+    "replacement video model acceptance",
+    "supplier invoice reconciliation",
+    "physical mobile/performance/user visual acceptance",
+    "PNG text/layer order and multiple sizes, native save and Finder drop"
+  ],
+  "retained_failures": [
+    "incorrect node-header selector",
+    "incorrect theme button accessible name",
+    "Tabbit executor reset produced blank-page assertions; original group restored",
+    "production cached plan initial-read false warning fixed",
+    "system Python SQLite readonly read stopped before release; project Python succeeded"
+  ]
+}

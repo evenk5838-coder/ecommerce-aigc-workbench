@@ -1,0 +1,17 @@
+{
+  "snapshot_path": "/Users/niannian/Documents/VScode/电商工作平台/data/acceptance/run-20261028-real-v011",
+  "runtime_source": "/private/tmp/ecom-v011-real-acceptance/run-20261028-real-v011",
+  "snapshot_only": true,
+  "server_continues_using_original_runtime_path": true,
+  "files_sha256": {
+    "provider-ledger.json": "5ad6ec9e11612e7fd65cf2430b66cc6d871bb27030d1fa8fdd4853e1bc7240e1",
+    "acceptance.db": "a0a9a3a52a797f54f8e3cb9921ded7c5fdbfd778a570781fcf0262756c744269",
+    "assets/e2/2d/e22dff75e7909bfac892ad415492a857a9d4aadad03d99c29079b9ef0c5ce6fd.mp4": "e22dff75e7909bfac892ad415492a857a9d4aadad03d99c29079b9ef0c5ce6fd",
+    "assets/2a/28/2a287475d9cdd071d04328bc6f3720db614093950e5487340a77764749dcfd2d.mp4": "2a287475d9cdd071d04328bc6f3720db614093950e5487340a77764749dcfd2d",
+    "assets/30/a2/30a2b71b01fb12c22bde40de79f18eeac2e6ba1e0558172d86409871e1cbe403.mp4": "30a2b71b01fb12c22bde40de79f18eeac2e6ba1e0558172d86409871e1cbe403",
+    "assets/a7/90/a790eef459298e17e337f2c4913a11470d61ed6dfe634b2e11cf747edc5c7cdf.mp4": "a790eef459298e17e337f2c4913a11470d61ed6dfe634b2e11cf747edc5c7cdf",
+    "assets/de/26/de26e30dc7b1a1110af461c1867760a5f445db1927b6373982b3aac12ed0878f.jpg": "de26e30dc7b1a1110af461c1867760a5f445db1927b6373982b3aac12ed0878f",
+    "assets/ce/f5/cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336.jpg": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+    "assets/2b/c4/2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609.jpg": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609"
+  }
+}

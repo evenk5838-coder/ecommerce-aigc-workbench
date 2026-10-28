@@ -1,0 +1,285 @@
+{
+  "version": "v0.11-slice-1-frontend",
+  "date": "2026-10-27",
+  "timezone": "Asia/Shanghai",
+  "status": "frontend_implemented_isolated_validation_passed_real_llm_and_full_product_pending",
+  "environment": {
+    "url": "http://127.0.0.1:62467/",
+    "backend": "actual FastAPI/SQLite/tool persistence",
+    "llm": "fixed test provider",
+    "real_model_calls": 0,
+    "task_count": 0,
+    "media": "fixture blue PNG and encoded MP4, not AI results",
+    "main_8100": "connection refused; not started or restarted",
+    "dev_5184": "untouched"
+  },
+  "automated": {
+    "log": "verify-20261027T160004-67552.txt",
+    "test_files_passed": 27,
+    "tests_passed": 595,
+    "lint": "passed",
+    "typescript": "passed",
+    "isolated_build": "passed",
+    "credential_pattern_scan": "passed limited scope",
+    "temporary_http_restart_recovery": "passed separate temporary service",
+    "existing_dist_unchanged": true,
+    "bundle_warning_kb": 600.74
+  },
+  "browser": {
+    "task_id": "task-3cac1f6c-fc00-459a-8eb0-bc1917d25779",
+    "earlier_task_id": "task-17750bd3-e8de-4718-a062-933eb0be4fa2",
+    "page_errors": 0,
+    "observed_api_http_400_or_higher": 0,
+    "viewport_measurements": [
+      {
+        "width": 1440,
+        "height": 900,
+        "document_scroll_width": 1440,
+        "canvas": {
+          "x": 0,
+          "y": 64,
+          "width": 1440,
+          "height": 836
+        }
+      },
+      {
+        "width": 1280,
+        "height": 900,
+        "document_scroll_width": 1280,
+        "canvas": {
+          "x": 0,
+          "y": 64,
+          "width": 1280,
+          "height": 836
+        }
+      },
+      {
+        "width": 768,
+        "height": 900,
+        "document_scroll_width": 768,
+        "canvas": {
+          "x": 0,
+          "y": 64,
+          "width": 768,
+          "height": 836
+        }
+      },
+      {
+        "width": 704,
+        "height": 684,
+        "document_scroll_width": 704,
+        "canvas": {
+          "x": 0,
+          "y": 64,
+          "width": 704,
+          "height": 620
+        }
+      },
+      {
+        "width": 390,
+        "height": 844,
+        "document_scroll_width": 390,
+        "canvas": {
+          "x": 0,
+          "y": 103,
+          "width": 390,
+          "height": 741
+        }
+      }
+    ],
+    "narrow_chat_bounds": {
+      "x": 11,
+      "y": 176,
+      "width": 368,
+      "height": 598
+    },
+    "narrow_draft_retained": true,
+    "node_and_panel_drag_delta": {
+      "x": 50,
+      "y": 30
+    },
+    "node_and_panel_zoom_ratio": 1.2,
+    "layout_review_count_after_resolution_and_reopen": 0,
+    "slow_request_post_count": 1,
+    "slow_request_id": "4b6a043a-2d3d-4e33-b971-aef1cb65b0f2",
+    "library_import_node_count_before": 9,
+    "library_import_node_count_after": 10,
+    "uploaded_video": {
+      "ready_state": 4,
+      "width": 320,
+      "height": 240,
+      "duration_s": 0.8
+    },
+    "test_harness_note": "One result-aggregation TypeError after successful library import; read-only verification followed, no repeated import."
+  },
+  "references": {
+    "project_id": "prj_c6d5d915115549978dc8",
+    "script_id": "scr_5028068c78f44ffe9a4e",
+    "script_version": 2,
+    "library_video_node_id": "asset-b2f5dbf0-c3d3-492a-a8ba-f4a86b393eb1",
+    "library_video_asset_id": "asset_a621982b0e9c4b948868"
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/01-1440-light-canvas.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "51cc7b65f40b558692ee3536c3eb6923431e4913bfa4f2c5572037f1ad18ace7",
+      "visually_inspected": true
+    },
+    {
+      "path": "screenshots/02-1280-dark-node-settings.png",
+      "width": 1280,
+      "height": 900,
+      "sha256": "f0121ebcd743fe34c40e29f66dbd4e2d191f363e0f76050836c9f370da17d564",
+      "visually_inspected": true
+    },
+    {
+      "path": "screenshots/03-390-dark-chat.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "6cf14632fe03fe7e5d15e966d86cb51fcf4aba958e7444d19fd06cd5291b9fc9",
+      "visually_inspected": true
+    }
+  ],
+  "not_verified_or_followup": [
+    "real LLM tool roundtrip and script quality",
+    "user visual approval and physical mobile device",
+    "template apply browser path",
+    "drag-and-drop import browser path",
+    "full partial and permission/read-failure browser injection",
+    "all keyboard/assistive technology combinations",
+    "new conversational and free-node image/video execution: slice 2",
+    "targeted regeneration: slice 2",
+    "new conversational composition/export: slice 3"
+  ],
+  "known_scope": "Legacy zero-shot plan configuration entry remains after script confirmation; A8 partial.",
+  "source_sha256": {
+    "frontend/src/App.tsx": "6cea4999b272b7419b0f209c5021c5e401b1fc172225408f10a985459e074fbc",
+    "frontend/src/CStudioShell.css": "ca5df2b5c52ef4f917bcfb40fb23da704c9f9c6732c0da241ecaa6095abc049a",
+    "frontend/src/CreativeSpace.css": "64af06abb84e225ed1cd17bbd8ecbc79ab679e0868d9211d435b91446e2c798d",
+    "frontend/src/CreativeSpace.tsx": "b056fdd875435a6b94149cddcc4dcfec90dc3e358fa2b832012e1e274f74bdea",
+    "frontend/src/DirectorHome.css": "d327a824a7c5a195b349c18c8543c2743e4b885a567c721cf42e219811835aea",
+    "frontend/src/DirectorHome.tsx": "bc942426fb309d65cd740814dceb48e7a4a11332d9abeb119b2d69297721ecd1",
+    "frontend/src/DirectorStudio.css": "5dd4a3d007cfb9fb6971146bd8a4660280d79686984662c79fc97ca078d323b6",
+    "frontend/src/FourModeWorkbench.css": "63f1a8f3103ffc2e88203d327c82531128432e8d7ebb67848e223e5316a17ff0",
+    "frontend/src/GenerationConfirm.css": "93576ceb57dedd674f4b15ac3168beeaccbc6c07966f8b0076e38848047a0eb9",
+    "frontend/src/GenerationConfirm.tsx": "966a12755a8e85e3f77ed05a1391f5977db6122cd08badfcf1fe54ef6db15825",
+    "frontend/src/Home.tsx": "ec69364e1a4716d44df35987c4c81cd51c23581befb9bfa93700ba22a2153a71",
+    "frontend/src/ImageOutputSettings.css": "c764d5f0dac3f26189c18dec46b3302f1228469f9e8fdd0141704fd4244663ee",
+    "frontend/src/ImageOutputSettings.tsx": "e155f54d3225be2ed4bc17a6f3f973141f7370610153b0cf6202b235eb38d15a",
+    "frontend/src/ProjectHome.css": "122d798ec3b80ea25ac34db5d7f77f6aba1e7a409d187335e6a98f73b442571f",
+    "frontend/src/ProjectHome.tsx": "4e2b6a9a8f3e51983af0788d2a71c089e98fb63aa874e2f9445afe9c05477be2",
+    "frontend/src/ProjectLibrary.css": "e1e45a730ba17901152b4e70f7235bec1752b1a0216492f9d1b16e78c2015521",
+    "frontend/src/ProjectLibrary.tsx": "92797c316ec29e136da7cdd2735f71ccfa11d19da72fe86bf0e2bb376d538dad",
+    "frontend/src/ReferencePicker.tsx": "85ae42ef8b8479536659c6f95bc50dab4c823334b3d40167e442b3d64abeb4e6",
+    "frontend/src/S1Workbench.css": "a6ec820f9410740175d2b742d387beef58c9959b2cb0838850bd310a0cd449d6",
+    "frontend/src/SingleTemplatePanel.css": "dbdb24478e170fba6befc9cc7ed7d6b24b155892876cab1d41779ef6e4ac1467",
+    "frontend/src/SingleTemplatePanel.tsx": "eb5a99ea8580f81b7581a6d314b99b7cc7be42160ad0c5c3ea9031c62d6bd0a0",
+    "frontend/src/StudioTheme.css": "179ef2940e3b6d0d08288fd593a17f8c0936e3fd7f281a58c689c7fef3313b78",
+    "frontend/src/StudioTheme.tsx": "0d762b9df2c5f88e006d0afcb2b2d0c6bacae858c66e8706200de2caaf0c1295",
+    "frontend/src/api.ts": "62a27ba46f441b92cb35bcbaf59a623b3d4c97bdcb4d5eca7173684bd989cc29",
+    "frontend/src/assistant/PromptOptimizer.css": "5d34f4502322dcee3f37315dae33ed25a906a634ce70f996b032cd929e47c02c",
+    "frontend/src/assistant/PromptOptimizer.tsx": "f2e4641b496b7c1bcd4b756c19e394dcda5f3fc8b2dcab26545345ba0d89a52f",
+    "frontend/src/assistant/api.test.ts": "2b7bb1a488ab4cf13e51bb13a5e63bdda561a9bb515aab5d2b798be3d4e4b85d",
+    "frontend/src/assistant/api.ts": "5d7ddd51cbf19410e764cbe49e828349f85b4d7f57823c1d8d43dac6bbfc12a0",
+    "frontend/src/assistant/guards.test.ts": "8395fccfe00325d325d68d32b897436bee7d3f38167aaf25105459a9445e4d52",
+    "frontend/src/assistant/guards.ts": "df1e9c0eaa4434f499e11e27e612b344f814b88108d982cdf4e49060f94b4f94",
+    "frontend/src/assistant/types.ts": "71993018cc7d65331e015b33a7bf8c4f6ce9beffaf87fd223b37b584c2e67feb",
+    "frontend/src/capabilities.test.ts": "59c66d4f2b668fe0ef250a6d3edfeb4aa6d7ddc6c6e6e0042718844cd2a8a25f",
+    "frontend/src/capabilities.ts": "0c664366d9acec7b76c500110bfbba5b9d50d8582854e5239ecfef1689b3f07e",
+    "frontend/src/composer.css": "b959a4fa26c85907864402d00a351aa37a6bc209171bc94e637b8755e721770a",
+    "frontend/src/creative/CanvasNodeSettings.tsx": "5580f46df97565b850361dc48acb2c9063c21afad7a4c2cf23a1bfc72d20805e",
+    "frontend/src/creative/DirectorChat.css": "775a74da678d637ad476be42798dc0cb02a1662ab024bea965d1ff1caa56e275",
+    "frontend/src/creative/DirectorChat.tsx": "b1257e03711f3c0e5bd03b21b232d8ab7badb508eedd17682ef5acbdecc9886a",
+    "frontend/src/creative/FreeCreationCanvas.css": "13cc3dc50037b3c0530dfd875aa0add3bb1b5f6eeb77ff7de777a8b540350f9f",
+    "frontend/src/creative/FreeCreationCanvas.tsx": "34b66b90c198b8438d58eb25d5a8f692522bd2d9a5323d75f85687b79bc8eff8",
+    "frontend/src/creative/ProductionFlow.css": "4e0e5c55de27c6dcfcd1e26ee2163e6c5e49fe63cdb397a293ee019aa5700602",
+    "frontend/src/creative/ProductionFlow.test.ts": "8615dac81597407f55cbb53d73dd1a9f0f12ad48bd58b10a0370fb855d7f75fa",
+    "frontend/src/creative/ProductionFlow.tsx": "c5f30ec6072179e72fee8d7fe44513ffc70ac0516cb21467cc5633f23450d18f",
+    "frontend/src/creative/StoryboardOutputSettings.css": "238816a6aea31c95af5d6037c12d9861e259a83a772c444d0822afa93aff6aea",
+    "frontend/src/creative/StoryboardOutputSettings.tsx": "a9aa6b5bb1cd9f24a80a34ee8898f14ec7dc472f02175617026bb2f9da706d63",
+    "frontend/src/creative/StructureTemplates.css": "29cca81c687c8015e859fa585a96f88973ab4988e5bbdb666c47260ac01785c5",
+    "frontend/src/creative/StructureTemplates.test.ts": "7e79f16e874d8ed813b375113601139f63c1cfcf0cec02484a157ba86740ae15",
+    "frontend/src/creative/StructureTemplates.tsx": "618702c707c182865930c6503ab9b3a5679ecb53382f676251b955aacf26dc41",
+    "frontend/src/creative/StudioDialog.tsx": "9cf69e53fe5ffac927b351cde705ba857757b2331f2779970b6ec3e0d47900ba",
+    "frontend/src/creative/WorkflowCanvas.css": "6c5108362cc1978f160f72a8b1a188a6856620e59724c2e70eb7a74f1d6920fe",
+    "frontend/src/creative/WorkflowCanvas.tsx": "f569404cc6e8f6c2f7474ebe590cdec0a82d241d8fd9bbe48a43e204d4255ddd",
+    "frontend/src/creative/api.test.ts": "45934f99a9c22299a5c3c5189a341cd0267c3ad7316cd8a44b7f876564a02100",
+    "frontend/src/creative/api.ts": "c53a52b82e3203188fe149b295553c2bab9c05f6523b4f5f3374f25f8ddd0a05",
+    "frontend/src/creative/canvas-layout-sync.test.ts": "8f993da354261e0bd48748677ae17063c2dc836a778913b2d106141960e3e444",
+    "frontend/src/creative/canvas-layout-sync.ts": "03be974d87c20e6de554bda70032c3a444158586809b44901efd4a5d79b6d3c2",
+    "frontend/src/creative/canvas-state.test.ts": "b100ee0ec0c53f6c9e3414084aa4051771b31d6cc04c4944ac22e068a7952b73",
+    "frontend/src/creative/canvas-state.ts": "9e9adae3fdc025bf5b295e53fef5e14499e630d5aebbc97a8c44ed03f4c375b4",
+    "frontend/src/creative/canvas-upload.ts": "4c1892bc6740fd50ff7e28f9e6ceb5a7635afb55238515ff24a73d7197f331bf",
+    "frontend/src/creative/confirmScriptDraft.test.ts": "365d3d3326d9e5664bbe569d9fc069086812d06684075b9456a5b6480044aea3",
+    "frontend/src/creative/confirmScriptDraft.ts": "0ede28207cd9b7e70331dfc3456ee99a1c6e95e1ea6c8c53fee709c2ac57efc2",
+    "frontend/src/creative/director-chat-state.test.ts": "461ac8f078656d08b768f58223deb97213896228a215290ae8135ef1ce21b7fe",
+    "frontend/src/creative/director-chat-state.ts": "017e8182aa887c01cbed839a424228354baae84c9f5172d59472055dc4f06c27",
+    "frontend/src/creative/director-conversation-state.test.ts": "d1a201958a4f766a55213dc2ef4cc505401dffaad92fe18f97269dc63234543f",
+    "frontend/src/creative/director-conversation-state.ts": "08822c199bc912eab3c0654fcbba19c9aca93fe2868dd976e6e35bd89e6c2915",
+    "frontend/src/creative/director-draft-state.test.ts": "ea1c7820341e2c27c29f81cd250e4dad7c8ddeaa6a2672e665c7e8d5768fe1ce",
+    "frontend/src/creative/director-draft-state.ts": "89429c6b7e6765750ce0705b319b1a5f33fa97701708e79e512ed3108905ba96",
+    "frontend/src/creative/director-project-api.test.ts": "013ac96af4342e5d2b8a46273086dd4fa5a984d5e00d4d8bcacb123cdbd33814",
+    "frontend/src/creative/director-project-api.ts": "8dc895adb36f2e17839926c6930a517e3ce9c6ee8cb0d72da247fccb62945235",
+    "frontend/src/creative/director.test.ts": "3993301ad3a2a240d4c60239ca150d9e8fbafda61272f2cb6596cbc47a7a1fa1",
+    "frontend/src/creative/director.ts": "eede10455377d78ae43f22776e83fbb043828c0d4ce0d5a29a0fefdfbe695870",
+    "frontend/src/creative/free-canvas-state.test.ts": "07ea2ffcc9b28a6d52fdf1c7d26513fc705a8998e01c9027c34f8c39aaab3120",
+    "frontend/src/creative/free-canvas-state.ts": "425b37bd639b582b3c463cdcd52ad328a81605f0106ff9db9b215f3ecc2e0fb1",
+    "frontend/src/creative/node-config.test.ts": "8400e03775c06a9ce6c58c81cdd74a20773ba5591cc1ca1b6cf2f36e2ad1d7b6",
+    "frontend/src/creative/node-config.ts": "6bc072b5f3d7e0a5b50cdd0118c3c8eb02a27886130addd13cc6f127336c91b6",
+    "frontend/src/creative/production-api.test.ts": "2cb0535deda1a842e3c2ccb6156036b6953d157a6984176a15e04ea5cfced335",
+    "frontend/src/creative/production-api.ts": "a14642ded3c57a7640b6521925fcdf4ecea1f444daf77cf02b948a3c1781498b",
+    "frontend/src/creative/production-guards.test.ts": "3eab248526e0907cffb8e1d4b257659e5caa0363a749d24aeb728ad0f1b53dfd",
+    "frontend/src/creative/production-guards.ts": "b2218cd6bbae02ddf41fa922710074851ab30da5b755af6959d8d166316501b8",
+    "frontend/src/creative/production-state.test.ts": "a15358939fb9351167bd7ba2dbaffe8f973da29d83b8fc66c99357ecd56a3442",
+    "frontend/src/creative/production-state.ts": "24dc2014a20fb134bd5be9399de7aae2ed21cc2274ae89d834bafb88fdadc90c",
+    "frontend/src/creative/production-types.ts": "e7caa81b0dc8c358b97f6bf0abf32f965518cb9b2807f158e9d1409aabe42dbc",
+    "frontend/src/creative/production-wire.test.ts": "808aac42ee845117889b4026e6d5a541bee0b20bbf0aff12311435e5e64f46d2",
+    "frontend/src/creative/state.test.ts": "df737fca1cb20041a82099abec375359bcb21c4168212229f4ac2215537e31c9",
+    "frontend/src/creative/state.ts": "d81b9fb0a1c58b938a308f4004a2e31e706ebe48d71829965f4b54bcc6f0e897",
+    "frontend/src/creative/test-fixtures/backend-s3s6-20261026.json": "9b261fd91aa246b455152d2b8d36777a4016e8056ea19d7e3e603930a16c0e79",
+    "frontend/src/creative/types.ts": "8639b7ac70a0f12e86ad87a0ecaade1198bb7b8867b6f9fd44a56eb410b74e66",
+    "frontend/src/editor.test.ts": "2002765478b3497abb70f454f91c8e2e1a8282647eb03cef140d8bd0a6501120",
+    "frontend/src/editor.ts": "2eca046e98a80f37df44d7b6820ff759172b0e06aed8d21b1c65c37c20514176",
+    "frontend/src/estimates.test.ts": "10714b2b26553b9cc66747af4eebed48cd657f8b2cab8c3e628641dd22add443",
+    "frontend/src/estimates.ts": "657a303582157eac53096e924b8618c735c9a19a2635e721dae3c07b57932a85",
+    "frontend/src/generation-modes.test.ts": "aeb77a376b50c449e755f62c391dba860615c3dfa14d9e0f16c4ec4ff08c564f",
+    "frontend/src/generation-modes.ts": "ae78f32cc9e97dfcb7dadd24fc7823079e981cf9058c4e529e9a66b866bd5b36",
+    "frontend/src/generation.test.ts": "54a4d8425917a2f5c3859b3075fed2ba310d4286e6d79755b42107988233a59e",
+    "frontend/src/generation.ts": "69ba187623c7531be8eca7f9932d3d45107759ff394e833e17da62d95675297a",
+    "frontend/src/image-specs.test.ts": "a993513f00c32d315b5225ccdf13934319bc1ad4e804c7019ecaa383c9de9e75",
+    "frontend/src/image-specs.ts": "4b3f823db5987ee44c470aaac732e0e1ef7d9334b9ed1584b90fc7240c8de9aa",
+    "frontend/src/main.tsx": "92b5d29822f94c1c7470e0468e4313ad4fa44b703b8ceefe23db511b53020dab",
+    "frontend/src/reference-picker.css": "e8bacd632345b10cde06a3038aea03d4c0118a3afba32da44f3a987fd1ae1100",
+    "frontend/src/single-templates.test.ts": "f30c40f5b246053d4909b6f3733a5f25166abe1e0291fdf1097cd84e5ab5d3f4",
+    "frontend/src/single-templates.ts": "d69b3b1d0d33c7b7795060543508138efe5536f3910bbf62094221bfb1e40600",
+    "frontend/src/styles.css": "9c782c5fa28f8c9978f181bddf96bcb07cb0f17108d66f21eecfe6c32ed93be7",
+    "frontend/src/types.ts": "b68d0c00a10b3eeda96f20da499d98d6504c51af6f07b6a8ccb75f6616f6256f",
+    "frontend/src/workbench.css": "82092a6a5017f493883d2e271c15cd39bb9164de4c4174257950234db737e816"
+  },
+  "build_sha256": {
+    "scope": "isolated frontend built assets after automated verification",
+    "isolated_dist": "/private/tmp/ecom-v011-frontend-preview/dist",
+    "files": {
+      "assets/index-Bezz5PMy.js": {
+        "bytes": 600738,
+        "sha256": "a4cc24b45372164b8cf3482f202890c51b5688466b45c1382b7ce4fb48a26767"
+      },
+      "assets/index-CG8CatQg.css": {
+        "bytes": 198367,
+        "sha256": "00dd11d6d3f12e880410704f032804745d5097e06c5a6bd0894e8c48db0566e6"
+      },
+      "index.html": {
+        "bytes": 598,
+        "sha256": "48e8099db27203f762ee69d702d7dc93c681a0ef6de4d74419b3d2db70759366"
+      }
+    },
+    "test_log": "verify-20261027T160004-67552.txt"
+  },
+  "evidence_sha256": {
+    "浏览器验收.md": "1b2e35e47fa338ffa3e3ddfc054b24f30b14d85827e2e3309a1582f2b5431556",
+    "verify-20261027T160004-67552.txt": "1cdd18832302075ffea86e5109a3c2b39e49ab26ff9a3ffa17b2dddfabeedfc4",
+    "自动检查命令与范围.md": "11272fe03d2b56c9966a0478399e7aaa0fbfb016653bd6a879f974cff1a7fafe"
+  }
+}

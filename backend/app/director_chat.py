@@ -13,12 +13,44 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
+import math
+from collections import Counter
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from . import config, db, director, projects, shots
 from .assistant import provider as prov
 from .assistant.provider import ToolSpec
 from .errors import err
+
+
+class ScriptShot(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    seq: int | None = Field(default=None, ge=1)
+    hint: str = Field(min_length=1)
+    duration_s: int | None = Field(default=None, ge=1)
+    motion: str | None = None
+
+    @field_validator("hint")
+    @classmethod
+    def nonempty_hint(cls, value):
+        if not value.strip():
+            raise ValueError("镜头描述不能为空")
+        return value.strip()
+
+
+class ScriptContent(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    summary: str = Field(min_length=1)
+    shots: list[ScriptShot] = Field(default_factory=list)
+
+    @field_validator("summary")
+    @classmethod
+    def nonempty_summary(cls, value):
+        if not value.strip():
+            raise ValueError("脚本正文不能为空")
+        return value.strip()
+
 
 # ---------------- 工具（项目已绑定，无 project_id 参数） ----------------
 PROJECT_TOOLS: list[ToolSpec] = [
@@ -30,10 +62,7 @@ PROJECT_TOOLS: list[ToolSpec] = [
              {"type": "object", "properties": {"brief": {"type": "object"}},
               "required": ["brief"]}),
     ToolSpec("propose_script", "保存脚本草案（自动落为未确认脚本版本，返回真实 ID/版本）",
-             {"type": "object", "properties": {
-                 "summary": {"type": "string"},
-                 "shots": {"type": "array", "items": {"type": "object"}}},
-              "required": ["summary"]}),
+             ScriptContent.model_json_schema()),
     ToolSpec("propose_shot_plan", "保存镜头计划草案（绑定当前脚本版本，需用户确认后应用）",
              {"type": "object", "properties": {
                  "shots": {"type": "array", "items": {"type": "object"}}},
@@ -57,6 +86,9 @@ SYSTEM_PROMPT = """你是电商短视频的「AI 导演」，在项目范围内�
 3. 保存的只是**草案**。必须明确告诉用户"请确认"，确认/生成由用户在界面上操作。
 4. 不要输出图片或视频任务，不要承诺效果，不要给出与实际不同的价格。
 5. 简短中文；一次只推进一件事。用户已确认过的信息不要重复询问。
+6. 用户明确要求起稿时，应调用 propose_script 保存实际正文；只说“稍等”不算执行。
+   脚本示例：{"summary":"先展示瓶身，再特写瓶盖。","shots":[{"seq":1,"hint":"瓶身全景"}]}。
+   每个 shots 项必须有 hint，不要用 description 代替；工具报错后根据具体字段修正。
 
 # 输出
 先判断当前阶段（需求/脚本/镜头计划/分镜/视频），围绕当前阶段给出下一步；需要工具就直接调用。
@@ -87,20 +119,24 @@ def _tool_state(project_id: str) -> dict:
     }
 
 
-def _save_proposal(project_id: str, kind: str, content: dict, *,
+def _save_proposal_in_tx(c, project_id: str, kind: str, content: dict, *,
                    target_id: str | None = None, target_version: int | None = None,
                    session_id: str | None = None, request_id: str | None = None) -> dict:
     pid = db.new_id("prop")
-    with db.transaction() as c:
-        ver = int(c.execute("SELECT COALESCE(MAX(version),0) v FROM director_proposals "
-                            "WHERE project_id=? AND kind=?", (project_id, kind)).fetchone()["v"]) + 1
-        c.execute("INSERT INTO director_proposals(id,project_id,kind,version,content_json,target_id,"
-                  "target_version,status,source_session_id,source_request_id,created_at,applied_at) "
-                  "VALUES(?,?,?,?,?,?,?,'draft',?,?,?,NULL)",
-                  (pid,project_id,kind,ver,db.dumps(content),target_id,target_version,
-                   session_id,request_id,db.now()))
+    ver = int(c.execute("SELECT COALESCE(MAX(version),0) v FROM director_proposals "
+                        "WHERE project_id=? AND kind=?", (project_id, kind)).fetchone()["v"]) + 1
+    c.execute("INSERT INTO director_proposals(id,project_id,kind,version,content_json,target_id,"
+              "target_version,status,source_session_id,source_request_id,created_at,applied_at) "
+              "VALUES(?,?,?,?,?,?,?,'draft',?,?,?,NULL)",
+              (pid,project_id,kind,ver,db.dumps(content),target_id,target_version,
+               session_id,request_id,db.now()))
     return {"proposal_id": pid, "kind": kind, "version": ver,
             "target_id": target_id, "target_version": target_version}
+
+
+def _save_proposal(project_id: str, kind: str, content: dict, **kwargs) -> dict:
+    with db.transaction() as c:
+        return _save_proposal_in_tx(c, project_id, kind, content, **kwargs)
 
 
 def _clean_brief(raw: dict) -> dict:
@@ -130,22 +166,16 @@ def _clean_brief(raw: dict) -> dict:
 
 
 def _clean_script(args: dict) -> dict:
-    summary = str(args.get("summary") or "").strip()
-    if not summary:
-        raise err("VALIDATION_FAILED", "脚本草案缺少 summary")
-    shots = args.get("shots") or []
-    if not isinstance(shots, list):
-        raise err("VALIDATION_FAILED", "shots 必须是数组")
-    clean = []
-    for i, s in enumerate(shots, start=1):
-        if not isinstance(s, dict):
-            raise err("VALIDATION_FAILED", f"第 {i} 个镜头不是对象")
-        hint = str(s.get("hint") or "").strip()
-        if not hint:
-            raise err("VALIDATION_FAILED", f"第 {i} 个镜头缺少 hint")
-        clean.append({"seq": int(s.get("seq") or i), "hint": hint,
-                      **({k: s[k] for k in ("duration_s", "motion") if k in s})})
-    return {"summary": summary, "shots": clean}
+    try:
+        validated = ScriptContent.model_validate(args)
+    except ValidationError as exc:
+        fields = [".".join(map(str, e["loc"])) or "script" for e in exc.errors()]
+        raise err("VALIDATION_FAILED", "脚本字段不完整或格式有误：" + ", ".join(fields),
+                  detail={"fields": fields}) from None
+    content = validated.model_dump(exclude_none=True)
+    for index, shot in enumerate(content["shots"], 1):
+        shot.setdefault("seq", index)
+    return content
 
 
 def _clean_shot_plan(args: dict, project_id: str) -> tuple[dict, str, int]:
@@ -207,12 +237,15 @@ def execute_tool(name: str, args: dict, ctx: dict) -> dict:
                 "note": "需求提案已保存为草案，需用户确认后写入项目事实"}
     if name == "propose_script":
         content = _clean_script(args)
-        script = projects.add_script(project_id, content, source="assistant")
-        p = _save_proposal(project_id, "script", content, target_id=script["script_id"],
-                           target_version=script["version"],
-                           session_id=ctx.get("session_id"), request_id=ctx.get("request_id"))
+        with db.transaction() as c:
+            script = projects._add_script_in_tx(c, project_id, content, source="assistant",
+                                                session_id=ctx.get("session_id"))
+            p = _save_proposal_in_tx(c, project_id, "script", content, target_id=script["script_id"],
+                                    target_version=script["version"],
+                                    session_id=ctx.get("session_id"), request_id=ctx.get("request_id"))
         return {**p, "target_id": script["script_id"],
                 "target_version": script["version"], "saved": True, "confirmed": False,
+                "node_id": "script",
                 "note": "脚本草案已保存为未确认版本"}
     if name == "propose_shot_plan":
         content, sid, sver = _clean_shot_plan(args, project_id)
@@ -228,16 +261,66 @@ def execute_tool(name: str, args: dict, ctx: dict) -> dict:
 
 
 # ---------------- 预算闸门（每次 LLM 请求前） ----------------
-def _estimate_call_cost(messages: list[dict], max_out_tokens: int = 400) -> float:
-    # Include tool schemas and tool-call arguments, not only message.content.
-    payload = {"messages": messages, "tools": [vars(t) for t in PROJECT_TOOLS]}
-    in_tokens = len(json.dumps(payload, ensure_ascii=False)) + 200
-    return _token_cost(in_tokens, max_out_tokens)
+# Official CNY prices checked 2026-10-28, per million tokens, at peak time:
+# https://api-docs.deepseek.com/zh-cn/quick_start/pricing/
+# Always use peak prices for budgeting; off-peak discounts are not guaranteed.
+_DEEPSEEK_PRICES = {
+    "deepseek-flash": (2.0, 0.04, 8.0),
+    "deepseek-v4-flash": (2.0, 0.04, 8.0),
+    "deepseek-v4-flash-vision-exp": (2.0, 0.04, 8.0),
+    "deepseek-v4-pro": (9.0, 0.30, 27.0),
+}
 
 
-def _token_cost(input_tokens: int, output_tokens: int) -> float:
-    # Application-side estimate; deliberately not presented as the provider's bill.
+def _estimate_call_cost(messages: list[dict], max_out_tokens: int = 400, *,
+                        tools: list[ToolSpec] | None = None,
+                        provider_name: str = "deepseek", model: str = "deepseek-flash") -> float:
+    """Estimate the wire payload, including schemas and previous tool arguments.
+
+    DeepSeek documents ~0.3 tokens/English char and ~0.6/Chinese char:
+    https://api-docs.deepseek.com/quick_start/token_usage/
+    Add 25% and 200 tokens for protocol/tokenization uncertainty. This is an
+    approximation, NOT a token upper bound or the supplier's bill. Other Unicode
+    uses its UTF-8 byte count conservatively; no cache discount is assumed here.
+    """
+    payload = {"messages": prov._to_openai_messages(messages), "tools": [
+        {"type": "function", "function": t.to_dict()}
+        for t in (PROJECT_TOOLS if tools is None else tools)]}
+    text = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    if provider_name in ("deepseek", "fixed"):
+        units = sum(3 if char.isascii() else 6 if (
+            "\u3400" <= char <= "\u9fff" or "\U00020000" <= char <= "\U000323af")
+            else 10 * len(char.encode("utf-8")) for char in text)
+        in_tokens = math.ceil(units / 10 * 1.25) + 200
+    else:
+        # Keep the previous conservative approximation for unverified providers.
+        in_tokens = len(text) + 200
+    return _token_cost(in_tokens, max_out_tokens, provider_name=provider_name, model=model)
+
+
+def _token_cost(input_tokens: int, output_tokens: int, *, provider_name: str = "deepseek",
+                model: str = "deepseek-flash", cache_hit_tokens: int = 0) -> float:
+    """Application estimate from tokens; peak CNY prices, never an actual bill."""
+    if provider_name in ("deepseek", "fixed"):
+        pricing_model = "deepseek-flash" if provider_name == "fixed" else model
+        if pricing_model not in _DEEPSEEK_PRICES:
+            raise err("ASSISTANT_PRICING_UNAVAILABLE", "当前对话模型尚未配置费用估算", detail={"model": model})
+        miss_rate, hit_rate, output_rate = _DEEPSEEK_PRICES[pricing_model]
+        hit = cache_hit_tokens if type(cache_hit_tokens) is int and 0 <= cache_hit_tokens <= input_tokens else 0
+        return round(((input_tokens - hit) * miss_rate + hit * hit_rate + output_tokens * output_rate) / 1e6, 6)
+    # Existing non-DeepSeek fallback remains an application estimate only.
     return round((input_tokens * 0.30 + output_tokens * 1.20) / 1e6 * 7.2, 6)
+
+
+def _result_token_cost(result: prov.ChatResult, *, provider_name: str, model: str) -> float:
+    """Use reported usage once; inconsistent cache counters never earn a discount."""
+    usage = result.meta.get("usage") or {}
+    hit, miss = usage.get("prompt_cache_hit_tokens"), usage.get("prompt_cache_miss_tokens")
+    valid_hit = type(hit) is int and 0 <= hit <= result.input_tokens
+    if "prompt_cache_miss_tokens" in usage:
+        valid_hit = valid_hit and type(miss) is int and miss >= 0 and hit + miss == result.input_tokens
+    return _token_cost(result.input_tokens, result.output_tokens, provider_name=provider_name,
+                       model=model, cache_hit_tokens=hit if valid_hit else 0)
 
 
 def check_budget(session_id: str, estimated_cny: float) -> dict:
@@ -302,8 +385,13 @@ def _history(project_id: str) -> list[dict]:
     remaining = 12000
     for row in rows:
         user, reply = row["user_text"], row["reply_text"]
-        artifacts = (db.loads(row["structured_json"]) or {}).get("artifacts") or []
+        structured = db.loads(row["structured_json"]) or {}
+        artifacts = structured.get("artifacts") or []
         assistant = reply + ("\n已保存草案回执：" + db.dumps(artifacts) if artifacts else "")
+        if (structured.get("outcome") or {}).get("status") in ("failed", "partial"):
+            assistant += "\n实际执行结果：" + db.dumps(structured["outcome"])
+        if structured.get("tool_failures"):
+            assistant += "\n工具失败：" + db.dumps(structured["tool_failures"])
         if len(user) + len(assistant) > remaining:
             break
         remaining -= len(user) + len(assistant)
@@ -319,13 +407,18 @@ def chat(project_id: str, body: dict, provider=None) -> dict:  # noqa: ANN001
     crid = (body.get("client_request_id") or "").strip()
     if not message or not crid:
         raise err("VALIDATION_FAILED", "message 和 client_request_id 必填")
+    # Legacy workbench intent values remain accepted, without granting media authority.
+    intent = body.get("intent") or "auto"
+    if intent not in ("auto", "script", "generate", "optimize_only"):
+        raise err("VALIDATION_FAILED", "intent 必须为 auto 或 script")
+    goal = "script" if intent == "script" else "auto"
     ph = _payload_hash(body)
     # Replay first: a completed request remains valid even when newer work changed the baseline.
     prior = _receipt(project_id, crid)
     if prior:
         if prior["payload_hash"] != ph:
             raise err("IDEMPOTENCY_CONFLICT", "同一 client_request_id 提交了不同内容")
-        if prior["response_json"]:
+        if prior["response_json"] and prior["status"] == "completed":
             return {**json.loads(prior["response_json"]), "idempotent_replay": True}
         code = "DIRECTOR_REQUEST_PENDING" if prior["status"] == "pending" else "DIRECTOR_REQUEST_FAILED"
         raise err(code, "请求仍在处理" if prior["status"] == "pending" else "上次请求未完成，请查看已保存草案后使用新的请求编号",
@@ -344,19 +437,64 @@ def chat(project_id: str, body: dict, provider=None) -> dict:  # noqa: ANN001
     usage = {"input_tokens": 0, "output_tokens": 0, "cost_cny": 0.0}
     estimates = 0.0
     reply = ""
+    pending_errors: dict[str, dict] = {}
+    failures: list[dict] = []
+    round_audit: list[dict] = []
+
+    def finish(receipt_status="completed"):
+        nonlocal reply
+        ready = director.readiness(project_id)
+        actions = _actions_for(project_id, ready)
+        if pending_errors:
+            status = "partial" if artifacts else "failed"
+            error = next(iter(pending_errors.values()))
+            reply = ("已保存部分草案，其余操作未完成。" if artifacts else "本次未完成保存。") + error["message"] + "。可以修正后继续。"
+        elif artifacts:
+            status = "saved"
+            reply = "脚本草案已保存并放入画布，请查看并确认。" if any(a["type"] == "script" for a in artifacts) else "草案已保存，请查看并确认。"
+        else:
+            status = "clarify" if "？" in reply or "?" in reply else "message"
+        outcome = {"status": status, "goal": goal,
+                   "node_ids": list(dict.fromkeys(a["node_id"] for a in artifacts if a.get("node_id")))}
+        if pending_errors:
+            outcome["error"] = error
+        reply_type = "proposal_ready" if status == "saved" else status
+        turn_id = db.new_id("dturn")
+        response = {"session_id": sess["id"], "request_id": crid, "request_status": receipt_status,
+            "reply": reply, "reply_type": reply_type, "artifacts": artifacts, "actions": actions,
+            "outcome": outcome,
+            "current": ready["current"], "allowed_actions": ready["allowed_actions"],
+            "usage": {**usage, "estimated_cny": round(estimates, 6), "note": "费用为应用侧估算，非供应商账单"},
+            "tool_calls": tool_results,
+            "rounds": round_audit,
+            "budget": {"per_call_limit_cny": config.DIRECTOR_MAX_COST_PER_CALL_CNY,
+                       "session_limit_cny": config.DIRECTOR_MAX_SESSION_COST_CNY},
+            "note": "草案自动保存但未确认；生成图片/视频需用户显式操作"}
+        with db.transaction() as c:
+            c.execute("INSERT INTO director_turns(id,project_id,session_id,request_id,user_text,reply_text,"
+                      "reply_type,structured_json,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                      (turn_id,project_id,sess["id"],crid,message,reply,reply_type,
+                       db.dumps({"artifacts": artifacts, "actions": actions, "outcome": outcome,
+                                 "tool_failures": failures, "rounds": round_audit}),db.now()))
+            response["workflow_revision"] = _workflow_revision(project_id, c)
+            c.execute("UPDATE director_requests SET status=?,turn_id=?,response_json=?,updated_at=? WHERE id=?",
+                      (receipt_status,turn_id,db.dumps(response),db.now(),rid))
+        return response
+
     try:
         p = provider or prov.get_provider()
         if not p.available():
             raise err("ASSISTANT_UNAVAILABLE", "导演暂时不可用（未配置语言模型）")
-        max_out = max(1, min(int(os.getenv("ASSISTANT_MAX_TOKENS") or "400"), 4096))
+        max_out = max(1, min(config.DIRECTOR_MAX_OUTPUT_TOKENS, 4096))
         messages_in = [{"role": "system", "content": SYSTEM_PROMPT},
             {"role": "context", "content": {"project": _tool_state(project_id),
-                "selected_asset_ids": body.get("selected_asset_ids") or []}},
+                "selected_asset_ids": body.get("selected_asset_ids") or [], "goal": goal}},
             *_history(project_id), {"role": "user", "content": message}]
         ctx = {"project_id": project_id, "session_id": sess["id"], "request_id": crid}
         executed = 0
-        for round_index in range(2):
-            estimate = _estimate_call_cost(messages_in, max_out)
+        repeated_errors: Counter = Counter()
+        for round_index in range(max(1, config.DIRECTOR_MAX_ROUNDS)):
+            estimate = _estimate_call_cost(messages_in, max_out, provider_name=p.name, model=p.model)
             check_budget(sess["id"], estimate)  # Every provider request, including tool continuation.
             estimates += estimate
             try:
@@ -367,65 +505,98 @@ def chat(project_id: str, body: dict, provider=None) -> dict:  # noqa: ANN001
                     cost_cny=estimate, note=f"director:{project_id}:request_unknown_estimate")
                 raise
             inp, outp = int(res.input_tokens or 0), int(res.output_tokens or 0)
-            cost = _token_cost(inp, outp)
+            cost = _result_token_cost(res, provider_name=p.name, model=p.model)
             asst.record_usage(sess["id"], "llm", provider=p.name, model=p.model,
                 input_tokens=inp, output_tokens=outp, tool_calls=0, cost_cny=cost,
                 note=f"director:{project_id}:round:{round_index + 1}")
             usage["input_tokens"] += inp
             usage["output_tokens"] += outp
             usage["cost_cny"] = round(usage["cost_cny"] + cost, 6)
-            reply = res.reply or reply
+            finish_reason = res.meta.get("finish_reason")
+            round_audit.append({"round": round_index + 1, "finish_reason": finish_reason,
+                                "input_tokens": inp, "output_tokens": outp})
+            reply = res.reply or ""
             calls = res.tool_calls or []
+            if finish_reason == "length" and not calls:
+                failure = {"code": "MODEL_OUTPUT_TRUNCATED", "message": "模型输出达到长度上限，本次未得到完整脚本"}
+                pending_errors["model"] = failure
+                failures.append({"tool": "model", "error": failure})
+                repeated_errors[("model", failure["code"])] += 1
+                if repeated_errors[("model", failure["code"])] >= max(1, config.DIRECTOR_MAX_REPEATED_ERRORS):
+                    break
+                messages_in.append({"role": "system", "content": "上次输出被截断，未执行任何保存。请简化内容并调用完整的脚本保存工具，不要只承诺稍后执行。"})
+                continue
+            pending_errors.pop("model", None)
             if not calls:
+                if goal == "script" and not any(a["type"] == "script" for a in artifacts) and not pending_errors:
+                    pending_errors["goal"] = {"code": "SCRIPT_NOT_SAVED", "message": "本次起稿尚未保存实际脚本"}
+                    messages_in.extend([{"role": "assistant", "content": reply},
+                        {"role": "system", "content": "本次目标是保存脚本，但还没有保存回执。请调用 propose_script；若缺少必要信息请明确说明，不能声称已保存。"}])
+                    if round_index + 1 < max(1, config.DIRECTOR_MAX_ROUNDS):
+                        continue
                 break
             entries = []
+            stop_for_error = False
             for tc in calls:
                 try:
                     if executed >= config.DIRECTOR_MAX_TOOL_CALLS:
-                        raise err("TOOL_FORBIDDEN", "本轮工具执行次数已达上限")
+                        stop_for_error = True
+                        raise err("DIRECTOR_TOOL_LIMIT", "本轮工具执行次数已达上限")
                     executed += 1
+                    invalid = prov.tool_call_error(res, tc)
+                    if invalid:
+                        raise err(invalid["code"], invalid["message"])
                     result = execute_tool(tc.name, tc.arguments, ctx)
                     entry = {"tool": tc.name, "ok": True, "result": result}
+                    pending_errors.pop(tc.name, None)
                     if result.get("proposal_id"):
                         artifacts.append({"type": result["kind"], "proposal_id": result["proposal_id"],
                             "proposal_version": result["version"], "target_id": result.get("target_id"),
-                            "target_version": result.get("target_version"), "persistence": "saved", "confirmed": False})
+                            "target_version": result.get("target_version"), "persistence": "saved", "confirmed": False,
+                            **({"node_id": result["node_id"]} if result.get("node_id") else {})})
+                        if result["kind"] == "script":
+                            pending_errors.pop("goal", None)
                 except Exception as e:
                     entry = {"tool": tc.name, "ok": False, "error": {
                         "code": getattr(e, "code", "TOOL_ERROR"), "message": str(getattr(e, "message", e))[:200]}}
+                    # Never expose SQL/traceback details from unexpected persistence failures.
+                    if not hasattr(e, "code"):
+                        entry["error"]["message"] = "工具执行或保存失败，请重试或检查已保存内容"
+                    pending_errors[tc.name] = entry["error"]
+                    failures.append({"tool": tc.name, "error": entry["error"]})
+                    key = (tc.name, entry["error"]["code"], entry["error"]["message"])
+                    repeated_errors[key] += 1
+                    stop_for_error = stop_for_error or repeated_errors[key] >= max(1, config.DIRECTOR_MAX_REPEATED_ERRORS)
                 entries.append(entry)
+                if entry["ok"] and entry["result"].get("kind") == "script":
+                    break
             tool_results.extend(entries)
+            # The durable artifact is sufficient; do not buy another model reply just to announce it.
+            if any(a["type"] == "script" for a in artifacts) or stop_for_error:
+                break
             messages_in.extend([{"role": "assistant", "content": res.reply or None,
                 "tool_calls": [{"id": tc.id or f"call_{round_index}_{i}", "type": "function",
-                    "function": {"name": tc.name, "arguments": json.dumps(tc.arguments, ensure_ascii=False)}}
+                    "function": {"name": tc.name, "arguments": prov.tool_arguments_json(tc)}}
                     for i, tc in enumerate(calls)]},
                 *[{"role": "tool", "tool_call_id": tc.id or f"call_{round_index}_{i}", "name": entry["tool"],
                    "content": db.dumps(entry.get("result") if entry["ok"] else entry["error"])}
                   for i, (tc, entry) in enumerate(zip(calls, entries))]])
-        ready = director.readiness(project_id)
-        actions = _actions_for(project_id, ready)
-        reply_type = "proposal_ready" if artifacts else ("clarify" if "？" in reply or "?" in reply else "message")
-        turn_id = db.new_id("dturn")
-        response = {"session_id": sess["id"], "request_id": crid, "request_status": "completed",
-            "reply": reply, "reply_type": reply_type, "artifacts": artifacts, "actions": actions,
-            "current": ready["current"], "allowed_actions": ready["allowed_actions"],
-            "usage": {**usage, "estimated_cny": round(estimates, 6), "note": "费用为应用侧估算，非供应商账单"},
-            "tool_calls": tool_results,
-            "budget": {"per_call_limit_cny": config.DIRECTOR_MAX_COST_PER_CALL_CNY,
-                       "session_limit_cny": config.DIRECTOR_MAX_SESSION_COST_CNY},
-            "note": "草案自动保存但未确认；生成图片/视频需用户显式操作"}
-        with db.transaction() as c:
-            c.execute("INSERT INTO director_turns(id,project_id,session_id,request_id,user_text,reply_text,"
-                      "reply_type,structured_json,created_at) VALUES(?,?,?,?,?,?,?,?,?)",
-                      (turn_id,project_id,sess["id"],crid,message,reply,reply_type,
-                       db.dumps({"artifacts": artifacts, "actions": actions}),db.now()))
-            response["workflow_revision"] = _workflow_revision(project_id, c)
-            c.execute("UPDATE director_requests SET status='completed',turn_id=?,response_json=?,updated_at=? WHERE id=?",
-                      (turn_id,db.dumps(response),db.now(),rid))
-        return response
+        if goal == "script" and not any(a["type"] == "script" for a in artifacts):
+            pending_errors.setdefault("goal", {"code": "SCRIPT_NOT_SAVED", "message": "本次没有保存脚本，请修正后重试"})
+        return finish()
     except Exception as e:
-        db.update("director_requests", rid, {"status": "failed", "error_code": getattr(e,"code","DIRECTOR_ERROR"),
-                  "error_message": str(getattr(e,"message",e))[:200], "updated_at": db.now()})
+        failure = {"code": getattr(e, "code", "DIRECTOR_ERROR"),
+                   "message": str(e.message)[:200] if hasattr(e, "message") else "本次执行中断，请查看已保存内容后继续"}
+        pending_errors["execution"] = failure
+        failures.append({"tool": "execution", "error": failure})
+        # A later model/budget error must not erase earlier committed artifacts.
+        if artifacts:
+            return finish()
+        try:
+            finish(receipt_status="failed")
+        finally:
+            db.update("director_requests", rid, {"status": "failed", "error_code": failure["code"],
+                      "error_message": failure["message"], "updated_at": db.now()})
         raise
 
 

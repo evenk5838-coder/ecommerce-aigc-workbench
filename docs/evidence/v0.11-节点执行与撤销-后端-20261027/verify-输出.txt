@@ -1,0 +1,207 @@
+Canvas execution and undo backend verification: 20261027T183058-78791
+1/5 Isolated backend tests and retained director regression
+/private/tmp/ecom-v011-backend-20261027/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+test_allowed_image_formats_match_actual_decoder_and_stored_mime (test_asset_upload_v011.AssetUploadV011.test_allowed_image_formats_match_actual_decoder_and_stored_mime) ... ok
+test_bad_image_magic_is_rejected_without_asset (test_asset_upload_v011.AssetUploadV011.test_bad_image_magic_is_rejected_without_asset) ... ok
+test_decode_timeout_is_user_error_without_durable_files (test_asset_upload_v011.AssetUploadV011.test_decode_timeout_is_user_error_without_durable_files) ... ok
+test_fake_mp4_header_is_not_registered (test_asset_upload_v011.AssetUploadV011.test_fake_mp4_header_is_not_registered) ... ok
+test_legacy_image_return_fields_preserved_and_real_mime_used (test_asset_upload_v011.AssetUploadV011.test_legacy_image_return_fields_preserved_and_real_mime_used) ... ok
+test_mp4_mov_webm_real_decoding_and_container_preserved (test_asset_upload_v011.AssetUploadV011.test_mp4_mov_webm_real_decoding_and_container_preserved) ... ok
+test_parallel_identical_uploads_share_asset_and_publish_only_complete_files (test_asset_upload_v011.AssetUploadV011.test_parallel_identical_uploads_share_asset_and_publish_only_complete_files) ... ok
+test_publish_failure_does_not_register_asset_or_leave_staged_files (test_asset_upload_v011.AssetUploadV011.test_publish_failure_does_not_register_asset_or_leave_staged_files) ... ok
+test_riff_header_on_decodable_fli_is_not_accepted_as_webp (test_asset_upload_v011.AssetUploadV011.test_riff_header_on_decodable_fli_is_not_accepted_as_webp) ... ok
+test_same_upload_reuses_asset_without_duplicate_rows (test_asset_upload_v011.AssetUploadV011.test_same_upload_reuses_asset_without_duplicate_rows) ... ok
+test_truncated_video_is_rejected_without_asset (test_asset_upload_v011.AssetUploadV011.test_truncated_video_is_rejected_without_asset) ... ok
+test_unrecognized_container_and_empty_file_are_rejected (test_asset_upload_v011.AssetUploadV011.test_unrecognized_container_and_empty_file_are_rejected) ... ok
+test_unrelated_integrity_error_is_not_hidden_by_deduplication (test_asset_upload_v011.AssetUploadV011.test_unrelated_integrity_error_is_not_hidden_by_deduplication) ... ok
+test_upload_limit_is_enforced_before_decoding (test_asset_upload_v011.AssetUploadV011.test_upload_limit_is_enforced_before_decoding) ... ok
+test_http_delete_undo_preserves_pending_task_and_original_identity (test_canvas_execution_http.CanvasExecutionHTTP.test_http_delete_undo_preserves_pending_task_and_original_identity) ... ok
+test_new_tables_have_deleted_project_guards (test_canvas_execution_http.CanvasExecutionHTTP.test_new_tables_have_deleted_project_guards) ... ok
+test_old_retry_route_cannot_bypass_node_quote_or_link (test_canvas_execution_http.CanvasExecutionHTTP.test_old_retry_route_cannot_bypass_node_quote_or_link) ... ok
+test_reference_changed_while_queued_fails_before_provider_call (test_canvas_execution_http.CanvasExecutionHTTP.test_reference_changed_while_queued_fails_before_provider_call) ... ok
+test_remote_poll_recovery_does_not_require_local_reference (test_canvas_execution_http.CanvasExecutionHTTP.test_remote_poll_recovery_does_not_require_local_reference) ... ok
+test_route_to_fixture_worker_output_and_canvas_history (test_canvas_execution_http.CanvasExecutionHTTP.test_route_to_fixture_worker_output_and_canvas_history) ... ok
+test_routes_keep_project_boundaries_and_unknown_undo_errors (test_canvas_execution_http.CanvasExecutionHTTP.test_routes_keep_project_boundaries_and_unknown_undo_errors) ... ok
+test_unfinished_remote_task_blocks_project_deletion (test_canvas_execution_http.CanvasExecutionHTTP.test_unfinished_remote_task_blocks_project_deletion) ... ok
+test_batch_undo_preserves_other_node_edits_viewport_and_new_edges (test_canvas_history.CanvasHistory.test_batch_undo_preserves_other_node_edits_viewport_and_new_edges) ... ok
+test_changed_edge_id_is_not_overwritten (test_canvas_history.CanvasHistory.test_changed_edge_id_is_not_overwritten) ... ok
+test_config_revision_after_restore_rejects_predelete_stale_editor (test_canvas_history.CanvasHistory.test_config_revision_after_restore_rejects_predelete_stale_editor) ... ok
+test_deleted_project_cannot_list_or_restore_nodes (test_canvas_history.CanvasHistory.test_deleted_project_cannot_list_or_restore_nodes) ... ok
+test_history_record_failure_rolls_back_delete_and_other_changes (test_canvas_history.CanvasHistory.test_history_record_failure_rolls_back_delete_and_other_changes) ... ok
+test_invalid_delete_does_not_leave_undo_history (test_canvas_history.CanvasHistory.test_invalid_delete_does_not_leave_undo_history) ... ok
+test_later_delete_of_reused_node_id_prevents_restoring_older_identity (test_canvas_history.CanvasHistory.test_later_delete_of_reused_node_id_prevents_restoring_older_identity) ... ok
+test_mid_restore_database_failure_rolls_back_whole_batch_and_receipt (test_canvas_history.CanvasHistory.test_mid_restore_database_failure_rolls_back_whole_batch_and_receipt) ... ok
+test_missing_incident_endpoint_prevents_partial_batch_restore (test_canvas_history.CanvasHistory.test_missing_incident_endpoint_prevents_partial_batch_restore) ... ok
+test_new_edges_cannot_make_restoration_cyclic (test_canvas_history.CanvasHistory.test_new_edges_cannot_make_restoration_cyclic) ... ok
+test_newer_script_without_canvas_node_also_blocks_old_snapshot (test_canvas_history.CanvasHistory.test_newer_script_without_canvas_node_also_blocks_old_snapshot) ... ok
+test_noop_delete_does_not_record_or_advance_revision (test_canvas_history.CanvasHistory.test_noop_delete_does_not_record_or_advance_revision) ... ok
+test_old_script_snapshot_never_replaces_newer_canonical_script (test_canvas_history.CanvasHistory.test_old_script_snapshot_never_replaces_newer_canonical_script) ... ok
+test_operation_is_scoped_and_not_found_does_not_leak_other_project (test_canvas_history.CanvasHistory.test_operation_is_scoped_and_not_found_does_not_leak_other_project) ... ok
+test_prune_keeps_existing_validation_and_records_successful_removal (test_canvas_history.CanvasHistory.test_prune_keeps_existing_validation_and_records_successful_removal) ... ok
+test_recreated_node_id_causes_atomic_conflict (test_canvas_history.CanvasHistory.test_recreated_node_id_causes_atomic_conflict) ... ok
+test_repeated_undo_does_not_rewind_later_edits_or_increment_revision (test_canvas_history.CanvasHistory.test_repeated_undo_does_not_rewind_later_edits_or_increment_revision) ... ok
+test_required_revision_validation_and_history_public_summary (test_canvas_history.CanvasHistory.test_required_revision_validation_and_history_public_summary) ... ok
+test_script_removal_preserves_versions_and_undo_same_version (test_canvas_history.CanvasHistory.test_script_removal_preserves_versions_and_undo_same_version) ... ok
+test_single_delete_and_restore_full_row_without_deleting_media_or_tasks (test_canvas_history.CanvasHistory.test_single_delete_and_restore_full_row_without_deleting_media_or_tasks) ... ok
+test_stale_revision_cannot_restore_or_consume_operation (test_canvas_history.CanvasHistory.test_stale_revision_cannot_restore_or_consume_operation) ... ok
+test_undo_invalidates_new_scope_confirmation (test_canvas_history.CanvasHistory.test_undo_invalidates_new_scope_confirmation) ... ok
+test_body_and_readonly_field_validation (test_canvas_nodes_v011.CanvasNodesV011.test_body_and_readonly_field_validation) ... ok
+test_delete_only_removes_metadata_and_its_edges (test_canvas_nodes_v011.CanvasNodesV011.test_delete_only_removes_metadata_and_its_edges) ... ok
+test_delete_with_invalid_explicit_edge_rolls_back (test_canvas_nodes_v011.CanvasNodesV011.test_delete_with_invalid_explicit_edge_rolls_back) ... ok
+test_mode_and_node_kind_checks_without_model (test_canvas_nodes_v011.CanvasNodesV011.test_mode_and_node_kind_checks_without_model) ... ok
+test_multiple_independent_media_configs_and_global_asset_import (test_canvas_nodes_v011.CanvasNodesV011.test_multiple_independent_media_configs_and_global_asset_import) ... ok
+test_nonfinite_and_invalid_zoom_never_partially_mutates (test_canvas_nodes_v011.CanvasNodesV011.test_nonfinite_and_invalid_zoom_never_partially_mutates) ... ok
+test_script_and_shot_references_are_project_scoped (test_canvas_nodes_v011.CanvasNodesV011.test_script_and_shot_references_are_project_scoped) ... ok
+test_script_helper_is_same_transaction_and_does_not_copy_body (test_canvas_nodes_v011.CanvasNodesV011.test_script_helper_is_same_transaction_and_does_not_copy_body) ... ok
+test_script_helper_preserves_identity_layout_and_other_nodes (test_canvas_nodes_v011.CanvasNodesV011.test_script_helper_preserves_identity_layout_and_other_nodes) ... ok
+test_text_config_change_invalidates_scope_but_movement_does_not (test_canvas_nodes_v011.CanvasNodesV011.test_text_config_change_invalidates_scope_but_movement_does_not) ... ok
+test_text_persists_and_position_patch_preserves_content_revision (test_canvas_nodes_v011.CanvasNodesV011.test_text_persists_and_position_patch_preserves_content_revision) ... ok
+test_wrong_model_kind_is_rejected (test_canvas_nodes_v011.CanvasNodesV011.test_wrong_model_kind_is_rejected) ... ok
+test_apply_failure_receipt_rolls_back_shots (test_director_canvas_integrity.DirectorCanvasIntegrity.test_apply_failure_receipt_rolls_back_shots) ... ok
+test_apply_idempotent_returns_original_shot_ids (test_director_canvas_integrity.DirectorCanvasIntegrity.test_apply_idempotent_returns_original_shot_ids) ... ok
+test_canvas_get_does_not_create_state (test_director_canvas_integrity.DirectorCanvasIntegrity.test_canvas_get_does_not_create_state) ... ok
+test_cross_project_bindings_rollback_complete_patch (test_director_canvas_integrity.DirectorCanvasIntegrity.test_cross_project_bindings_rollback_complete_patch) ... ok
+test_edges_survive_refresh_and_edges_only_advances_layout (test_director_canvas_integrity.DirectorCanvasIntegrity.test_edges_survive_refresh_and_edges_only_advances_layout) ... ok
+test_initial_budget_failure_is_not_pending (test_director_canvas_integrity.DirectorCanvasIntegrity.test_initial_budget_failure_is_not_pending) ... ok
+test_invalid_edges_roll_back_nodes_and_pruning (test_director_canvas_integrity.DirectorCanvasIntegrity.test_invalid_edges_roll_back_nodes_and_pruning) ... ok
+test_invalid_later_node_rolls_back_everything_and_confirmation (test_director_canvas_integrity.DirectorCanvasIntegrity.test_invalid_later_node_rolls_back_everything_and_confirmation) ... ok
+test_invalid_reference_image_and_image_size_rejected (test_director_canvas_integrity.DirectorCanvasIntegrity.test_invalid_reference_image_and_image_size_rejected) ... ok
+test_invalidated_script_does_not_offer_or_apply_old_plan (test_director_canvas_integrity.DirectorCanvasIntegrity.test_invalidated_script_does_not_offer_or_apply_old_plan) ... ok
+test_layout_only_cards_do_not_conflict_with_chat_baseline (test_director_canvas_integrity.DirectorCanvasIntegrity.test_layout_only_cards_do_not_conflict_with_chat_baseline) ... ok
+test_malformed_model_brief_cannot_poison_project_state (test_director_canvas_integrity.DirectorCanvasIntegrity.test_malformed_model_brief_cannot_poison_project_state) ... ok
+test_memory_contains_previous_turn_and_script_contents (test_director_canvas_integrity.DirectorCanvasIntegrity.test_memory_contains_previous_turn_and_script_contents) ... ok
+test_message_pagination_does_not_skip_equal_timestamps (test_director_canvas_integrity.DirectorCanvasIntegrity.test_message_pagination_does_not_skip_equal_timestamps) ... ok
+test_message_restore_returns_current_actions_and_session (test_director_canvas_integrity.DirectorCanvasIntegrity.test_message_restore_returns_current_actions_and_session) ... ok
+test_other_project_history_cannot_leak (test_director_canvas_integrity.DirectorCanvasIntegrity.test_other_project_history_cannot_leak) ... ok
+test_position_only_preserves_image_type_binding_config (test_director_canvas_integrity.DirectorCanvasIntegrity.test_position_only_preserves_image_type_binding_config) ... ok
+test_provider_honors_explicit_output_limit (test_director_canvas_integrity.DirectorCanvasIntegrity.test_provider_honors_explicit_output_limit) ... ok
+test_real_canvas_configuration_and_bindings_still_conflict (test_director_canvas_integrity.DirectorCanvasIntegrity.test_real_canvas_configuration_and_bindings_still_conflict) ... ok
+test_reconfirm_after_invalidation_can_apply_plan (test_director_canvas_integrity.DirectorCanvasIntegrity.test_reconfirm_after_invalidation_can_apply_plan) ... ok
+test_revision_tracks_edits_and_replay_precedes_revision_validation (test_director_canvas_integrity.DirectorCanvasIntegrity.test_revision_tracks_edits_and_replay_precedes_revision_validation) ... ok
+test_second_call_budget_gate_keeps_first_usage_and_failed_receipt (test_director_canvas_integrity.DirectorCanvasIntegrity.test_second_call_budget_gate_keeps_first_usage_and_failed_receipt) ... ok
+test_usage_accumulates_both_provider_calls (test_director_canvas_integrity.DirectorCanvasIntegrity.test_usage_accumulates_both_provider_calls) ... ok
+test_auto_clarification_and_legacy_intents_do_not_require_artifact (test_director_v011.DirectorV011.test_auto_clarification_and_legacy_intents_do_not_require_artifact) ... ok
+test_budget_gate_keeps_failed_outcome_and_never_invokes_provider (test_director_v011.DirectorV011.test_budget_gate_keeps_failed_outcome_and_never_invokes_provider) ... ok
+test_duplicate_script_calls_in_one_model_reply_only_save_once (test_director_v011.DirectorV011.test_duplicate_script_calls_in_one_model_reply_only_save_once) ... ok
+test_explicit_script_goal_needs_an_actual_artifact (test_director_v011.DirectorV011.test_explicit_script_goal_needs_an_actual_artifact) ... ok
+test_ordinary_assistant_blocks_invalid_and_truncated_tool_calls (test_director_v011.DirectorV011.test_ordinary_assistant_blocks_invalid_and_truncated_tool_calls) ... ok
+test_partial_artifact_survives_later_provider_failure_and_replay (test_director_v011.DirectorV011.test_partial_artifact_survives_later_provider_failure_and_replay) ... ok
+test_plain_message_cannot_hide_an_unrepaired_tool_error (test_director_v011.DirectorV011.test_plain_message_cannot_hide_an_unrepaired_tool_error) ... ok
+test_repeated_same_error_stops_and_corrects_model_promise (test_director_v011.DirectorV011.test_repeated_same_error_stops_and_corrects_model_promise) ... ok
+test_schema_and_validator_agree_on_hint_and_strict_fields (test_director_v011.DirectorV011.test_schema_and_validator_agree_on_hint_and_strict_fields) ... ok
+test_script_output_limit_is_independent_of_ordinary_assistant (test_director_v011.DirectorV011.test_script_output_limit_is_independent_of_ordinary_assistant) ... ok
+test_truncated_tool_never_executes_and_retry_keeps_usage (test_director_v011.DirectorV011.test_truncated_tool_never_executes_and_retry_keeps_usage) ... ok
+test_two_different_errors_can_be_repaired_without_fake_completion (test_director_v011.DirectorV011.test_two_different_errors_can_be_repaired_without_fake_completion) ... ok
+test_invalid_json_and_nonobject_are_explicit_errors_not_executable_empty_args (test_director_v011.ProviderParsingV011.test_invalid_json_and_nonobject_are_explicit_errors_not_executable_empty_args) ... ok
+test_canvas_helper_failure_after_writes_rolls_back_public_add_script (test_director_v011_atomic.DirectorV011Atomic.test_canvas_helper_failure_after_writes_rolls_back_public_add_script) ... ok
+test_canvas_helper_failure_rolls_back_director_proposal_operation (test_director_v011_atomic.DirectorV011Atomic.test_canvas_helper_failure_rolls_back_director_proposal_operation) ... ok
+test_cross_project_script_binding_does_not_change_either_project (test_director_v011_atomic.DirectorV011Atomic.test_cross_project_script_binding_does_not_change_either_project) ... ok
+test_deleted_project_rejects_public_helper_and_director_writes (test_director_v011_atomic.DirectorV011Atomic.test_deleted_project_rejects_public_helper_and_director_writes) ... ok
+test_existing_unbound_frontend_script_node_is_adopted_without_reset (test_director_v011_atomic.DirectorV011Atomic.test_existing_unbound_frontend_script_node_is_adopted_without_reset) ... ok
+test_outer_failure_rolls_back_helper_script_node_and_project_state (test_director_v011_atomic.DirectorV011Atomic.test_outer_failure_rolls_back_helper_script_node_and_project_state) ... ok
+test_proposal_insert_failure_rolls_back_script_node_and_project_state (test_director_v011_atomic.DirectorV011Atomic.test_proposal_insert_failure_rolls_back_script_node_and_project_state) ... ok
+test_public_add_script_binds_a_stable_node_and_preserves_history_and_layout (test_director_v011_atomic.DirectorV011Atomic.test_public_add_script_binds_a_stable_node_and_preserves_history_and_layout) ... ok
+test_replay_uses_saved_receipt_without_new_script_proposal_node_or_model_call (test_director_v011_atomic.DirectorV011Atomic.test_replay_uses_saved_receipt_without_new_script_proposal_node_or_model_call) ... ok
+test_script_chat_saves_real_node_reference_and_stops_after_success (test_director_v011_atomic.DirectorV011Atomic.test_script_chat_saves_real_node_reference_and_stops_after_success) ... ok
+test_script_node_helper_rejects_a_mismatched_version_without_changes (test_director_v011_atomic.DirectorV011Atomic.test_script_node_helper_rejects_a_mismatched_version_without_changes) ... ok
+test_stale_base_version_rejects_without_partial_state (test_director_v011_atomic.DirectorV011Atomic.test_stale_base_version_rejects_without_partial_state) ... ok
+test_transaction_helper_creates_version_and_canonical_node_together (test_director_v011_atomic.DirectorV011Atomic.test_transaction_helper_creates_version_and_canonical_node_together) ... ok
+test_all_four_modes_without_scripts_or_shots (test_node_execution.NodeExecutionTests.test_all_four_modes_without_scripts_or_shots) ... ok
+test_budget_gate_includes_queued_reservations_and_unapproved_budget (test_node_execution.NodeExecutionTests.test_budget_gate_includes_queued_reservations_and_unapproved_budget) ... ok
+test_concurrent_different_quotes_same_node_one_task (test_node_execution.NodeExecutionTests.test_concurrent_different_quotes_same_node_one_task) ... ok
+test_concurrent_repeated_request_returns_one_execution (test_node_execution.NodeExecutionTests.test_concurrent_repeated_request_returns_one_execution) ... ok
+test_config_write_cannot_change_frozen_input_during_submission (test_node_execution.NodeExecutionTests.test_config_write_cannot_change_frozen_input_during_submission) ... ok
+test_confirmation_is_required_and_unknown_approval_fields_rejected (test_node_execution.NodeExecutionTests.test_confirmation_is_required_and_unknown_approval_fields_rejected) ... ok
+test_delete_keeps_tasks_and_undo_record_identity_restores_last_execution (test_node_execution.NodeExecutionTests.test_delete_keeps_tasks_and_undo_record_identity_restores_last_execution) ... ok
+test_exact_request_replays_after_config_change_and_expiry (test_node_execution.NodeExecutionTests.test_exact_request_replays_after_config_change_and_expiry) ... ok
+test_execution_link_failure_rolls_back_task_and_quote_consumption (test_node_execution.NodeExecutionTests.test_execution_link_failure_rolls_back_task_and_quote_consumption) ... ok
+test_existing_canvas_image_ratio_size_presets_are_supported (test_node_execution.NodeExecutionTests.test_existing_canvas_image_ratio_size_presets_are_supported) ... ok
+test_expired_quote_cannot_create_task (test_node_execution.NodeExecutionTests.test_expired_quote_cannot_create_task) ... ok
+test_global_library_image_can_be_used_as_input_without_script (test_node_execution.NodeExecutionTests.test_global_library_image_can_be_used_as_input_without_script) ... ok
+test_mode_model_parameter_and_reference_validation (test_node_execution.NodeExecutionTests.test_mode_model_parameter_and_reference_validation) ... ok
+test_multiple_quotes_same_active_node_cannot_double_submit (test_node_execution.NodeExecutionTests.test_multiple_quotes_same_active_node_cannot_double_submit) ... ok
+test_non_media_node_cannot_execute (test_node_execution.NodeExecutionTests.test_non_media_node_cannot_execute) ... ok
+test_project_tombstone_blocks_service_and_direct_sql (test_node_execution.NodeExecutionTests.test_project_tombstone_blocks_service_and_direct_sql) ... ok
+test_prompt_change_invalidates_quote_but_title_and_layout_do_not (test_node_execution.NodeExecutionTests.test_prompt_change_invalidates_quote_but_title_and_layout_do_not) ... ok
+test_quote_and_execution_are_project_scoped (test_node_execution.NodeExecutionTests.test_quote_and_execution_are_project_scoped) ... ok
+test_quote_has_no_generation_and_expected_revision_guard (test_node_execution.NodeExecutionTests.test_quote_has_no_generation_and_expected_revision_guard) ... ok
+test_recreated_node_does_not_inherit_previous_representation_execution (test_node_execution.NodeExecutionTests.test_recreated_node_does_not_inherit_previous_representation_execution) ... ok
+test_recreated_node_invalidates_unconsumed_quote (test_node_execution.NodeExecutionTests.test_recreated_node_invalidates_unconsumed_quote) ... ok
+test_reference_file_changed_after_quote_is_stale (test_node_execution.NodeExecutionTests.test_reference_file_changed_after_quote_is_stale) ... ok
+test_remote_success_download_failure_retains_unsettled_charge_reservation (test_node_execution.NodeExecutionTests.test_remote_success_download_failure_retains_unsettled_charge_reservation) ... ok
+test_request_id_with_different_quote_or_node_conflicts (test_node_execution.NodeExecutionTests.test_request_id_with_different_quote_or_node_conflicts) ... ok
+test_same_quote_with_new_request_does_not_generate_twice (test_node_execution.NodeExecutionTests.test_same_quote_with_new_request_does_not_generate_twice) ... ok
+test_settled_remote_success_charge_is_not_reserved_twice (test_node_execution.NodeExecutionTests.test_settled_remote_success_charge_is_not_reserved_twice) ... ok
+test_status_reads_real_task_and_history_preserves_success_after_retry_failure (test_node_execution.NodeExecutionTests.test_status_reads_real_task_and_history_preserves_success_after_retry_failure) ... ok
+test_stopped_wait_with_unsettled_remote_still_blocks_new_generation (test_node_execution.NodeExecutionTests.test_stopped_wait_with_unsettled_remote_still_blocks_new_generation) ... ok
+test_active_composition_or_director_request_blocks_delete (test_project_deletion.ProjectDeletionTests.test_active_composition_or_director_request_blocks_delete) ... ok
+test_active_or_unknown_tasks_block_delete_including_legacy_indirect_link (test_project_deletion.ProjectDeletionTests.test_active_or_unknown_tasks_block_delete_including_legacy_indirect_link) ... ok
+test_all_related_write_entries_reject_deleted_project_before_side_effects (test_project_deletion.ProjectDeletionTests.test_all_related_write_entries_reject_deleted_project_before_side_effects) ... ok
+test_full_batch_waiting_for_automatic_composition_blocks_delete (test_project_deletion.ProjectDeletionTests.test_full_batch_waiting_for_automatic_composition_blocks_delete) ... ok
+test_in_flight_operation_blocks_delete_without_waiting_or_canceling (test_project_deletion.ProjectDeletionTests.test_in_flight_operation_blocks_delete_without_waiting_or_canceling) ... ok
+test_migration_is_repeatable_and_tombstone_survives_reinitialization (test_project_deletion.ProjectDeletionTests.test_migration_is_repeatable_and_tombstone_survives_reinitialization) ... ok
+test_old_project_schema_is_migrated_without_dropping_rows (test_project_deletion.ProjectDeletionTests.test_old_project_schema_is_migrated_without_dropping_rows) ... ok
+test_soft_delete_is_idempotent_and_preserves_history_files_and_other_projects (test_project_deletion.ProjectDeletionTests.test_soft_delete_is_idempotent_and_preserves_history_files_and_other_projects) ... ok
+test_sqlite_guards_close_stale_writers_and_roll_back_whole_transaction (test_project_deletion.ProjectDeletionTests.test_sqlite_guards_close_stale_writers_and_roll_back_whole_transaction) ... ok
+test_unknown_provider_creation_and_pending_output_attachment_block_delete (test_project_deletion.ProjectDeletionTests.test_unknown_provider_creation_and_pending_output_attachment_block_delete) ... ok
+
+----------------------------------------------------------------------
+Ran 143 tests in 16.333s
+
+OK
+临时库：/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/dirchat-egnyz9vb/app.db（业务库未打开）
+
+=== 1) 只澄清 → 无产物；脚本草案自动保存并返回真实 ID ===
+  OK  只澄清：无脚本/无任务  {'artifacts': 0, 'tasks': 0, 'reply_type': 'clarify'}
+  OK  脚本草案自动保存（真实 ID/版本，未确认）+ 刷新可取回  {'script_id': 'scr_413c4cc645…', 'version': 1, 'confirmed': False, 'actions': ['confirm_script']}
+
+=== 2) 畸形结构 / 伪造确认 / 越权工具 ===
+  OK  LLM 返回畸形结构 → 不保存、不假成功  {'saved': 0, 'error': 'VALIDATION_FAILED'}
+  OK  确认/提交/生成工具不存在；工具不接受 project_id  {'code': 'TOOL_FORBIDDEN', 'http': 400, 'tools': ['get_project_state', 'list_models', 'propose_brief', 'propose_script', 'propose_shot_plan']}
+
+=== 3) 幂等：重复请求 / 同键不同内容 / pending ===
+  OK  同键同内容重发 → 返回原结果，不重复调用 LLM  {'replay': True, 'llm_calls': 1}
+  OK  同键不同内容 → 409 IDEMPOTENCY_CONFLICT  {'code': 'IDEMPOTENCY_CONFLICT', 'http': 409}
+  OK  断线恢复：按 client_request_id 查回执  {'code': 'DIRECTOR_REQUEST_NOT_FOUND', 'http': 404, 'status': 'completed'}
+
+=== 4) 项目隔离 ===
+  OK  A 项目会话不能改绑到 B（PROJECT_SESSION_MISMATCH）  {'code': 'PROJECT_SESSION_MISMATCH', 'http': 409}
+  OK  画布节点引用其它项目对象 → 拒绝  {'code': 'CANVAS_INVALID_REFERENCE', 'http': 400}
+
+=== 5) 自动保存 ≠ 确认 ≠ 生成 ===
+  OK  导演流程不自动创建图片/视频任务  {'tasks': 0, 'script_confirmed': False}
+
+=== 6) 提案应用：brief / shot_plan ===
+  OK  需求提案：应用前不改项目事实，应用后才写入  {'applied': True, 'stale': ['script_confirm', 'shot_plan_confirm']}
+  OK  镜头计划：脚本未确认不可应用；应用不生成任务  {'code': 'SCRIPT_NOT_CONFIRMED', 'http': 409, 'shots': 2}
+  OK  脚本升版后旧镜头计划不可应用（PROPOSAL_NOT_APPLICABLE）  {'code': 'PROPOSAL_NOT_APPLICABLE', 'http': 409}
+
+=== 7) 画布：布局 vs 配置；节点独立持久化 ===
+  OK  只移动节点：布局修订+1，配置与报价不受影响  {'layout_revision': 2, 'config_changed': False}
+  OK  改生成配置：配置修订+1 且整组报价失效  {'config_revision': 2, 'invalidated': ['scope']}
+  OK  多节点各自保存模式/模型/规格/素材（互不串）  {'n1_mode': 'text_to_video', 'n2_mode': 'image_to_video', 'n2_duration': 8}
+  OK  节点配置校验：模式冲突/时长越界/图生缺素材均拒绝  {'t2v_with_img': 'GENERATION_MODE_CONFLICT', 'duration': 'MODEL_CAPABILITY_MISMATCH', 'i2v_no_img': 'REFERENCE_IMAGE_REQUIRED'}
+  OK  连线循环依赖 → CANVAS_CYCLE  {'code': 'CANVAS_CYCLE', 'http': 400}
+  OK  布局并发冲突 → CANVAS_REVISION_CONFLICT  {'code': 'CANVAS_REVISION_CONFLICT', 'http': 409}
+
+=== 8) 预算闸门（每次 LLM 调用前）===
+  OK  单次预估超限 → 429，且未产生产物  {'code': 'ASSISTANT_BUDGET_EXCEEDED', 'http': 429}
+  OK  会话累计超限 → 429（可解释）  {'code': 'ASSISTANT_BUDGET_EXCEEDED', 'http': 429}
+
+============================================================
+结果：21/21 通过
+付费 0｜真实 LLM 0｜业务库未打开
+证据：/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/v011-legacy-evidence-hlwzdj2w/免费验收结果.json
+2/5 Credential pattern exclusions
+PASS: .env ignored and untracked; production source/built text assets contain no scanned credential patterns
+Scope: pattern scan only; historical Git objects and arbitrary archives were not scanned
+3/5 Actual isolated HTTP process restart; pending node task and undo history
+Write: real HTTP quote -> one queued task -> batch deletion + unrelated edit; server stopped
+Read: original queued task/quote/history recovered; undo restores nodes/config/edges; replay adds no task
+PASS: private HTTP restart, persistent undo and generation receipt recovery; 0 paid calls
+4/5 Frontend N/A: current batch edits backend and documents only
+5/5 Required technical files and whitespace
+PASS: 12 canvas core backend files; git diff --check
+PASS: backend implementation and isolated verification; real provider and frontend integration PENDING
+Evidence: docs/evidence/v0.11-节点执行与撤销-后端-20261027/verify-20261027T183058-78791.txt

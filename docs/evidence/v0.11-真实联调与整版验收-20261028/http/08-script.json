@@ -1,0 +1,549 @@
+{
+  "method": "POST",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/conversation",
+  "request": {
+    "message": "不用5镜。明确做10秒横版产品展示，只有一只无标识白色陶瓷杯，晨光木桌，不出现人手、不加字幕、不宣传未提供的功能。只要两镜各5秒：先杯身全景，再杯口特写。后续图片用Seedream 5.0 flash横版2K（2688x1536），视频用Seedance 1.0 pro fast、720p、16:9。需求已确认，现在直接写并保存这个两镜脚本，先让我确认脚本。",
+    "client_request_id": "real-v011-script",
+    "selected_node_ids": [],
+    "session_id": "asst_2ee44925968b4202a6d6",
+    "expected_workflow_revision": 4248773515933610
+  },
+  "started_at": 1793176074.787541,
+  "status": 200,
+  "response": {
+    "flow_version": 2,
+    "session_id": "asst_2ee44925968b4202a6d6",
+    "request_id": "real-v011-script",
+    "request_status": "completed",
+    "reply": "脚本已放入画布，请查看并确认。",
+    "reply_type": "saved",
+    "outcome": {
+      "status": "saved",
+      "node_ids": [
+        "script"
+      ]
+    },
+    "artifacts": [
+      {
+        "proposal_id": "prop_aaf0e777922f480d8522",
+        "kind": "script",
+        "version": 1,
+        "target_id": "scr_c20b514506334e0f94c6",
+        "target_version": 1,
+        "type": "script",
+        "node_id": "script",
+        "saved": true,
+        "confirmed": false,
+        "persistence": "saved"
+      }
+    ],
+    "actions": [
+      {
+        "action_id": "dact_b7386d4a076c414eab7a",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "kind": "confirm_script",
+        "request_id": "real-v011-script",
+        "node_ids": [
+          "script"
+        ],
+        "script_id": "scr_c20b514506334e0f94c6",
+        "script_version": 1,
+        "status": "proposed",
+        "action_status": "proposed",
+        "estimated_cost_cny": 0,
+        "expires_at": 1793262483.563518,
+        "expired": false,
+        "stale": false,
+        "requires_user_action": true,
+        "result": null,
+        "submit_client_request_id": null,
+        "created_at": 1793176083.563518
+      }
+    ],
+    "current_role": "writer",
+    "current": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "name": "晨光白杯 · 真实联调验收",
+      "brief": {},
+      "current_stage": "requirements",
+      "script": {
+        "script_id": "scr_c20b514506334e0f94c6",
+        "version": 1,
+        "content": {
+          "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+          "shots": [
+            {
+              "seq": 1,
+              "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+              "duration_s": 5,
+              "motion": "缓慢推近，轻微右移"
+            },
+            {
+              "seq": 2,
+              "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+              "duration_s": 5,
+              "motion": "极缓慢环绕，高光滑动"
+            }
+          ]
+        },
+        "confirmed": false
+      },
+      "shots": [],
+      "allowed_actions": [
+        "save_brief"
+      ],
+      "draft_proposals": [
+        {
+          "kind": "script",
+          "version": 1,
+          "proposal_id": "prop_aaf0e777922f480d8522",
+          "content": {
+            "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+            "shots": [
+              {
+                "seq": 1,
+                "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+                "duration_s": 5,
+                "motion": "缓慢推近，轻微右移"
+              },
+              {
+                "seq": 2,
+                "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+                "duration_s": 5,
+                "motion": "极缓慢环绕，高光滑动"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "usage": {
+      "input_tokens": 8492,
+      "output_tokens": 418,
+      "cost_cny": 0.007533,
+      "estimated_cny": 0.048152
+    },
+    "tool_calls": [
+      {
+        "tool": "list_models",
+        "tool_call_id": "call_00_kv9u5smzLouyILrAubKX5837",
+        "ok": true,
+        "result": {
+          "items": [
+            {
+              "id": "sd15",
+              "kind": "image",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [],
+              "duration_policy": null,
+              "capabilities": {}
+            },
+            {
+              "id": "sdxl-base-1.0",
+              "kind": "image",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_DOWNLOADED"
+              ],
+              "input_modes": [],
+              "duration_policy": null,
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedream-5-0-pro-260628",
+              "kind": "image",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED"
+              ],
+              "input_modes": [
+                "text_to_image",
+                "image_to_image"
+              ],
+              "duration_policy": null,
+              "capabilities": {
+                "input_modes": [
+                  "text_to_image",
+                  "image_to_image"
+                ],
+                "max_reference_images": 10,
+                "ratios": [
+                  "1:1",
+                  "3:4",
+                  "4:3",
+                  "9:16",
+                  "16:9"
+                ],
+                "resolutions": [],
+                "sizes": [
+                  "1024x1024",
+                  "2048x2048",
+                  "1728x2304",
+                  "2304x1728",
+                  "1536x2688",
+                  "2688x1536"
+                ],
+                "duration_s": [],
+                "supports": [
+                  "图层拆分",
+                  "单图生成",
+                  "文生图",
+                  "单张图生图",
+                  "多参考图生图"
+                ],
+                "max_ipm": 500,
+                "pricing": {
+                  "kind": "per_pixel_tier",
+                  "tiers": [
+                    {
+                      "max_mp": 2.61,
+                      "cny": 0.3
+                    },
+                    {
+                      "max_mp": null,
+                      "cny": 0.6
+                    }
+                  ],
+                  "input_image": {
+                    "first_free": true,
+                    "from_second_cny": 0.02
+                  }
+                },
+                "note": "能力项与 flash 一致；画质/速度差异待同题实测"
+              }
+            },
+            {
+              "id": "doubao-seedream-5-0-flash-260915",
+              "kind": "image",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [
+                "text_to_image",
+                "image_to_image"
+              ],
+              "duration_policy": null,
+              "capabilities": {
+                "input_modes": [
+                  "text_to_image",
+                  "image_to_image"
+                ],
+                "max_reference_images": 10,
+                "ratios": [
+                  "1:1",
+                  "3:4",
+                  "4:3",
+                  "9:16",
+                  "16:9"
+                ],
+                "resolutions": [],
+                "sizes": [
+                  "1024x1024",
+                  "2048x2048",
+                  "1728x2304",
+                  "2304x1728",
+                  "1536x2688",
+                  "2688x1536"
+                ],
+                "duration_s": [],
+                "supports": [
+                  "图层拆分",
+                  "单图生成",
+                  "文生图",
+                  "单张图生图",
+                  "多参考图生图"
+                ],
+                "max_ipm": 500,
+                "pricing": {
+                  "kind": "per_image",
+                  "cny_per_image": 0.12,
+                  "input_image": "免费"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "tool": "list_models",
+        "tool_call_id": "call_01_tcBUvQTWCr2jrkQ9JXBX9474",
+        "ok": true,
+        "result": {
+          "items": [
+            {
+              "id": "i2vgen-xl",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_DOWNLOADED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-2-0-260128",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-1-0-pro-fast-251015",
+              "kind": "video",
+              "submittable": true,
+              "reasons": [],
+              "input_modes": [
+                "image_to_video",
+                "text_to_video"
+              ],
+              "duration_policy": {
+                "kind": "range",
+                "min": 2,
+                "max": 12,
+                "step": 1,
+                "allowed": null
+              },
+              "capabilities": {
+                "input_modes": [
+                  "image_to_video",
+                  "text_to_video"
+                ],
+                "max_reference_images": 1,
+                "ratios": [
+                  "9:16",
+                  "16:9",
+                  "1:1"
+                ],
+                "resolutions": [
+                  "480p",
+                  "720p",
+                  "1080p"
+                ],
+                "sizes": [],
+                "duration_s": [
+                  5,
+                  10
+                ],
+                "duration_range_s": [
+                  2,
+                  12
+                ],
+                "duration_step_s": 1,
+                "supports": [
+                  "首帧生视频",
+                  "文生视频"
+                ],
+                "fps": 24,
+                "pricing": {
+                  "kind": "per_mtoken",
+                  "cny_per_mtoken": 4.2,
+                  "billing": "仅成功生成计费"
+                }
+              }
+            },
+            {
+              "id": "doubao-seedance-2-0-mini-260615",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED"
+              ],
+              "input_modes": [
+                "image_to_video",
+                "text_to_video"
+              ],
+              "duration_policy": {
+                "kind": "range",
+                "min": 4,
+                "max": 15,
+                "step": 1,
+                "allowed": null
+              },
+              "capabilities": {
+                "input_modes": [
+                  "image_to_video",
+                  "text_to_video"
+                ],
+                "max_reference_images": 1,
+                "ratios": [
+                  "9:16",
+                  "16:9",
+                  "1:1"
+                ],
+                "resolutions": [
+                  "480p",
+                  "720p"
+                ],
+                "sizes": [],
+                "duration_s": [
+                  5,
+                  10
+                ],
+                "duration_range_s": [
+                  4,
+                  15
+                ],
+                "duration_step_s": 1,
+                "supports": [
+                  "全模态参考生视频",
+                  "参考生视频",
+                  "编辑视频",
+                  "延长视频",
+                  "首尾帧生视频",
+                  "首帧生视频",
+                  "文生视频"
+                ],
+                "fps": 24,
+                "pricing": {
+                  "kind": "per_mtoken",
+                  "cny_per_mtoken": 23.0,
+                  "cny_per_mtoken_with_input_video": 14.0,
+                  "billing": "仅成功生成计费"
+                },
+                "limits": {
+                  "rpm_personal": 180,
+                  "concurrency_personal": 3
+                }
+              }
+            },
+            {
+              "id": "doubao-seedance-2-5-260628",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            },
+            {
+              "id": "doubao-seedance-2-0-fast-260128",
+              "kind": "video",
+              "submittable": false,
+              "reasons": [
+                "MODEL_NOT_OPENED",
+                "DURATION_POLICY_UNAVAILABLE"
+              ],
+              "input_modes": [],
+              "duration_policy": {
+                "kind": "unavailable",
+                "min": null,
+                "max": null,
+                "step": null,
+                "allowed": null
+              },
+              "capabilities": {}
+            }
+          ]
+        }
+      },
+      {
+        "tool": "write_script",
+        "tool_call_id": "call_00_H0jt1ZJd15z2v4Z5KXyZ6505",
+        "ok": true,
+        "result": {
+          "proposal_id": "prop_aaf0e777922f480d8522",
+          "kind": "script",
+          "version": 1,
+          "target_id": "scr_c20b514506334e0f94c6",
+          "target_version": 1,
+          "type": "script",
+          "node_id": "script",
+          "saved": true,
+          "confirmed": false,
+          "node_ids": [
+            "script"
+          ],
+          "artifacts": [
+            {
+              "proposal_id": "prop_aaf0e777922f480d8522",
+              "kind": "script",
+              "version": 1,
+              "target_id": "scr_c20b514506334e0f94c6",
+              "target_version": 1,
+              "type": "script",
+              "node_id": "script",
+              "saved": true,
+              "confirmed": false
+            }
+          ],
+          "action_ids": [
+            "dact_b7386d4a076c414eab7a"
+          ],
+          "side_effects": {
+            "task_created": false,
+            "model_called": false,
+            "budget_deducted": false
+          },
+          "idempotent_replay": false,
+          "actions": [
+            {
+              "action_id": "dact_b7386d4a076c414eab7a",
+              "project_id": "prj_7d52f89107db4ce4b9b4",
+              "kind": "confirm_script",
+              "request_id": "real-v011-script",
+              "node_ids": [
+                "script"
+              ],
+              "script_id": "scr_c20b514506334e0f94c6",
+              "script_version": 1,
+              "status": "proposed",
+              "action_status": "proposed",
+              "estimated_cost_cny": 0,
+              "expires_at": 1793262483.563518,
+              "expired": false,
+              "stale": false,
+              "requires_user_action": true,
+              "result": null,
+              "submit_client_request_id": null,
+              "created_at": 1793176083.563518
+            }
+          ]
+        }
+      }
+    ],
+    "rounds": [
+      {
+        "round": 1,
+        "finish_reason": "tool_calls",
+        "input_tokens": 3389,
+        "output_tokens": 77
+      },
+      {
+        "round": 2,
+        "finish_reason": "tool_calls",
+        "input_tokens": 5103,
+        "output_tokens": 341
+      }
+    ],
+    "workflow_revision": 2060658881509855
+  },
+  "finished_at": 1793176083.622686
+}

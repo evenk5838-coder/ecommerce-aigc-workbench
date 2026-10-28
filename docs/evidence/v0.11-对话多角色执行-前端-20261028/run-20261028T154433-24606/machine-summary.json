@@ -1,0 +1,146 @@
+{
+  "run_id": "20261028T154433-24606",
+  "completed_at": "2026-10-28T07:46:15.962667+00:00",
+  "command": "APP_PYTHON=/private/tmp/ecom-v011-backend-20261027/bin/python bash verify.sh director-workflow-frontend",
+  "exit_code": 0,
+  "passed": true,
+  "scope": "Automated current-frontend checks and isolated fixed-provider real-HTTP/restart workflows only",
+  "checks": {
+    "eslint": true,
+    "typescript": true,
+    "isolated_production_build": true,
+    "test_files_passed": 37,
+    "tests_passed": 803,
+    "credential_pattern_scan": true,
+    "required_technical_files": 44,
+    "git_diff_check": true,
+    "existing_frontend_dist_unchanged": true,
+    "existing_frontend_dist_fingerprint_count": 3,
+    "frontend_inputs_unchanged_during_run": true,
+    "frontend_input_fingerprint_count": 132,
+    "isolated_build_unchanged_during_run": true,
+    "isolated_build_fingerprint_count": 3
+  },
+  "isolated_dist": "/private/tmp/ecom-v011-frontend-preview/workflow-dist",
+  "build_sha256": {
+    "assets/index-CBrvSkXq.css": "d60a2685cb038a28a2ec856d681921b27134e4515ebd486a406a727ea645cad9",
+    "assets/index-DB-bfxU6.js": "33615a0be8cfea8e5135f7925688d9273a3c3aab2187090ea10547fcf55fa2d1",
+    "index.html": "fd579fb1e32283eabef8c3b1231a0870d8c55c466bdd51c6981de6753bfd6e8c"
+  },
+  "warnings": [
+    "Vite reports a minified JavaScript chunk larger than 500 kB; production build succeeds."
+  ],
+  "http_workflows": [
+    {
+      "scope": "clips_then_explicit_compose",
+      "passed": true,
+      "http_request_count": 41,
+      "started_at": "2026-10-28T07:44:50.779721+00:00",
+      "finished_at": "2026-10-28T07:44:58.599782+00:00",
+      "before_restart_counts": {
+        "task_count": 4,
+        "node_count": 6,
+        "script_count": 1,
+        "composition_count": 1,
+        "llm_fixture_calls": 8,
+        "media_fixture_calls": 4,
+        "real_model_calls": 0
+      },
+      "after_restart_counts": {
+        "task_count": 4,
+        "node_count": 6,
+        "script_count": 1,
+        "composition_count": 1,
+        "llm_fixture_calls": 8,
+        "media_fixture_calls": 4,
+        "real_model_calls": 0
+      },
+      "restart_replayed_without_new_work": true,
+      "provider_transports_blocked": true,
+      "real_model_calls": 0,
+      "user_confirmation_count": 4,
+      "separate_composition_confirmation": true,
+      "actual_duration_ms": 1000,
+      "sampled_rgb": [
+        [
+          0,
+          0,
+          253
+        ],
+        [
+          252,
+          0,
+          0
+        ]
+      ],
+      "verified_media_order": [
+        "blue",
+        "red"
+      ],
+      "http_evidence": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-clips/director-workflow-http.json",
+      "media_evidence": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-clips/fixed-blue-then-red.mp4"
+    },
+    {
+      "scope": "film",
+      "passed": true,
+      "http_request_count": 35,
+      "started_at": "2026-10-28T07:44:58.731863+00:00",
+      "finished_at": "2026-10-28T07:45:04.256823+00:00",
+      "before_restart_counts": {
+        "task_count": 4,
+        "node_count": 6,
+        "script_count": 1,
+        "composition_count": 1,
+        "llm_fixture_calls": 6,
+        "media_fixture_calls": 4,
+        "real_model_calls": 0
+      },
+      "after_restart_counts": {
+        "task_count": 4,
+        "node_count": 6,
+        "script_count": 1,
+        "composition_count": 1,
+        "llm_fixture_calls": 6,
+        "media_fixture_calls": 4,
+        "real_model_calls": 0
+      },
+      "restart_replayed_without_new_work": true,
+      "provider_transports_blocked": true,
+      "real_model_calls": 0,
+      "user_confirmation_count": 3,
+      "separate_composition_confirmation": false,
+      "actual_duration_ms": 1000,
+      "sampled_rgb": [
+        [
+          0,
+          0,
+          253
+        ],
+        [
+          252,
+          0,
+          0
+        ]
+      ],
+      "verified_media_order": [
+        "blue",
+        "red"
+      ],
+      "http_evidence": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-film/director-workflow-http.json",
+      "media_evidence": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/http-film/fixed-blue-then-red.mp4"
+    }
+  ],
+  "evidence": {
+    "log": "docs/evidence/v0.11-对话多角色执行-前端-20261028/verify-20261028T154433-24606.txt",
+    "frontend_code_fingerprints": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/frontend-input-sha256.json",
+    "backend_code_fingerprints_after_run": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/backend-code-sha256-after-run.json",
+    "build_fingerprints": "docs/evidence/v0.11-对话多角色执行-前端-20261028/run-20261028T154433-24606/workflow-build-sha256.json"
+  },
+  "excluded_acceptance": [
+    "Browser interaction and visual acceptance",
+    "Real model generation or quality",
+    "Final user/product acceptance",
+    "Production performance",
+    "Historical Git or arbitrary archive credential scan"
+  ]
+}

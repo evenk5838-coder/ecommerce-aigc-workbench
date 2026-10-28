@@ -185,7 +185,10 @@ def delete_project(project_id: str) -> dict:
                 "JOIN shots s ON s.id=b.shot_id WHERE s.project_id=?) OR t.id IN "
                 "(SELECT k.task_id FROM shot_takes k JOIN shots s ON s.id=k.shot_id "
                 "WHERE s.project_id=?)) AND (t.status IS NULL OR t.status NOT IN "
-                "('succeeded','failed','canceled','interrupted') OR t.error_code='CREATE_RESULT_UNKNOWN')",
+                "('succeeded','failed','canceled','interrupted') OR t.error_code='CREATE_RESULT_UNKNOWN' OR "
+                "(t.remote_task_id IS NOT NULL AND t.remote_task_id!='' AND t.status!='succeeded' "
+                "AND (t.remote_status IS NULL OR t.remote_status NOT IN "
+                "('succeeded','success','failed','cancelled','canceled'))))",
                 (project_id,)*3).fetchall()
             films = c.execute("SELECT id, status FROM films WHERE project_id=? AND "
                               "(status IS NULL OR status NOT IN ('ready','partial','failed'))",
@@ -210,13 +213,30 @@ def delete_project(project_id: str) -> dict:
                 "AND NOT EXISTS(SELECT 1 FROM films f WHERE f.source_batch=r.batch_id) "
                 "AND NOT EXISTS(SELECT 1 FROM assembly_errors e WHERE e.batch_id=r.batch_id)",
                 (project_id,)).fetchall()
-            if tasks or films or requests or pending_outputs or assembling_batches:
+            compositions = []
+            if c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='director_compositions'").fetchone():
+                compositions = c.execute(
+                    "SELECT id, status FROM director_compositions WHERE project_id=? "
+                    "AND status IN ('queued','running')", (project_id,)).fetchall()
+            pending_director_films = []
+            if c.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='director_actions'").fetchone():
+                pending_director_films = c.execute(
+                    "SELECT a.id FROM director_actions a WHERE a.project_id=? AND a.kind='generation' "
+                    "AND a.status='submitted' AND json_extract(a.frozen_json,'$.output_mode')='film' "
+                    "AND json_extract(a.result_json,'$.composition_action_id') IS NULL "
+                    "AND json_extract(a.result_json,'$.composition_error') IS NULL "
+                    "AND EXISTS(SELECT 1 FROM tasks t WHERE t.batch_id=json_extract(a.result_json,'$.batch_id')) "
+                    "AND NOT EXISTS(SELECT 1 FROM tasks t WHERE t.batch_id=json_extract(a.result_json,'$.batch_id') "
+                    "AND (t.status IS NULL OR t.status!='succeeded'))", (project_id,)).fetchall()
+            if tasks or films or requests or pending_outputs or assembling_batches or compositions or pending_director_films:
                 raise err("PROJECT_BUSY", "项目仍有生成、合成或待核对的对话请求，请处理完成后再删除。",
                           detail={"project_id": project_id,
                                   "tasks": [dict(t) for t in tasks], "films": [dict(f) for f in films],
                                   "requests": [dict(r) for r in requests],
                                   "pending_outputs": [dict(o) for o in pending_outputs],
-                                  "assembling_batches": [dict(b) for b in assembling_batches]})
+                                  "assembling_batches": [dict(b) for b in assembling_batches],
+                                  "compositions": [dict(item) for item in compositions],
+                                  "pending_director_films": [dict(item) for item in pending_director_films]})
             deleted_at = db.now()
             c.execute("UPDATE projects SET deleted_at=?, updated_at=? WHERE id=?",
                       (deleted_at, deleted_at, project_id))
@@ -283,35 +303,43 @@ def _next_version(project_id: str) -> int:
     return int(rows[0]["v"]) + 1
 
 
-@project_guard()
-def add_script(project_id: str, content: dict, source: str = "manual",
-               session_id: str | None = None,
-               base_version: int | None = None) -> dict:
-    """新增脚本版本。
-
-    **版本分配与并发校验在同一事务内完成**（BEGIN IMMEDIATE），避免两个请求拿到同一个
-    version 或覆盖他人写入；`base_version` 指客户端所见的项目最新版本，不一致 → 409。
-    """
-    get_project(project_id)
+def _add_script_in_tx(connection, project_id: str, content: dict, source: str = "manual",
+                      session_id: str | None = None, base_version: int | None = None) -> dict:
+    """Create a script and its stable canvas binding on the caller's transaction."""
+    from . import canvas
+    c = connection
+    project = c.execute("SELECT * FROM projects WHERE id=?", (project_id,)).fetchone()
+    if not project:
+        raise err("PROJECT_NOT_FOUND", "项目不存在")
+    if project["deleted_at"] is not None:
+        raise err("PROJECT_DELETED", "该项目已删除，素材和历史任务仍保留。")
     if not isinstance(content, dict):
         raise err("VALIDATION_FAILED", "脚本 content 必须是对象")
+    if base_version is not None and (isinstance(base_version, bool) or not isinstance(base_version, int) or base_version < 0):
+        raise err("VALIDATION_FAILED", "base_version 必须为非负整数")
+    row = c.execute("SELECT COALESCE(MAX(version),0) v FROM script_versions "
+                    "WHERE project_id=?", (project_id,)).fetchone()
+    latest = int(row["v"])
+    if base_version is not None and base_version != latest:
+        raise err("SCRIPT_VERSION_CONFLICT",
+                  f"脚本已更新：项目当前最新 v{latest}，提交 v{base_version}",
+                  detail={"current_version": latest, "base_version": base_version})
     sid = db.new_id("scr")
+    ver = latest + 1
+    c.execute("INSERT INTO script_versions(id, project_id, version, content_json, source, "
+              "session_id, confirmed_at, created_at) VALUES(?,?,?,?,?,?,?,?)",
+              (sid, project_id, ver, db.dumps(content), source, session_id, None, db.now()))
+    c.execute("UPDATE projects SET status=?, updated_at=? WHERE id=?", ("scripting", db.now(), project_id))
+    canvas.upsert_script_node_in_tx(c, project_id, sid, ver)
+    return _script_view(dict(c.execute("SELECT * FROM script_versions WHERE id=?", (sid,)).fetchone()))
+
+
+@project_guard()
+def add_script(project_id: str, content: dict, source: str = "manual",
+               session_id: str | None = None, base_version: int | None = None) -> dict:
+    """Append a version and bind its node atomically; preserve prior versions and layout."""
     with db.transaction() as c:
-        row = c.execute("SELECT COALESCE(MAX(version),0) v FROM script_versions "
-                        "WHERE project_id=?", (project_id,)).fetchone()
-        latest = int(row["v"])
-        if base_version is not None and int(base_version) != latest:
-            raise err("SCRIPT_VERSION_CONFLICT",
-                      f"脚本已更新：项目当前最新 v{latest}，提交 v{base_version}",
-                      detail={"current_version": latest, "base_version": base_version})
-        ver = latest + 1
-        c.execute(
-            "INSERT INTO script_versions(id, project_id, version, content_json, source, "
-            "session_id, confirmed_at, created_at) VALUES(?,?,?,?,?,?,?,?)",
-            (sid, project_id, ver, db.dumps(content), source, session_id, None, db.now()))
-        c.execute("UPDATE projects SET status=?, updated_at=? WHERE id=?",
-                  ("scripting", db.now(), project_id))
-    return _script_view(db.get("script_versions", sid))
+        return _add_script_in_tx(c, project_id, content, source, session_id, base_version)
 
 
 def list_scripts(project_id: str) -> list[dict]:
@@ -340,24 +368,31 @@ def edit_script(script_id: str, content: dict, base_version: int | None = None) 
                       session_id=row.get("session_id"), base_version=base_version)
 
 
-@project_guard("script_versions")
-def confirm_script(script_id: str, confirm: bool = True) -> dict:
-    """确认脚本 → **持久化确认记录**（绑定 script_id + version）。"""
+def confirm_script_in_tx(connection, script_id: str, confirm: bool = True) -> dict:
+    """Confirm the exact script and update project state on the caller's transaction."""
     from . import director
 
-    row = db.get("script_versions", script_id)
+    c = connection
+    row = c.execute("SELECT * FROM script_versions WHERE id=?", (script_id,)).fetchone()
     if not row:
         raise err("SCRIPT_NOT_FOUND", f"脚本不存在：{script_id}")
     if not confirm:
         raise err("VALIDATION_FAILED", "确认动作需 confirm=true")
     now = db.now()
-    cfm = director.confirm_object(row["project_id"], "script", script_id,
-                                 int(row["version"]))
-    db.update("script_versions", script_id, {"confirmed_at": now})
-    db.update("projects", row["project_id"], {"status": "script_confirmed"})
+    cfm = director.confirm_object_in_tx(c, row["project_id"], "script", script_id,
+                                       int(row["version"]))
+    c.execute("UPDATE script_versions SET confirmed_at=? WHERE id=?", (now, script_id))
+    c.execute("UPDATE projects SET status='script_confirmed' WHERE id=?", (row["project_id"],))
     return {"script_id": script_id, "version": row["version"],
             "confirmed_at": now, "confirmation": cfm,
             "unlocked": ["storyboard_plan"]}
+
+
+@project_guard("script_versions")
+def confirm_script(script_id: str, confirm: bool = True) -> dict:
+    """确认记录、脚本确认时间和项目状态在同一事务中提交。"""
+    with db.transaction() as c:
+        return confirm_script_in_tx(c, script_id, confirm)
 
 
 def _script_view(row: dict) -> dict:

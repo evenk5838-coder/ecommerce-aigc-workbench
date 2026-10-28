@@ -33,6 +33,8 @@ class ToolCall:
     name: str
     arguments: dict = field(default_factory=dict)
     id: str = ""          # 厂商返回的工具调用 ID，回传工具结果时必须带上
+    arguments_error: dict | None = None
+    raw_arguments: str | None = None
 
 
 @dataclass
@@ -108,12 +110,14 @@ class FixedReplyProvider:
         self._i += 1
         return ChatResult(
             reply=str(item.get("reply") or ""),
-            tool_calls=[ToolCall(name=tc["name"], arguments=tc.get("arguments") or {})
+            tool_calls=[ToolCall(name=tc["name"], arguments=tc.get("arguments", {}),
+                                id=tc.get("id", ""), arguments_error=tc.get("arguments_error"),
+                                raw_arguments=tc.get("raw_arguments"))
                         for tc in item.get("tool_calls", [])],
             input_tokens=int(item.get("input_tokens") or 0),
             output_tokens=int(item.get("output_tokens") or 0),
             structured=dict(item.get("structured") or {}),
-            meta={"provider": self.name, "model": self.model, "stub": True},
+            meta={**dict(item.get("meta") or {}), "provider": self.name, "model": self.model, "stub": True},
         )
 
 
@@ -177,7 +181,7 @@ def _to_openai_messages(messages: list[dict]) -> list[dict]:
                         "content": "会话上下文（JSON）：" +
                                    _json.dumps(content, ensure_ascii=False)})
         elif role in ("system", "user", "assistant", "tool"):
-            item = {"role": role, "content": content if isinstance(content, str)
+            item = {"role": role, "content": content if isinstance(content, str) or (role == "assistant" and content is None)
                     else json.dumps(content, ensure_ascii=False)}
             for k in ("tool_calls", "tool_call_id", "name"):
                 if k in m:
@@ -201,15 +205,26 @@ def _parse_chat_response(data: dict, provider_name: str, model: str) -> ChatResu
     for i, tc in enumerate(raw_calls):
         fn = tc.get("function") or {}
         args_raw = fn.get("arguments")
+        parse_error = None
         if isinstance(args_raw, dict):
             args = args_raw
-        else:
+        elif args_raw is None:
+            args = {}
+        elif isinstance(args_raw, str):
             try:
-                args = json.loads(args_raw or "{}")
-            except json.JSONDecodeError:
+                args = json.loads(args_raw)
+            except (json.JSONDecodeError, TypeError):
                 args = {}
+                parse_error = {"code": "TOOL_ARGUMENTS_INVALID", "message": "工具参数不是完整的 JSON 对象"}
+        else:
+            args = {}
+            parse_error = {"code": "TOOL_ARGUMENTS_INVALID", "message": "工具参数必须是 JSON 对象"}
+        if not isinstance(args, dict):
+            args = {}
+            parse_error = {"code": "TOOL_ARGUMENTS_INVALID", "message": "工具参数必须是 JSON 对象"}
         calls.append(ToolCall(name=str(fn.get("name") or ""), arguments=args,
-                              id=str(tc.get("id") or f"call_{i}")))
+                              id=str(tc.get("id") or f"call_{i}"), arguments_error=parse_error,
+                              raw_arguments=args_raw if isinstance(args_raw, str) else None))
     usage = data.get("usage") or {}
     structured: dict = {}
     content = msg.get("content") or ""
@@ -232,8 +247,27 @@ def _parse_chat_response(data: dict, provider_name: str, model: str) -> ChatResu
         output_tokens=int(usage.get("completion_tokens") or 0),
         structured=structured,
         meta={"provider": provider_name, "model": model,
+              "response_model": data.get("model"),
+              "usage": {key: value for key, value in usage.items()
+                        if key in ("prompt_cache_hit_tokens", "prompt_cache_miss_tokens")},
               "finish_reason": choices[0].get("finish_reason"), "stub": False},
     )
+
+
+def tool_call_error(result: ChatResult, call: ToolCall) -> dict | None:
+    """Every consumer must check this before a tool can have side effects."""
+    if result.meta.get("finish_reason") == "length":
+        return {"code": "MODEL_OUTPUT_TRUNCATED", "message": "模型输出达到长度上限，工具未执行"}
+    if call.arguments_error:
+        return call.arguments_error
+    if not isinstance(call.arguments, dict):
+        return {"code": "TOOL_ARGUMENTS_INVALID", "message": "工具参数必须是 JSON 对象"}
+    return None
+
+
+def tool_arguments_json(call: ToolCall) -> str:
+    """Preserve the provider's original call when returning a correction result."""
+    return call.raw_arguments if call.raw_arguments is not None else json.dumps(call.arguments, ensure_ascii=False)
 
 
 # ---------------- DeepSeek 官方通道 ----------------

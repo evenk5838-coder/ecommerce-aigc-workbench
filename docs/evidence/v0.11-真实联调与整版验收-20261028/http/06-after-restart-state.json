@@ -1,0 +1,52 @@
+{
+  "method": "GET",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/conversation/state",
+  "request": null,
+  "started_at": 1793176074.6832378,
+  "status": 200,
+  "response": {
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "session_id": "asst_2ee44925968b4202a6d6",
+    "current_role": "writer",
+    "creation": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "current_role": "writer",
+      "selected_node_ids": [],
+      "layout_revision": 0,
+      "nodes": [],
+      "total_nodes": 0,
+      "nodes_truncated": false,
+      "script": null,
+      "side_effects": {
+        "task_created": false,
+        "model_called": false,
+        "budget_deducted": false
+      }
+    },
+    "project": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "name": "晨光白杯 · 真实联调验收",
+      "brief": {},
+      "current_stage": "requirements",
+      "script": null,
+      "shots": [],
+      "allowed_actions": [
+        "save_brief"
+      ],
+      "draft_proposals": []
+    },
+    "outcome": {
+      "status": "clarify",
+      "node_ids": [],
+      "missing_fields": [
+        "5镜结构与时长是否确认",
+        "是否出现人手/人物",
+        "画幅比例（16:9 横屏 / 9:16 竖屏）"
+      ]
+    },
+    "artifacts": [],
+    "actions": [],
+    "workflow_revision": 4248773515933610
+  },
+  "finished_at": 1793176074.777882
+}

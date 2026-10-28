@@ -12,6 +12,21 @@ export interface ShotDraft {
 export interface ProductionEditorState {
   version: 1; rows: ShotDraft[]; videoModelId: string; ratio: string; resolution: string;
   imageModelId: string; imageSize: string; mode: 'full' | 'clips'; selectedIds: string[];
+  /** Last acknowledged plan, separate from editable rows and generation settings. */
+  savedPlan?: SavedShotPlan[];
+}
+export interface SavedShotPlan {
+  shot_id: string; seq: number; description: string; motion: string; duration_s: number;
+}
+export function savedShotPlan(shots: readonly Shot[]): SavedShotPlan[] {
+  return shots.map(shot => ({ shot_id: shot.shot_id, seq: shot.seq, description: shot.description,
+    motion: shot.motion ?? '', duration_s: shot.duration_s }));
+}
+
+/** Missing legacy baselines stay conservative; loading is never a reason to drop edits. */
+export function shotPlanChanged(rows: ShotDraft[], saved: readonly SavedShotPlan[] | undefined): boolean {
+  if (!saved) return rows.length > 0;
+  return rows.some(row => shotDraftChanged(row, saved.find(shot => shot.shot_id === row.shot_id))) || planOrderChanged(rows, saved);
 }
 const ACTIVE = new Set(['queued', 'loading', 'running', 'postprocess', 'remote_queued', 'remote_running', 'cancel_requested', 'pending', 'composing']);
 export const isActiveStatus = (value: string | undefined): boolean => !!value && ACTIVE.has(value);
@@ -44,9 +59,9 @@ export function inspectStoryboardDraft(draft: ShotDraft, defaults: StoryboardDef
   if (!draft.prompt.trim()) return fail('请填写这条分镜的生成提示词。');
   return { input: { model_id: settings.modelId, size: settings.size, prompt: draft.prompt, input_asset_id: draft.input_asset_id || null }, error: null };
 }
-export function shotDraftChanged(draft: ShotDraft, shot?: Shot): boolean {
+export function shotDraftChanged(draft: ShotDraft, shot?: Shot | Pick<Shot, 'description' | 'motion' | 'duration_s'>): boolean {
   if (!shot) return true;
-  const original = draftFromShot(shot);
+  const original = { description: shot.description, motion: shot.motion ?? '', duration: String(shot.duration_s) };
   return (['description', 'motion', 'duration'] as const).some(key => draft[key] !== original[key]);
 }
 export function inspectShotDraft(draft: ShotDraft, model: Model | undefined, seq: number): { input: ShotInput | null; error: string | null } {
@@ -62,7 +77,7 @@ export function inspectShotDraft(draft: ShotDraft, model: Model | undefined, seq
   if (!Number.isSafeInteger(seq) || seq < 1) return fail('镜头顺序无效。');
   return { input: { seq, duration_s: duration, description: draft.description, motion: draft.motion, prompt: draft.prompt, input_asset_id: draft.input_asset_id || null, model_id: model.id }, error: null };
 }
-export function planOrderChanged(rows: ShotDraft[], shots: Shot[]): boolean {
+export function planOrderChanged(rows: ShotDraft[], shots: readonly Pick<Shot, 'shot_id' | 'seq'>[]): boolean {
   return rows.map(row => row.shot_id ?? row.key).join('|') !== [...shots].sort((a,b) => a.seq-b.seq).map(shot => shot.shot_id).join('|');
 }
 export function failedShotIds(status: ProductionStatus | null): string[] {
@@ -87,6 +102,21 @@ export function hasActiveProduction(status: ProductionStatus | null, tasks: Task
 export function unionFilms(known: Film[], status: ProductionStatus | null): Film[] {
   return [...new Map([...known, ...(status?.films ?? []), ...(status?.film ? [status.film] : [])].map(film => [film.film_id, film])).values()].sort((a,b) => (b.version ?? 0) - (a.version ?? 0));
 }
+function parseSavedPlan(value: unknown): SavedShotPlan[] | undefined {
+  if (!Array.isArray(value)) return;
+  const ids = new Set<string>(), sequences = new Set<number>(), result: SavedShotPlan[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return;
+    const shot = item as Record<string, unknown>;
+    if (typeof shot.shot_id !== 'string' || !shot.shot_id.trim() || ids.has(shot.shot_id)
+      || typeof shot.seq !== 'number' || !Number.isSafeInteger(shot.seq) || shot.seq < 1 || sequences.has(shot.seq)
+      || typeof shot.description !== 'string' || typeof shot.motion !== 'string'
+      || typeof shot.duration_s !== 'number' || !Number.isFinite(shot.duration_s) || shot.duration_s <= 0) return;
+    ids.add(shot.shot_id); sequences.add(shot.seq);
+    result.push({ shot_id: shot.shot_id, seq: shot.seq, description: shot.description, motion: shot.motion, duration_s: shot.duration_s });
+  }
+  return result;
+}
 export function parseProductionEditor(value: string | null): ProductionEditorState | null {
   if (!value) return null;
   try {
@@ -99,7 +129,8 @@ export function parseProductionEditor(value: string | null): ProductionEditorSta
       if (!row || typeof row !== 'object' || !['key','description','motion','prompt','input_asset_id','duration'].every(key => typeof row[key] === 'string') || (row.shot_id !== undefined && typeof row.shot_id !== 'string') || (row.revision !== undefined && (!Number.isSafeInteger(row.revision) || row.revision < 1))) return null;
       if (['storyboardModelId', 'storyboardSize'].some(key => row[key] !== undefined && typeof row[key] !== 'string')) return null;
     }
-    return { version:1, rows:data.rows as ShotDraft[], videoModelId:data.videoModelId as string, ratio:data.ratio as string, resolution:data.resolution as string, imageModelId:data.imageModelId as string, imageSize:data.imageSize as string, mode:data.mode, selectedIds:data.selectedIds as string[] };
+    const savedPlan = parseSavedPlan(data.savedPlan);
+    return { version:1, rows:data.rows as ShotDraft[], videoModelId:data.videoModelId as string, ratio:data.ratio as string, resolution:data.resolution as string, imageModelId:data.imageModelId as string, imageSize:data.imageSize as string, mode:data.mode, selectedIds:data.selectedIds as string[], ...(savedPlan ? { savedPlan } : {}) };
   } catch { return null; }
 }
 

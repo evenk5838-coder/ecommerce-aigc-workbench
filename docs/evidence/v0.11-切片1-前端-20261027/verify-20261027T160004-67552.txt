@@ -1,0 +1,67 @@
+v0.11 frontend automated verification: 20261027T160004-67552
+Scope: current frontend source + isolated build; no live service restart, real model call or browser acceptance
+Recorded live frontend build fingerprint: 3 files
+1/5 Frontend lint, strict types and isolated production build
+v24.18.0
+11.16.0
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+
+
+> ecommerce-local-studio@0.1.0 typecheck
+> tsc --noEmit
+
+
+> ecommerce-local-studio@0.1.0 build
+> tsc --noEmit && vite build --outDir /private/tmp/ecom-v011-frontend-preview/dist --emptyOutDir
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1646 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../../../../private/tmp/ecom-v011-frontend-preview/dist/index.html                   0.60 kB │ gzip:   0.45 kB
+../../../../../../private/tmp/ecom-v011-frontend-preview/dist/assets/index-CG8CatQg.css  198.37 kB │ gzip:  37.25 kB
+../../../../../../private/tmp/ecom-v011-frontend-preview/dist/assets/index-Bezz5PMy.js   600.74 kB │ gzip: 189.39 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 2.33s
+2/5 Full frontend test suite
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run --run
+
+
+ RUN  v5.0.5 /Users/niannian/Documents/VScode/电商工作平台/frontend
+
+
+ Test Files  27 passed (27)
+      Tests  595 passed (595)
+   Start at  16:00:19
+   Duration  1.10s (tests 39%, import 33%, transform 24%, worker 4%)
+
+    Isolate  27 workers spawned · ~140ms startup each (spawn + environment, per file)
+             at least ~400ms faster with isolate: false — reuses workers across files instead of one per file
+
+3/5 Credential exclusion, including the isolated build actually served
+PASS: .env ignored and untracked; production source/built text assets contain no scanned credential patterns
+Scope: pattern scan only; historical Git objects and arbitrary archives were not scanned
+Isolated served output included: /private/tmp/ecom-v011-frontend-preview/dist
+4/5 Independent temporary HTTP service restart and persistence recovery
+服务首次启动就绪：隔离临时库，端口 56314
+write process: HTTP upload, free nodes, saved script, explicit failure persisted
+本次服务进程已退出
+服务重启就绪：隔离临时库，端口 56314
+read process: nodes/config/body/bindings/viewport/assets recovered; receipts replayed without LLM
+本次服务进程已退出
+PASS: isolated HTTP service restarted; scripts/nodes/assets/config/receipts recovered; no paid calls
+5/5 Required technical files, whitespace and unchanged live build
+PASS: 19 frontend technical files in project; git diff --check
+Scope: technical files only; browser screenshots and final acceptance are checked separately
+PASS: existing frontend/dist unchanged (3 file fingerprints)
+PASS: frontend automated checks only; browser, real LLM, visual and slice acceptance remain separate
+Evidence: docs/evidence/v0.11-切片1-前端-20261027/verify-20261027T160004-67552.txt

@@ -1,0 +1,408 @@
+{
+  "method": "GET",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/conversation/state",
+  "request": null,
+  "started_at": 1793176601.649951,
+  "status": 200,
+  "response": {
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "session_id": "asst_2ee44925968b4202a6d6",
+    "current_role": "director",
+    "creation": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "current_role": "director",
+      "selected_node_ids": [],
+      "layout_revision": 4,
+      "nodes": [
+        {
+          "node_id": "script",
+          "type": "script",
+          "position": {
+            "x": 80,
+            "y": 100
+          },
+          "config": {},
+          "binding": {
+            "script_id": "scr_c20b514506334e0f94c6",
+            "script_version": 1
+          },
+          "config_revision": 1,
+          "last_execution": null,
+          "asset": null,
+          "input_asset": null,
+          "script_content": {
+            "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+            "shots": [
+              {
+                "seq": 1,
+                "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+                "duration_s": 5,
+                "motion": "缓慢推近，轻微右移"
+              },
+              {
+                "seq": 2,
+                "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+                "duration_s": 5,
+                "motion": "极缓慢环绕，高光滑动"
+              }
+            ]
+          },
+          "content_truncated": false
+        },
+        {
+          "node_id": "director-image-958ab41985e36955b60f-1",
+          "type": "image",
+          "position": {
+            "x": 560,
+            "y": 100
+          },
+          "config": {
+            "generation_mode": "text_to_image",
+            "model_id": "doubao-seedream-5-0-flash-260915",
+            "prompt": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。",
+            "params": {
+              "ratio": "16:9",
+              "size": "2688x1536"
+            },
+            "title": "镜1 杯身全景"
+          },
+          "binding": {
+            "shot_id": "shot_958ab41985e36955b60f_1",
+            "script_id": "scr_c20b514506334e0f94c6",
+            "script_version": 1
+          },
+          "config_revision": 1,
+          "last_execution": null,
+          "asset": null,
+          "input_asset": null,
+          "content_truncated": false
+        },
+        {
+          "node_id": "director-image-958ab41985e36955b60f-2",
+          "type": "image",
+          "position": {
+            "x": 560,
+            "y": 440
+          },
+          "config": {
+            "generation_mode": "text_to_image",
+            "model_id": "doubao-seedream-5-0-flash-260915",
+            "prompt": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。",
+            "params": {
+              "ratio": "16:9",
+              "size": "2688x1536"
+            },
+            "title": "镜2 杯口特写"
+          },
+          "binding": {
+            "shot_id": "shot_958ab41985e36955b60f_2",
+            "script_id": "scr_c20b514506334e0f94c6",
+            "script_version": 1
+          },
+          "config_revision": 1,
+          "last_execution": null,
+          "asset": null,
+          "input_asset": null,
+          "content_truncated": false
+        }
+      ],
+      "total_nodes": 3,
+      "nodes_truncated": false,
+      "script": {
+        "script_id": "scr_c20b514506334e0f94c6",
+        "version": 1,
+        "confirmed": true
+      },
+      "side_effects": {
+        "task_created": false,
+        "model_called": false,
+        "budget_deducted": false
+      }
+    },
+    "project": {
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "name": "晨光白杯 · 真实联调验收",
+      "brief": {},
+      "current_stage": "requirements",
+      "script": {
+        "script_id": "scr_c20b514506334e0f94c6",
+        "version": 1,
+        "content": {
+          "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+          "shots": [
+            {
+              "seq": 1,
+              "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+              "duration_s": 5,
+              "motion": "缓慢推近，轻微右移"
+            },
+            {
+              "seq": 2,
+              "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+              "duration_s": 5,
+              "motion": "极缓慢环绕，高光滑动"
+            }
+          ]
+        },
+        "confirmed": true
+      },
+      "shots": [
+        {
+          "shot_id": "shot_958ab41985e36955b60f_1",
+          "seq": 1,
+          "duration_s": 5,
+          "description": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。"
+        },
+        {
+          "shot_id": "shot_958ab41985e36955b60f_2",
+          "seq": 2,
+          "duration_s": 5,
+          "description": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。"
+        }
+      ],
+      "allowed_actions": [
+        "save_brief"
+      ],
+      "draft_proposals": [
+        {
+          "kind": "script",
+          "version": 1,
+          "proposal_id": "prop_aaf0e777922f480d8522",
+          "content": {
+            "summary": "10秒横版产品展示短片：一只无标识白色陶瓷杯置于晨光木桌，纯产品空镜，不出现人手、不加字幕、不宣传未提供功能。两镜各5秒：先杯身全景，再杯口特写。图片用 Seedream 5.0 flash 横版 2K（2688x1536），视频用 Seedance 1.0 pro fast、720p、16:9。",
+            "shots": [
+              {
+                "seq": 1,
+                "hint": "横版全景：晨光斜射的木桌上，一只无标识白色陶瓷杯静置画面中央偏右，杯身完整入画，背景为虚化的木质纹理与柔和窗光，无人物、无文字、无品牌标识。镜头缓慢平稳推近，光影在杯身釉面上缓慢移动。",
+                "duration_s": 5,
+                "motion": "缓慢推近，轻微右移"
+              },
+              {
+                "seq": 2,
+                "hint": "横版特写：镜头贴近杯口，白色陶瓷杯沿的圆润弧度与内壁釉面占据画面，晨光在杯口边缘形成一道柔和高光，杯内空无一物，背景完全虚化。镜头极缓慢环绕半圈，高光沿杯沿滑动。",
+                "duration_s": 5,
+                "motion": "极缓慢环绕，高光滑动"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "outcome": {
+      "status": "saved",
+      "node_ids": [
+        "director-image-958ab41985e36955b60f-1",
+        "director-image-958ab41985e36955b60f-2"
+      ]
+    },
+    "artifacts": [
+      {
+        "type": "image",
+        "node_id": "director-image-958ab41985e36955b60f-1",
+        "config_revision": 1,
+        "config": {
+          "generation_mode": "text_to_image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "prompt": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536"
+          },
+          "title": "镜1 杯身全景"
+        },
+        "binding": {
+          "shot_id": "shot_958ab41985e36955b60f_1",
+          "script_id": "scr_c20b514506334e0f94c6",
+          "script_version": 1
+        },
+        "position": {
+          "x": 560,
+          "y": 100
+        },
+        "saved": true,
+        "confirmed": false,
+        "source": {
+          "node_id": "script",
+          "config_revision": 1,
+          "type": "script",
+          "script_id": "scr_c20b514506334e0f94c6",
+          "script_version": 1,
+          "content_hash": "sha256:8ae18c9df7c51eb1a4775383b2e8a0faadbc0268a18f0cfac8b5d4a192647ee5"
+        },
+        "reference": null,
+        "seq": 1,
+        "persistence": "saved"
+      },
+      {
+        "type": "image",
+        "node_id": "director-image-958ab41985e36955b60f-2",
+        "config_revision": 1,
+        "config": {
+          "generation_mode": "text_to_image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "prompt": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536"
+          },
+          "title": "镜2 杯口特写"
+        },
+        "binding": {
+          "shot_id": "shot_958ab41985e36955b60f_2",
+          "script_id": "scr_c20b514506334e0f94c6",
+          "script_version": 1
+        },
+        "position": {
+          "x": 560,
+          "y": 440
+        },
+        "saved": true,
+        "confirmed": false,
+        "source": {
+          "node_id": "script",
+          "config_revision": 1,
+          "type": "script",
+          "script_id": "scr_c20b514506334e0f94c6",
+          "script_version": 1,
+          "content_hash": "sha256:8ae18c9df7c51eb1a4775383b2e8a0faadbc0268a18f0cfac8b5d4a192647ee5"
+        },
+        "reference": null,
+        "seq": 2,
+        "persistence": "saved"
+      }
+    ],
+    "actions": [
+      {
+        "action_id": "dact_04379d8f01b646e3be62",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "kind": "generation",
+        "status": "proposed",
+        "action_status": "proposed",
+        "request_id": "a7f5bea4-c19d-45a9-97b2-b1af38f39d11",
+        "node_ids": [
+          "director-image-958ab41985e36955b60f-1",
+          "director-image-958ab41985e36955b60f-2"
+        ],
+        "quotes": [
+          {
+            "quote_id": "nquote_582707fe5d5540358299",
+            "project_id": "prj_7d52f89107db4ce4b9b4",
+            "node_id": "director-image-958ab41985e36955b60f-1",
+            "config_revision": 1,
+            "input_hash": "sha256:66369adacab346daf1b5d64bf617dabe0a59438856f620a20e206f02c41c76ff",
+            "estimated_cost_cny": 0.12,
+            "expires_at": 1793176823.431618,
+            "input": {
+              "kind": "image",
+              "model_id": "doubao-seedream-5-0-flash-260915",
+              "params": {
+                "ratio": "16:9",
+                "size": "2688x1536",
+                "watermark": false,
+                "prompt": "横版产品摄影，16:9。晨光斜射的浅色木桌上，一只无标识纯白色陶瓷杯静置于画面中央偏右，杯身完整入画，杯口朝上，杯内空无一物。杯身釉面细腻，晨光在杯壁形成柔和渐变高光。背景为虚化的木质纹理与柔和窗光，浅景深。画面中无人物、无手、无文字、无logo、无品牌标识。整体色调温暖干净，写实商业产品摄影质感，2K高清。",
+                "generation_mode": "text_to_image"
+              },
+              "input_asset_id": null,
+              "reference": null
+            },
+            "side_effects": {
+              "task_created": false,
+              "model_called": false,
+              "budget_deducted": false
+            }
+          },
+          {
+            "quote_id": "nquote_25214ee6398d4a029593",
+            "project_id": "prj_7d52f89107db4ce4b9b4",
+            "node_id": "director-image-958ab41985e36955b60f-2",
+            "config_revision": 1,
+            "input_hash": "sha256:aa3806c5f0705dfd0ce8f487bf8e2809bcaa906250f5c7ac59e56e3fe348fc78",
+            "estimated_cost_cny": 0.12,
+            "expires_at": 1793176823.432016,
+            "input": {
+              "kind": "image",
+              "model_id": "doubao-seedream-5-0-flash-260915",
+              "params": {
+                "ratio": "16:9",
+                "size": "2688x1536",
+                "watermark": false,
+                "prompt": "横版产品特写摄影，16:9。镜头贴近杯口，一只无标识纯白色陶瓷杯的杯沿圆润弧度与内壁釉面占据画面主体，晨光在杯口边缘形成一道柔和高光，杯内空无一物。背景完全虚化成温暖的木质与窗光色块。画面中无人物、无手、无文字、无logo、无品牌标识。写实商业产品摄影质感，釉面细节清晰，2K高清。",
+                "generation_mode": "text_to_image"
+              },
+              "input_asset_id": null,
+              "reference": null
+            },
+            "side_effects": {
+              "task_created": false,
+              "model_called": false,
+              "budget_deducted": false
+            }
+          }
+        ],
+        "output_mode": "clips",
+        "estimated_cost_cny": 0.24,
+        "expires_at": 1793176823.431618,
+        "expired": false,
+        "requires_user_action": true,
+        "batch_id": null,
+        "tasks": [],
+        "executions": [],
+        "submit_client_request_id": null,
+        "auto_film": false,
+        "media_status": "proposed",
+        "composition": null,
+        "error": null,
+        "scope": {
+          "generate": true,
+          "compose": false,
+          "ordered_node_ids": [
+            "director-image-958ab41985e36955b60f-1",
+            "director-image-958ab41985e36955b60f-2"
+          ],
+          "no_trim": false,
+          "composition_cost_cny": 0
+        },
+        "created_at": 1793176223.432079,
+        "submitted_at": null
+      },
+      {
+        "action_id": "dact_b7386d4a076c414eab7a",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "kind": "confirm_script",
+        "request_id": "real-v011-script",
+        "node_ids": [
+          "script"
+        ],
+        "script_id": "scr_c20b514506334e0f94c6",
+        "script_version": 1,
+        "status": "completed",
+        "action_status": "submitted",
+        "estimated_cost_cny": 0,
+        "expires_at": 1793262483.563518,
+        "expired": false,
+        "stale": false,
+        "requires_user_action": false,
+        "result": {
+          "script_id": "scr_c20b514506334e0f94c6",
+          "version": 1,
+          "confirmed_at": 1793176171.8577049,
+          "confirmation": {
+            "confirmation_id": "cfm_877fa609c00c439c9e9a",
+            "status": "active",
+            "object_type": "script",
+            "object_id": "scr_c20b514506334e0f94c6",
+            "object_version": 1,
+            "reused": false
+          },
+          "unlocked": [
+            "storyboard_plan"
+          ]
+        },
+        "submit_client_request_id": "72686238-e327-431c-a656-5c98b730c830",
+        "created_at": 1793176083.563518
+      }
+    ],
+    "workflow_revision": 1256289618117736
+  },
+  "finished_at": 1793176601.766964
+}

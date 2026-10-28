@@ -1,0 +1,39 @@
+{
+  "method": "GET",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/canvas",
+  "request": null,
+  "started_at": 1793176131.720321,
+  "status": 200,
+  "response": {
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "schema_version": 1,
+    "layout_revision": 1,
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    },
+    "nodes": [
+      {
+        "node_id": "script",
+        "type": "script",
+        "position": {
+          "x": 80,
+          "y": 100
+        },
+        "config": {},
+        "binding": {
+          "script_id": "scr_c20b514506334e0f94c6",
+          "script_version": 1
+        },
+        "config_revision": 1,
+        "last_execution": null,
+        "asset": null
+      }
+    ],
+    "edges": [],
+    "deleted_node_ids": [],
+    "note": "布局与生成配置分开；last_execution 只读，不可 PATCH"
+  },
+  "finished_at": 1793176131.745111
+}

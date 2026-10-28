@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createProjectDirectorApi, parseDirectorActions, parseDirectorMessages, parseDirectorReply } from './director-project-api';
+import { createProjectDirectorApi, directorNodeIds, directorOutcome, parseDirectorActions, parseDirectorMessages, parseDirectorReply } from './director-project-api';
 
 const projectId = 'prj_director';
 const requestId = 'req-fixture-1';
@@ -29,6 +29,73 @@ const messages = {
 };
 
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+
+describe('v0.11 execution outcomes', () => {
+  const saved = { ...savedReply, artifacts: [{ ...scriptArtifact, node_id: 'script' }], outcome: { status: 'saved', goal: 'script', node_ids: ['script'] } };
+  const failed = { ...ordinaryReply, artifacts: [], actions: [], outcome: { status: 'failed', goal: 'script', node_ids: [], error: { code: 'SCRIPT_NOT_SAVED', message: '未保存脚本' } } };
+
+  it('uses real saved artifacts and node IDs while preserving exact outcome and goal', () => {
+    expect(parseDirectorReply(saved, requestId)).toEqual(saved);
+    expect(directorNodeIds(saved)).toEqual(['script']);
+    expect(directorOutcome(saved)).toEqual(saved.outcome);
+    expect(directorNodeIds(savedReply)).toEqual([]);
+  });
+
+  it.each(['message', 'clarify'])('does not turn %s or success-sounding prose into a node', status => {
+    const value = { ...ordinaryReply, artifacts: [], actions: [], outcome: { status, goal: 'auto', node_ids: [] } };
+    expect(directorOutcome(parseDirectorReply(value, requestId)).status).toBe(status);
+    expect(directorNodeIds(value)).toEqual([]);
+  });
+
+  it('keeps a completed request with a failed outcome failed, and a partial result visible', () => {
+    expect(directorOutcome(parseDirectorReply(failed, requestId)).status).toBe('failed');
+    expect(directorNodeIds(failed)).toEqual([]);
+    const partial = { ...saved, outcome: { ...saved.outcome, status: 'partial', error: failed.outcome.error } };
+    expect(directorOutcome(parseDirectorReply(partial, requestId)).status).toBe('partial');
+    expect(directorNodeIds(partial)).toEqual(['script']);
+  });
+
+  it.each([
+    { ...saved, artifacts: [] },
+    { ...saved, outcome: { ...saved.outcome, status: 'finished' } },
+    { ...saved, outcome: { ...saved.outcome, goal: 'video' } },
+    { ...saved, outcome: { ...saved.outcome, node_ids: [3] } },
+    { ...failed, outcome: { ...failed.outcome, error: undefined } },
+    { ...failed, outcome: { ...failed.outcome, node_ids: ['script'] } },
+    { ...saved, request_status: 'failed' },
+  ])('rejects contradictory or malformed outcomes: %j', value => {
+    expect(() => parseDirectorReply(value, requestId)).toThrow();
+  });
+
+  it('recovers the persisted failure response by GET without discarding its cause or replaying a POST', async () => {
+    const responseBody = { ...failed, request_status: 'failed' };
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({ client_request_id: requestId, status: 'failed', response: responseBody, error_code: 'SCRIPT_NOT_SAVED' }));
+    const receipt = await createProjectDirectorApi(fetcher).receipt(projectId, requestId);
+    expect(receipt.response).toEqual(responseBody);
+    expect(receipt.response?.outcome?.error?.message).toBe('未保存脚本');
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher.mock.calls[0][1]?.method).toBe('GET');
+  });
+
+  it('rejects contradictory receipt status without claiming success or replaying', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response({ client_request_id: requestId, status: 'failed', response: saved }));
+    await expect(createProjectDirectorApi(fetcher).receipt(projectId, requestId)).rejects.toMatchObject({ code: 'DIRECTOR_RESPONSE_INVALID' });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends the submitted explicit script intent unchanged', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(response(saved));
+    await createProjectDirectorApi(fetcher).chat(projectId, { id: requestId, message: '请写脚本', intent: 'script', revision: 3 });
+    expect(JSON.parse(String(fetcher.mock.calls[0][1]?.body))).toMatchObject({ intent: 'script', client_request_id: requestId });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('restores stored failed and partial outcomes from turn history', () => {
+    const history = { ...messages, items: [{ ...turn, structured: { artifacts: [], outcome: failed.outcome } }] };
+    expect(directorOutcome(parseDirectorMessages(history, projectId).items[0].structured).status).toBe('failed');
+    expect(() => parseDirectorMessages({ ...history, items: [{ ...turn, structured: { outcome: { status: 'saved' } } }] }, projectId)).toThrow();
+  });
+});
 
 describe('director archived responses and current authority', () => {
   it('accepts the saved proposal response with no prose, without inventing prose or confirmation', () => {

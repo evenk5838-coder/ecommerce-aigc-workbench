@@ -15,7 +15,7 @@ import os
 
 from .. import db, projects
 from ..errors import err
-from . import approval, tools
+from . import approval, tools, provider as prov
 from .provider import get_provider, provider_status
 
 MAX_QUESTIONS = int(os.getenv("ASSISTANT_MAX_QUESTIONS", "4"))
@@ -655,6 +655,9 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
         round_entries = []
         for tc in calls[:remaining]:
             try:
+                invalid = prov.tool_call_error(result, tc)
+                if invalid:
+                    raise err(invalid["code"], invalid["message"])
                 out = tools.execute(tc.name, tc.arguments, ctx)
                 entry = {"tool": tc.name, "ok": True, "result": out,
                          "tool_call_id": getattr(tc, "id", "") or ""}
@@ -682,8 +685,7 @@ def chat(*, session_id: str | None, project_id: str | None, message: str,
             "tool_calls": [{"id": e["tool_call_id"] or f"call_{i}",
                             "type": "function",
                             "function": {"name": tc.name,
-                                         "arguments": _json.dumps(tc.arguments,
-                                                                  ensure_ascii=False)}}
+                                         "arguments": prov.tool_arguments_json(tc)}}
                            for i, (tc, e) in enumerate(round_entries)],
         }, *[{
             "role": "tool",

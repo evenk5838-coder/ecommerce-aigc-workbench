@@ -1,0 +1,25 @@
+{
+  "suite": "project-lifecycle",
+  "real_provider_calls": 0,
+  "network_attempts_blocked": 0,
+  "business_database_opened": false,
+  "dotenv_read": false,
+  "sqlite_paths": [
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-u25o2zws/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-lcmt8qzg/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-x3bu3vh2/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-iuokusik/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-zny_r1vj/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-jwq6bpek/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-1kdr7bfp/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-1kdr7bfp/legacy.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-qtmx42c1/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-u3545km9/app.db",
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-iozcerqu/app.db"
+  ],
+  "fixture_budget_cny": 1000,
+  "total": 10,
+  "failed": 0,
+  "skipped": 0,
+  "exit_code": 0
+}

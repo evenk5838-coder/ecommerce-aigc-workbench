@@ -1,0 +1,23 @@
+{
+  "at_utc": "20261028T090351Z",
+  "backup_path": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/local-v011-8100-20261028T090351Z",
+  "before_counts": {
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 6
+  },
+  "old_frontend_sha256": {
+    "assets/index-CS-Acef8.css": "8bbb393378a19d3de9543ad0d036fd6043df58c4417a65654df3fe8d39560913",
+    "assets/index-DRWNmqxy.js": "839da2153d99ec3c659f190960c2ea01f928613ca5359dde652618b72831cecc",
+    "index.html": "e784deea90b67053e615a45fc73248072c6b30165ad6dcb650167885abbbfa42"
+  },
+  "released_frontend_sha256": {
+    "assets/index-BKY1HEBH.js": "e1c1489ec5c84e7dc047ad4df573dc8d9a38d0e2cae9861a3437b0d3e49724e3",
+    "assets/index-CyoWOAtM.css": "92989c08a0f29f2b1e1ed23c87e6530700ba8c5010a185ed135ed21f3ebaa809",
+    "index.html": "02ae2c1cacc2eb0c96355a8aec07aac5d4ed57bbc69fce7f8ae9183d20332e6f"
+  },
+  "db_backup_sha256": "410dfab15511800158033a0fa4889330a232a32b8da5391847299b7034286185",
+  "service_started": false
+}

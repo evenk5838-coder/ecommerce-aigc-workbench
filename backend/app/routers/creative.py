@@ -1,11 +1,13 @@
 """创作空间：项目、脚本、镜头、分镜、成片、对话导演与画布。"""
 from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from typing import Literal
 
-from .. import assembly, canvas, director, director_chat, projects, scope, shots
+from fastapi import APIRouter, Query
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, ConfigDict, Field
+
+from .. import assembly, canvas, canvas_history, director, director_chat, node_execution, projects, scope, shots
 
 router = APIRouter(prefix="/api", tags=["creative"])
 
@@ -353,6 +355,58 @@ def download_export(export_id: str):
 
 
 # ---------------- 对话导演（D1/D2） ----------------
+class DirectorConversationIn(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    message: str = Field(min_length=1, max_length=20000)
+    client_request_id: str = Field(min_length=1, max_length=200)
+    session_id: str | None = Field(default=None, min_length=1, max_length=200)
+    selected_node_ids: list[str] = Field(default_factory=list, max_length=40)
+    expected_workflow_revision: int | None = Field(default=None, ge=0)
+
+
+class DirectorActionConfirmIn(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    client_request_id: str = Field(min_length=1, max_length=200)
+    user_action: Literal["confirm_script", "confirm_generate", "confirm_compose"]
+
+
+@router.post("/projects/{project_id}/director/conversation")
+def director_conversation(project_id: str, body: DirectorConversationIn):
+    from .. import director_workflow
+
+    return director_workflow.conversation(project_id, body.model_dump())
+
+
+@router.get("/projects/{project_id}/director/conversation/state")
+def director_conversation_state(project_id: str, selected_node_id: list[str] | None = Query(default=None)):
+    from .. import director_workflow
+
+    return director_workflow.state(project_id, selected_node_id)
+
+
+@router.get("/projects/{project_id}/director/conversation/requests/{client_request_id}")
+def director_conversation_receipt(project_id: str, client_request_id: str):
+    from .. import director_workflow
+
+    return director_workflow.request_receipt(project_id, client_request_id)
+
+
+@router.get("/projects/{project_id}/director/actions/{action_id}")
+def director_action(project_id: str, action_id: str):
+    from .. import director_workflow
+
+    return director_workflow.get_action(project_id, action_id)
+
+
+@router.post("/projects/{project_id}/director/actions/{action_id}/confirm")
+def confirm_director_action(project_id: str, action_id: str, body: DirectorActionConfirmIn):
+    from .. import director_workflow
+
+    return director_workflow.confirm_action(project_id, action_id, body.model_dump())
+
+
 class DirectorChatIn(BaseModel):
     message: str
     client_request_id: str
@@ -412,3 +466,37 @@ def get_canvas(project_id: str):
 def patch_canvas(project_id: str, body: dict):
     """布局/节点编辑（并发校验）。**不生成、不确认**。"""
     return canvas.patch_canvas(project_id, body)
+
+
+@router.get("/projects/{project_id}/canvas/deletions")
+def canvas_deletions(project_id: str):
+    """Read persisted single/batch removal operations for the undo control."""
+    return canvas_history.list_deletions(project_id)
+
+
+@router.post("/projects/{project_id}/canvas/deletions/{operation_id}/undo")
+def undo_canvas_deletion(project_id: str, operation_id: str, body: dict):
+    """Restore the selected removal without generating or deleting source media."""
+    return canvas_history.undo_deletion(project_id, operation_id, body)
+
+
+@router.post("/projects/{project_id}/canvas/nodes/{node_id}/quote")
+def quote_canvas_node(project_id: str, node_id: str, body: dict | None = None):
+    """Freeze this node's actual input and cost; do not create a media task."""
+    return node_execution.quote_node(project_id, node_id, body)
+
+
+@router.post("/projects/{project_id}/canvas/nodes/{node_id}/generate")
+def generate_canvas_node(project_id: str, node_id: str, body: dict):
+    """Explicit user confirmation; atomically create one task and its node link."""
+    return node_execution.generate_node(project_id, node_id, body)
+
+
+@router.get("/projects/{project_id}/canvas/nodes/{node_id}/executions")
+def canvas_node_executions(project_id: str, node_id: str):
+    return node_execution.list_executions(project_id, node_id)
+
+
+@router.get("/projects/{project_id}/canvas/nodes/{node_id}/executions/{execution_id}")
+def canvas_node_execution(project_id: str, node_id: str, execution_id: str):
+    return node_execution.get_execution(project_id, node_id, execution_id)

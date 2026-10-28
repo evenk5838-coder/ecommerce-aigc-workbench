@@ -1,0 +1,499 @@
+{
+  "preview": {
+    "image_asset_id": "asset_09f92ffc30e54860a52d",
+    "label": "隔离节点验收：真实队列与 worker，固定 PNG/MP4 替身，非模型产物／真实账单",
+    "directory": "/private/tmp/ecom-v011-frontend-preview/run-qmqdjynj",
+    "video_asset_id": "asset_d72a92db6a5d47b3b28a",
+    "empty_project_id": "prj_396b030d7abb4123b3ba",
+    "worker_enabled": true,
+    "budget_cny": 20,
+    "url": "http://127.0.0.1:55601",
+    "budget_is_fixture_only": true,
+    "node_fixtures": true,
+    "media_outputs": "fixed PNG 320x240 / MP4 320x240 0.8s",
+    "frontend_dist": "/private/tmp/ecom-v011-frontend-preview/dist",
+    "real_model_calls": 0,
+    "image_file": "/private/tmp/ecom-v011-frontend-preview/run-qmqdjynj/fixtures/fixture-blue.png",
+    "task_count": 6,
+    "project_id": "prj_423c2100de7c4e96a176",
+    "video_file": "/private/tmp/ecom-v011-frontend-preview/run-qmqdjynj/fixtures/fixture-blue.mp4",
+    "pid": 83569
+  },
+  "state": {
+    "edges": [],
+    "note": "布局与生成配置分开；last_execution 只读，不可 PATCH",
+    "schema_version": 1,
+    "deleted_node_ids": [],
+    "project_id": "prj_423c2100de7c4e96a176",
+    "nodes": [
+      {
+        "config": {
+          "title": "创作笔记",
+          "text": "晨光、干净桌面、自然生活感。\n每个镜头都保持同一只水杯。"
+        },
+        "position": {
+          "x": 424.158940397351,
+          "y": 116.75496688741723
+        },
+        "binding": {},
+        "config_revision": 4,
+        "last_execution": null,
+        "node_id": "note-preview",
+        "type": "text",
+        "asset": null
+      },
+      {
+        "config": {
+          "generation_mode": "image_to_image",
+          "title": "画面灵感",
+          "prompt": "[慢速测试] 使用原请求继续生成水杯",
+          "input_asset_id": "asset_09f92ffc30e54860a52d",
+          "params": {
+            "ratio": "1:1",
+            "size": "1024x1024"
+          },
+          "model_id": "doubao-seedream-5-0-flash-260915"
+        },
+        "position": {
+          "x": 784.158940397351,
+          "y": 116.75496688741723
+        },
+        "binding": {},
+        "config_revision": 6,
+        "last_execution": {
+          "last_successful_execution": {
+            "status": "succeeded",
+            "execution_id": "nexec_52ee8f0aa27e459ab57c",
+            "active": false,
+            "task_id": "task_7943793539cb4a4280d0",
+            "estimated_cost_cny": 0.12,
+            "input": {
+              "kind": "image",
+              "input_asset_id": "asset_09f92ffc30e54860a52d",
+              "params": {
+                "size": "1024x1024",
+                "generation_mode": "image_to_image",
+                "prompt": "[慢速测试] 使用原请求继续生成水杯",
+                "ratio": "1:1",
+                "watermark": false,
+                "input_asset_id": "asset_09f92ffc30e54860a52d"
+              },
+              "reference": {
+                "asset_id": "asset_09f92ffc30e54860a52d",
+                "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+                "mime": "image/png"
+              },
+              "model_id": "doubao-seedream-5-0-flash-260915"
+            },
+            "stage": "done",
+            "client_request_id": "8c039bdb-5807-43a2-89fa-f0c317de09e4",
+            "progress": 1,
+            "project_id": "prj_423c2100de7c4e96a176",
+            "asset_id": "asset_09f92ffc30e54860a52d",
+            "asset": {
+              "id": "asset_09f92ffc30e54860a52d",
+              "kind": "image",
+              "duration_ms": null,
+              "width": 320,
+              "mime": "image/png",
+              "height": 240
+            },
+            "output_asset_id": "asset_09f92ffc30e54860a52d",
+            "error": null,
+            "cost_cny": 0,
+            "finished_at": 1793100371.265097,
+            "quote_id": "nquote_5ddbabde244d4dc098b2",
+            "input_hash": "sha256:6af77569d6e76468df8255ba0cb4f5159c7db7bdacc11327bf7723fb42e08e6e",
+            "created_at": 1793100363.099943,
+            "node_id": "image-preview",
+            "config_revision": 6
+          },
+          "status": "succeeded",
+          "execution_id": "nexec_52ee8f0aa27e459ab57c",
+          "active": false,
+          "task_id": "task_7943793539cb4a4280d0",
+          "estimated_cost_cny": 0.12,
+          "input": {
+            "kind": "image",
+            "input_asset_id": "asset_09f92ffc30e54860a52d",
+            "params": {
+              "size": "1024x1024",
+              "generation_mode": "image_to_image",
+              "prompt": "[慢速测试] 使用原请求继续生成水杯",
+              "ratio": "1:1",
+              "watermark": false,
+              "input_asset_id": "asset_09f92ffc30e54860a52d"
+            },
+            "reference": {
+              "asset_id": "asset_09f92ffc30e54860a52d",
+              "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+              "mime": "image/png"
+            },
+            "model_id": "doubao-seedream-5-0-flash-260915"
+          },
+          "stage": "done",
+          "client_request_id": "8c039bdb-5807-43a2-89fa-f0c317de09e4",
+          "progress": 1,
+          "project_id": "prj_423c2100de7c4e96a176",
+          "asset_id": "asset_09f92ffc30e54860a52d",
+          "asset": {
+            "id": "asset_09f92ffc30e54860a52d",
+            "kind": "image",
+            "duration_ms": null,
+            "width": 320,
+            "mime": "image/png",
+            "height": 240
+          },
+          "output_asset_id": "asset_09f92ffc30e54860a52d",
+          "error": null,
+          "cost_cny": 0,
+          "finished_at": 1793100371.265097,
+          "quote_id": "nquote_5ddbabde244d4dc098b2",
+          "input_hash": "sha256:6af77569d6e76468df8255ba0cb4f5159c7db7bdacc11327bf7723fb42e08e6e",
+          "created_at": 1793100363.099943,
+          "node_id": "image-preview",
+          "config_revision": 6
+        },
+        "node_id": "image-preview",
+        "type": "image",
+        "asset": {
+          "id": "asset_09f92ffc30e54860a52d",
+          "kind": "image",
+          "duration_ms": null,
+          "width": 320,
+          "mime": "image/png",
+          "height": 240
+        }
+      },
+      {
+        "config": {
+          "generation_mode": "image_to_video",
+          "title": "镜头动作",
+          "prompt": "参考图片中的水杯，镜头缓慢推进",
+          "input_asset_id": "asset_09f92ffc30e54860a52d",
+          "params": {
+            "ratio": "16:9",
+            "duration": 5,
+            "resolution": "720p"
+          },
+          "model_id": "doubao-seedance-1-0-pro-fast-251015"
+        },
+        "position": {
+          "x": 1060,
+          "y": 70
+        },
+        "binding": {},
+        "config_revision": 2,
+        "last_execution": {
+          "last_successful_execution": {
+            "status": "succeeded",
+            "execution_id": "nexec_0f7ee07a73e046fd812b",
+            "active": false,
+            "task_id": "task_07cc840c88b84fcb9d3e",
+            "estimated_cost_cny": 0.4536,
+            "input": {
+              "kind": "video",
+              "input_asset_id": "asset_09f92ffc30e54860a52d",
+              "params": {
+                "prompt": "参考图片中的水杯，镜头缓慢推进",
+                "input_asset_id": "asset_09f92ffc30e54860a52d",
+                "generate_audio": false,
+                "watermark": false,
+                "duration": 5,
+                "ratio": "16:9",
+                "resolution": "720p",
+                "generation_mode": "image_to_video"
+              },
+              "reference": {
+                "asset_id": "asset_09f92ffc30e54860a52d",
+                "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+                "mime": "image/png"
+              },
+              "model_id": "doubao-seedance-1-0-pro-fast-251015"
+            },
+            "stage": "done",
+            "client_request_id": "eeed33f8-039d-44db-9d95-ee34fe25d2bf",
+            "progress": 1,
+            "project_id": "prj_423c2100de7c4e96a176",
+            "asset_id": "asset_d72a92db6a5d47b3b28a",
+            "asset": {
+              "id": "asset_d72a92db6a5d47b3b28a",
+              "kind": "video",
+              "duration_ms": 800,
+              "width": 320,
+              "mime": "video/mp4",
+              "height": 240
+            },
+            "output_asset_id": "asset_d72a92db6a5d47b3b28a",
+            "error": null,
+            "cost_cny": 0,
+            "finished_at": 1793100277.604083,
+            "quote_id": "nquote_b95245c2c5634241972b",
+            "input_hash": "sha256:26729b55a829b493a48f175d33010df68e0b907c31266240b1108265a0d87738",
+            "created_at": 1793100276.891314,
+            "node_id": "video-preview",
+            "config_revision": 2
+          },
+          "status": "succeeded",
+          "execution_id": "nexec_0f7ee07a73e046fd812b",
+          "active": false,
+          "task_id": "task_07cc840c88b84fcb9d3e",
+          "estimated_cost_cny": 0.4536,
+          "input": {
+            "kind": "video",
+            "input_asset_id": "asset_09f92ffc30e54860a52d",
+            "params": {
+              "prompt": "参考图片中的水杯，镜头缓慢推进",
+              "input_asset_id": "asset_09f92ffc30e54860a52d",
+              "generate_audio": false,
+              "watermark": false,
+              "duration": 5,
+              "ratio": "16:9",
+              "resolution": "720p",
+              "generation_mode": "image_to_video"
+            },
+            "reference": {
+              "asset_id": "asset_09f92ffc30e54860a52d",
+              "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+              "mime": "image/png"
+            },
+            "model_id": "doubao-seedance-1-0-pro-fast-251015"
+          },
+          "stage": "done",
+          "client_request_id": "eeed33f8-039d-44db-9d95-ee34fe25d2bf",
+          "progress": 1,
+          "project_id": "prj_423c2100de7c4e96a176",
+          "asset_id": "asset_d72a92db6a5d47b3b28a",
+          "asset": {
+            "id": "asset_d72a92db6a5d47b3b28a",
+            "kind": "video",
+            "duration_ms": 800,
+            "width": 320,
+            "mime": "video/mp4",
+            "height": 240
+          },
+          "output_asset_id": "asset_d72a92db6a5d47b3b28a",
+          "error": null,
+          "cost_cny": 0,
+          "finished_at": 1793100277.604083,
+          "quote_id": "nquote_b95245c2c5634241972b",
+          "input_hash": "sha256:26729b55a829b493a48f175d33010df68e0b907c31266240b1108265a0d87738",
+          "created_at": 1793100276.891314,
+          "node_id": "video-preview",
+          "config_revision": 2
+        },
+        "node_id": "video-preview",
+        "type": "video",
+        "asset": {
+          "id": "asset_d72a92db6a5d47b3b28a",
+          "kind": "video",
+          "duration_ms": 800,
+          "width": 320,
+          "mime": "video/mp4",
+          "height": 240
+        }
+      },
+      {
+        "config": {},
+        "position": {
+          "x": 340,
+          "y": 450
+        },
+        "binding": {
+          "asset_id": "asset_09f92ffc30e54860a52d"
+        },
+        "config_revision": 1,
+        "last_execution": null,
+        "node_id": "asset-preview-image",
+        "type": "asset",
+        "asset": {
+          "id": "asset_09f92ffc30e54860a52d",
+          "kind": "image",
+          "duration_ms": null,
+          "width": 320,
+          "mime": "image/png",
+          "height": 240
+        }
+      },
+      {
+        "config": {},
+        "position": {
+          "x": 700,
+          "y": 450
+        },
+        "binding": {
+          "asset_id": "asset_d72a92db6a5d47b3b28a"
+        },
+        "config_revision": 1,
+        "last_execution": null,
+        "node_id": "asset-preview-video",
+        "type": "asset",
+        "asset": {
+          "id": "asset_d72a92db6a5d47b3b28a",
+          "kind": "video",
+          "duration_ms": 800,
+          "width": 320,
+          "mime": "video/mp4",
+          "height": 240
+        }
+      },
+      {
+        "config": {
+          "title": "文本笔记",
+          "text": ""
+        },
+        "position": {
+          "x": 629.8675496688742,
+          "y": 245.65682119205297
+        },
+        "binding": {},
+        "config_revision": 2,
+        "last_execution": null,
+        "node_id": "text-5a83eb6c-6672-4f50-8d7c-6aac3635a01a",
+        "type": "text",
+        "asset": null
+      }
+    ],
+    "viewport": {
+      "x": -349.28989612842315,
+      "y": 22.872206484104368,
+      "zoom": 0.594113943972301
+    },
+    "layout_revision": 23
+  },
+  "pageErrors": [],
+  "cases": [
+    {
+      "pass": true,
+      "before": 5,
+      "deleted": 4,
+      "position": {
+        "x": 340,
+        "y": 70
+      },
+      "deletedIds": [
+        "note-preview"
+      ],
+      "restored": 5,
+      "case": "single-delete-undo"
+    },
+    {
+      "pass": true,
+      "case": "marquee-group-move-batch-delete-undo",
+      "restoredPositions": [
+        {
+          "id": "note-preview",
+          "position": {
+            "x": 424.158940397351,
+            "y": 116.75496688741723
+          }
+        },
+        {
+          "id": "image-preview",
+          "position": {
+            "x": 784.158940397351,
+            "y": 116.75496688741723
+          }
+        }
+      ]
+    },
+    {
+      "pass": true,
+      "case": "hand-pan-over-node-without-moving-node",
+      "pan": {
+        "x": 60,
+        "y": 40
+      }
+    },
+    {
+      "case": "quote-preview-cancel-no-task",
+      "taskCount": 0,
+      "pass": true,
+      "quote": "确认本次生成\n画面灵感\n\n生成 1 张图片 · Seedream 5.0 flash（云端）\n\n1:1\n\n晨光中的水杯\n预计 ¥0.12\n继续调整\n确认生成"
+    },
+    {
+      "pass": true,
+      "case": "native-input-undo-versus-canvas-delete-undo"
+    },
+    {
+      "pass": true,
+      "case": "inspector-scales-with-node",
+      "ratios": [
+        1.527777839706961,
+        1.527777918150614
+      ]
+    },
+    {
+      "pass": true,
+      "asset_id": "asset_09f92ffc30e54860a52d",
+      "tasks": 1,
+      "task_id": "task_603a9edd6e8d459fa9c9",
+      "posts": 1,
+      "real_model_calls": 0,
+      "case": "image-generate-first-status-read-failure-and-pan-zoom"
+    },
+    {
+      "case": "regeneration-failure-keeps-old-image",
+      "execution": "nexec_acc948535e594800b21c",
+      "pass": true,
+      "old_asset": "asset_09f92ffc30e54860a52d"
+    },
+    {
+      "asset_id": "asset_d72a92db6a5d47b3b28a",
+      "case": "text-to-video-independent-node",
+      "pass": true,
+      "task_id": "task_0514b7ce976c4b329282"
+    },
+    {
+      "case": "image-to-video-reference",
+      "input_asset_id": "asset_09f92ffc30e54860a52d",
+      "pass": true,
+      "task_id": "task_07cc840c88b84fcb9d3e"
+    },
+    {
+      "case": "image-to-image-reference-upload",
+      "input_asset_id": "asset_09f92ffc30e54860a52d",
+      "pass": true,
+      "task_id": "task_31ad94c24e474ea499c5"
+    },
+    {
+      "case": "unknown-generate-recovery-reuses-request-no-duplicate",
+      "before": 5,
+      "pass": true,
+      "after": 6,
+      "request": {
+        "quote_id": "nquote_5ddbabde244d4dc098b2",
+        "client_request_id": "8c039bdb-5807-43a2-89fa-f0c317de09e4",
+        "user_action": "confirm_generate"
+      }
+    },
+    {
+      "pass": true,
+      "case": "new-node-menu-delete-and-undo",
+      "id": "text-5a83eb6c-6672-4f50-8d7c-6aac3635a01a"
+    },
+    {
+      "case": "canonical-script-delete-reopen-history-failure-no-respawn-and-undo",
+      "deletedIds": [
+        "script"
+      ],
+      "binding": {
+        "script_id": "scr_0bfe465d437d4b919b16",
+        "script_version": 1
+      },
+      "pass": true
+    },
+    {
+      "case": "latest-build-selected-node-avoids-open-chat",
+      "pass": true,
+      "nodeActionX": 711.6942138671875,
+      "chatRight": 326
+    },
+    {
+      "case": "recovered-request-eventual-completion",
+      "request_id": "8c039bdb-5807-43a2-89fa-f0c317de09e4",
+      "pass": true,
+      "task_id": "task_7943793539cb4a4280d0"
+    }
+  ]
+}

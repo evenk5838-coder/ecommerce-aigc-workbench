@@ -7,6 +7,7 @@ import ProjectHome from './ProjectHome';
 import StudioThemeToggle from './StudioTheme';
 import CreativeSpace from './CreativeSpace';
 import DirectorHome from './DirectorHome';
+import { directorProjectHash, isCreativeRouteChange, parseCreativeLocation, replaceCreativeLocation } from './creative/creative-location';
 import './CStudioShell.css';
 import ImageOutputSettings from './ImageOutputSettings';
 import SingleTemplatePanel from './SingleTemplatePanel';
@@ -38,6 +39,7 @@ function IconButton({ children, label, onClick, disabled = false, active = false
 function assetName(a: Asset) { const m=metadata(a); return typeof m.filename==='string'?m.filename:a.kind==='video'?'生成视频':`生成图片 · ${a.width}×${a.height}`; }
 
 export default function App() {
+  const [initialCreativeLocation]=useState(()=>parseCreativeLocation(window.location.hash));
   const [project,setProject]=useState<Project>(()=>({...newProject(),assistantProjectId:`workbench-${crypto.randomUUID()}`}));
   const projectRef=useRef(project); const draftRef=useRef<{id:string;version:number}|null>(null);
   const dirty=useRef(0), saved=useRef(0), saving=useRef(false), blocked=useRef(false);
@@ -49,13 +51,23 @@ export default function App() {
   const [saveError,setSaveError]=useState(''),[submitError,setSubmitError]=useState('');
   const [validation,setValidation]=useState<{prompt?:string;reference?:string}>({});
   const [propertiesOpen,setPropertiesOpen]=useState(false);
-  const [view,setView]=useState<'projects'|'home'|'director'|'creative'|'canvas'|'library'>('projects'),[taskDrawer,setTaskDrawer]=useState(false),[preview,setPreview]=useState<Asset|null>(null);
+  const [view,setView]=useState<'projects'|'home'|'director'|'creative'|'canvas'|'library'>(initialCreativeLocation.view),[taskDrawer,setTaskDrawer]=useState(false),[preview,setPreview]=useState<Asset|null>(null);
   const creativeDirty=useRef(false);
-  const [creativeProjectId,setCreativeProjectId]=useState<string|null>(null),[creativeCreateNonce,setCreativeCreateNonce]=useState(0);
+  const [creativeProjectId,setCreativeProjectId]=useState<string|null>(initialCreativeLocation.projectId),[creativeCreateNonce,setCreativeCreateNonce]=useState(0);
   const onCreativeDirtyChange=useCallback((value:boolean)=>{creativeDirty.current=value;},[]);
   const canLeaveCreative=()=>!['creative','director'].includes(view)||!creativeDirty.current||window.confirm('引导创作还有未保存内容或正在处理的请求，确定离开吗？');
-  const changeView=(next:typeof view)=>{if(next!=='director')setCreativeCreateNonce(0);setView(next);};
+  const changeView=(next:typeof view)=>{if(next!=='director')setCreativeCreateNonce(0);if(next!=='creative'){setCreativeProjectId(null);replaceCreativeLocation(null,next==='director');}setView(next);};
   const navigate=(next:typeof view)=>{if(next===view||!canLeaveCreative())return;creativeDirty.current=false;changeView(next);};
+  const locationChange=useRef<()=>void>(()=>undefined);
+  locationChange.current=()=>{
+    if(!isCreativeRouteChange(window.location.hash))return;
+    const target=parseCreativeLocation(window.location.hash);
+    if(target.view===view&&target.projectId===creativeProjectId)return;
+    if(!canLeaveCreative()){replaceCreativeLocation(view==='creative'?creativeProjectId:null,view==='director');return;}
+    creativeDirty.current=false;setCreativeCreateNonce(0);setCreativeProjectId(target.projectId);setView(target.view);
+    replaceCreativeLocation(target.projectId,target.view==='director');
+  };
+  useEffect(()=>{const changed=()=>locationChange.current();window.addEventListener('hashchange',changed);return()=>window.removeEventListener('hashchange',changed);},[]);
   const [selected,setSelected]=useState<string|null>(null),[zoom,setZoom]=useState(1),[undo,setUndo]=useState<Project[]>([]);
   const [modelId,setModelId]=useState(''),[referencePicker,setReferencePicker]=useState(false);
   const settings=restoreGenerationSettings(project.generation);
@@ -96,7 +108,7 @@ export default function App() {
     else{const next=mode as VideoMode;const isPreset=!settings.videoPrompt.trim()||settings.videoPrompt===getVideoPrompt(videoMode);updateGeneration({kind:target,videoMode:next,template:null,...(isPreset?{videoPrompt:getVideoPrompt(next)}:{})});}
     return true;
   };
-  const openCreativeProject=(id:string)=>{if(!canLeaveCreative())return;creativeDirty.current=false;setCreativeCreateNonce(0);setCreativeProjectId(id);changeView('creative');};
+  const openCreativeProject=(id:string)=>{if(!directorProjectHash(id)){notify('项目地址无法读取，请重新选择项目。');return;}if(!canLeaveCreative())return;creativeDirty.current=false;setCreativeCreateNonce(0);setCreativeProjectId(id);replaceCreativeLocation(id);changeView('creative');};
   const createCreativeProject=()=>{if(!canLeaveCreative())return;creativeDirty.current=false;setCreativeProjectId(null);setCreativeCreateNonce(value=>value+1);changeView('director');};
   const startGeneration=(mode:GenerationMode)=>{if(!canLeaveCreative()||!setGenerationMode(mode))return;creativeDirty.current=false;changeView('home');};
   const selectPurpose=(value:ImagePurpose)=>{

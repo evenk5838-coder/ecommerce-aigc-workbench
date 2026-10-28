@@ -1,0 +1,49 @@
+{
+  "backend_tests": 350,
+  "legacy_director_tests": 21,
+  "new_regression_tests": 9,
+  "real_model_calls": 0,
+  "http": {
+    "clips": {
+      "passed": true,
+      "request_count": 42,
+      "task_count_including_one_legacy": 5,
+      "media_fixture_calls": 4,
+      "legacy_record_unchanged": true,
+      "restart_replay_no_new_work": true
+    },
+    "film": {
+      "passed": true,
+      "request_count": 37,
+      "task_count_including_one_legacy": 5,
+      "media_fixture_calls": 4,
+      "legacy_record_unchanged": true,
+      "restart_replay_no_new_work": true
+    }
+  },
+  "release": {
+    "verified_at": "2026-10-28T19:51:36.600018+08:00",
+    "health_status": "ok",
+    "projects_readable": true,
+    "tables_identical": true,
+    "asset_files_identical": true,
+    "frontend_identical": true,
+    "source_matches_tested": true,
+    "quick_check": "ok",
+    "counts": {
+      "projects": 4,
+      "tasks": 70,
+      "assets": 25,
+      "drafts": 5,
+      "draft_versions": 98,
+      "canvas_nodes": 10,
+      "script_versions": 4,
+      "director_requests": 9,
+      "director_actions": 2
+    },
+    "new_service_pid": 44828,
+    "new_paid_calls": 0,
+    "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/budget-fix-20261028T195001"
+  },
+  "user_real_generation_retest": "pending"
+}

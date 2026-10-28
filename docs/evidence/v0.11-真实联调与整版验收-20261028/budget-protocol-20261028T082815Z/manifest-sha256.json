@@ -1,0 +1,15 @@
+{
+  "backend-summary.json": "fd596ab2a7b1c2ec573c51df96d5300b2b3871df632b3c25cf934b67dc4a43e3",
+  "backend.log": "1341e854eb8f8da14d2a322745c7bd20c3232e5248cab45893a6da2df3788a42",
+  "default-budget-http/check_budget.py": "d2bedd2fc29b7c0157a1ec46710d9648487a2b662372158e707acbc0473f2f00",
+  "default-budget-http/evidence/director-workflow-http.json": "69333efb5505f35af1e3f396397b5c2cf56a0ab0b1e6b123e7c28b7387214fe9",
+  "default-budget-http/evidence/fixed-blue-then-red.mp4": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4",
+  "default-budget-http/rounds.jsonl": "67097bae298e98d59e60029d354035be01fdeb4799dcf1cf0cbfdb34ba4525fa",
+  "legacy/免费验收结果.json": "3aa4a81f4658871fd5059043e966efe1a15d21d106d399f3e60c419ca7989a60",
+  "legacy-summary.json": "c2372fdac1bf4b71d6acef2e516809743778aa152bb052594377a271296b79d8",
+  "legacy.log": "c0c31d8a368bd7ad4d76a3bd977e0c3532df068373c8c97cce0d82a2995cd46e",
+  "machine-summary.json": "645e7194347bf1a5f131a153933983a09cf95cc0bcdd77fd917ac0ddfbab9653",
+  "source-fingerprints-after.json": "1369f9b97d838fd8bda544f494e1accdb7605464d8d44b61670b66a7ecf2f8e6",
+  "source-fingerprints-before.json": "1369f9b97d838fd8bda544f494e1accdb7605464d8d44b61670b66a7ecf2f8e6",
+  "verification-runner.py": "a303a22538756f445704fb12d8e476029becf7d2f8374b8582ca7c66d5129abc"
+}

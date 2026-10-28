@@ -1,0 +1,79 @@
+{
+  "checked_at": 1793178530.6417038,
+  "url": "http://127.0.0.1:8100/",
+  "health": {
+    "status": "ok",
+    "version": "0.1.0",
+    "uptime_s": 20,
+    "recovery": {
+      "interrupted": 0,
+      "queued": 0,
+      "director_requests": {
+        "interrupted": 0,
+        "active": 0,
+        "unknown_owner": 0
+      }
+    },
+    "tasks": {
+      "canceled": 6,
+      "failed": 26,
+      "interrupted": 1,
+      "succeeded": 37
+    }
+  },
+  "frontend_sha256": "e1c1489ec5c84e7dc047ad4df573dc8d9a38d0e2cae9861a3437b0d3e49724e3",
+  "preserved_counts": {
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 6
+  },
+  "counts_unchanged": true,
+  "quick_check": "ok",
+  "tables": [
+    "assets",
+    "tasks",
+    "task_attempts",
+    "mem_samples",
+    "sqlite_sequence",
+    "batches",
+    "drafts",
+    "draft_versions",
+    "templates",
+    "template_versions",
+    "assistant_sessions",
+    "assistant_briefs",
+    "assistant_quotes",
+    "assistant_approvals",
+    "assistant_usage",
+    "assistant_messages",
+    "projects",
+    "script_versions",
+    "shots",
+    "storyboards",
+    "shot_takes",
+    "generation_scopes",
+    "submit_receipts",
+    "films",
+    "structure_templates",
+    "structure_template_versions",
+    "confirmations",
+    "project_exports",
+    "assembly_errors",
+    "director_requests",
+    "director_turns",
+    "director_proposals",
+    "canvas_states",
+    "canvas_nodes",
+    "confirmation_events",
+    "canvas_deletions",
+    "canvas_node_quotes",
+    "canvas_node_executions",
+    "director_tool_operations",
+    "director_actions",
+    "director_compositions"
+  ],
+  "generation_requests_by_release_check": 0,
+  "python": "backend/.venv/bin/python"
+}

@@ -1,0 +1,4 @@
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+

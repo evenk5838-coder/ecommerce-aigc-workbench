@@ -1,0 +1,32 @@
+{
+  "mode": "offline_preflight",
+  "network_calls": 0,
+  "approval_template": {
+    "schema_version": 1,
+    "approved": false,
+    "authorization_reference": "Fill only after a new human approval; do not infer from .env or prior batches",
+    "run_id": "replace-with-unique-run-name",
+    "approved_at": null,
+    "total_cny": "4.00",
+    "llm_cny": "1.00",
+    "media_cny": "3.00",
+    "max_calls": {
+      "llm": 20,
+      "text_to_image": 2,
+      "image_to_image": 1,
+      "image_to_video": 2,
+      "text_to_video": 1
+    },
+    "image_model": "doubao-seedream-5-0-flash-260915",
+    "video_model": "doubao-seedance-1-0-pro-fast-251015",
+    "llm_model": "deepseek-flash",
+    "image_size": "2688x1536",
+    "video": {
+      "duration": 5,
+      "resolution": "720p",
+      "ratio": "16:9"
+    },
+    "no_automatic_retry": true
+  },
+  "note": "No product import, credentials, database, provider or network is accessed"
+}

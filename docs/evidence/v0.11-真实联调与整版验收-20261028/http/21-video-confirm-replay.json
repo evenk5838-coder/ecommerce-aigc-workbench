@@ -1,0 +1,313 @@
+{
+  "method": "POST",
+  "path": "/api/projects/prj_7d52f89107db4ce4b9b4/director/actions/dact_d1bd6a3a7c46468383f8/confirm",
+  "request": {
+    "client_request_id": "37252c59-4edc-4874-acf6-64e49f0f0030",
+    "user_action": "confirm_generate"
+  },
+  "started_at": 1793177214.6826339,
+  "status": 200,
+  "response": {
+    "action_id": "dact_d1bd6a3a7c46468383f8",
+    "project_id": "prj_7d52f89107db4ce4b9b4",
+    "kind": "generation",
+    "status": "completed",
+    "action_status": "submitted",
+    "request_id": "8adece98-7b6d-423d-80d7-17f6fe046ae6",
+    "node_ids": [
+      "director-video-179511978c1f8ff9f9fa-1",
+      "director-video-179511978c1f8ff9f9fa-2"
+    ],
+    "quotes": [
+      {
+        "quote_id": "nquote_a6fb8c2304cf43d4a28e",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-video-179511978c1f8ff9f9fa-1",
+        "config_revision": 1,
+        "input_hash": "sha256:82f7bfbc9df11657815416030b058e734751f84050dbcc811bcf0886d8927aed",
+        "estimated_cost_cny": 0.4536,
+        "expires_at": 1793177367.204431,
+        "input": {
+          "kind": "video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "params": {
+            "ratio": "16:9",
+            "resolution": "720p",
+            "duration": 5,
+            "generate_audio": false,
+            "watermark": false,
+            "prompt": "以首帧画面为起点，镜头缓慢平稳推近并轻微右移，晨光在白色陶瓷杯釉面上缓慢流动，杯身完整保持在画面中央偏右。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+            "generation_mode": "image_to_video",
+            "input_asset_id": "asset_f33e4500f99a4ea9bcfb"
+          },
+          "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+          "reference": {
+            "asset_id": "asset_f33e4500f99a4ea9bcfb",
+            "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+            "mime": "image/jpeg"
+          }
+        },
+        "side_effects": {
+          "task_created": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      },
+      {
+        "quote_id": "nquote_1a0c75657b1347ada2fb",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-video-179511978c1f8ff9f9fa-2",
+        "config_revision": 1,
+        "input_hash": "sha256:6421327e806ca24f5ac37dba5d9c1a5c044055dfb706a9617f0d89b8d712b44e",
+        "estimated_cost_cny": 0.4536,
+        "expires_at": 1793177367.208268,
+        "input": {
+          "kind": "video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "params": {
+            "ratio": "16:9",
+            "resolution": "720p",
+            "duration": 5,
+            "generate_audio": false,
+            "watermark": false,
+            "prompt": "以首帧画面为起点，镜头极缓慢轻微环绕杯口半圈，晨光高光沿白色陶瓷杯沿平滑滑动，杯内保持空无一物，背景持续虚化。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+            "generation_mode": "image_to_video",
+            "input_asset_id": "asset_4582d814538a4668968e"
+          },
+          "input_asset_id": "asset_4582d814538a4668968e",
+          "reference": {
+            "asset_id": "asset_4582d814538a4668968e",
+            "sha256": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609",
+            "mime": "image/jpeg"
+          }
+        },
+        "side_effects": {
+          "task_created": false,
+          "model_called": false,
+          "budget_deducted": false
+        }
+      }
+    ],
+    "output_mode": "film",
+    "estimated_cost_cny": 0.9072,
+    "expires_at": 1793177367.204431,
+    "expired": false,
+    "requires_user_action": false,
+    "batch_id": "batch_267a4f89e17f43199da2",
+    "tasks": [
+      {
+        "node_id": "director-video-179511978c1f8ff9f9fa-1",
+        "execution_id": "nexec_f02f3b9ad8944f319837",
+        "task_id": "task_cbd9b1ea84cc4ab5a965",
+        "quote_id": "nquote_a6fb8c2304cf43d4a28e"
+      },
+      {
+        "node_id": "director-video-179511978c1f8ff9f9fa-2",
+        "execution_id": "nexec_1f1b3363cc7042659884",
+        "task_id": "task_9730c70b749440f8a333",
+        "quote_id": "nquote_1a0c75657b1347ada2fb"
+      }
+    ],
+    "executions": [
+      {
+        "execution_id": "nexec_f02f3b9ad8944f319837",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-video-179511978c1f8ff9f9fa-1",
+        "quote_id": "nquote_a6fb8c2304cf43d4a28e",
+        "client_request_id": "director:dact_d1bd6a3a7c46468383f8:0",
+        "task_id": "task_cbd9b1ea84cc4ab5a965",
+        "status": "succeeded",
+        "stage": "done",
+        "progress": 1.0,
+        "active": false,
+        "output_asset_id": "asset_0b22960e2ae645e889aa",
+        "asset_id": "asset_0b22960e2ae645e889aa",
+        "asset": {
+          "id": "asset_0b22960e2ae645e889aa",
+          "kind": "video",
+          "mime": "video/mp4",
+          "width": 1248,
+          "height": 704,
+          "duration_ms": 5040
+        },
+        "asset_available": true,
+        "asset_error": null,
+        "result_status": "available",
+        "error": null,
+        "estimated_cost_cny": 0.4536,
+        "input": {
+          "kind": "video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "params": {
+            "ratio": "16:9",
+            "resolution": "720p",
+            "duration": 5,
+            "generate_audio": false,
+            "watermark": false,
+            "prompt": "以首帧画面为起点，镜头缓慢平稳推近并轻微右移，晨光在白色陶瓷杯釉面上缓慢流动，杯身完整保持在画面中央偏右。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+            "generation_mode": "image_to_video",
+            "input_asset_id": "asset_f33e4500f99a4ea9bcfb"
+          },
+          "input_asset_id": "asset_f33e4500f99a4ea9bcfb",
+          "reference": {
+            "asset_id": "asset_f33e4500f99a4ea9bcfb",
+            "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+            "mime": "image/jpeg"
+          }
+        },
+        "cost_cny": 0.436,
+        "created_at": 1793176843.965895,
+        "finished_at": 1793176911.8371332,
+        "config_revision": 1,
+        "input_hash": "sha256:82f7bfbc9df11657815416030b058e734751f84050dbcc811bcf0886d8927aed"
+      },
+      {
+        "execution_id": "nexec_1f1b3363cc7042659884",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "node_id": "director-video-179511978c1f8ff9f9fa-2",
+        "quote_id": "nquote_1a0c75657b1347ada2fb",
+        "client_request_id": "director:dact_d1bd6a3a7c46468383f8:1",
+        "task_id": "task_9730c70b749440f8a333",
+        "status": "succeeded",
+        "stage": "done",
+        "progress": 1.0,
+        "active": false,
+        "output_asset_id": "asset_03ed4227fc544b66828c",
+        "asset_id": "asset_03ed4227fc544b66828c",
+        "asset": {
+          "id": "asset_03ed4227fc544b66828c",
+          "kind": "video",
+          "mime": "video/mp4",
+          "width": 1248,
+          "height": 704,
+          "duration_ms": 5040
+        },
+        "asset_available": true,
+        "asset_error": null,
+        "result_status": "available",
+        "error": null,
+        "estimated_cost_cny": 0.4536,
+        "input": {
+          "kind": "video",
+          "model_id": "doubao-seedance-1-0-pro-fast-251015",
+          "params": {
+            "ratio": "16:9",
+            "resolution": "720p",
+            "duration": 5,
+            "generate_audio": false,
+            "watermark": false,
+            "prompt": "以首帧画面为起点，镜头极缓慢轻微环绕杯口半圈，晨光高光沿白色陶瓷杯沿平滑滑动，杯内保持空无一物，背景持续虚化。无人物、无手、无文字、无logo。写实商业产品摄影质感，画面稳定无抖动。",
+            "generation_mode": "image_to_video",
+            "input_asset_id": "asset_4582d814538a4668968e"
+          },
+          "input_asset_id": "asset_4582d814538a4668968e",
+          "reference": {
+            "asset_id": "asset_4582d814538a4668968e",
+            "sha256": "2bc4832f813789bed4cc61f6f8d7f3432b9f32ba0bb0303b72aaac93781c5609",
+            "mime": "image/jpeg"
+          }
+        },
+        "cost_cny": 0.436,
+        "created_at": 1793176843.9687932,
+        "finished_at": 1793176976.314933,
+        "config_revision": 1,
+        "input_hash": "sha256:6421327e806ca24f5ac37dba5d9c1a5c044055dfb706a9617f0d89b8d712b44e"
+      }
+    ],
+    "submit_client_request_id": "37252c59-4edc-4874-acf6-64e49f0f0030",
+    "auto_film": true,
+    "media_status": "completed",
+    "composition": {
+      "action_id": "film_dact_d1bd6a3a7c46468383f8",
+      "project_id": "prj_7d52f89107db4ce4b9b4",
+      "kind": "composition",
+      "status": "completed",
+      "action_status": "submitted",
+      "sources": [
+        {
+          "asset_id": "asset_0b22960e2ae645e889aa",
+          "node_id": "director-video-179511978c1f8ff9f9fa-1",
+          "node_record_id": "node_5118b9e7ecb7404fb1bb",
+          "execution_id": "nexec_f02f3b9ad8944f319837",
+          "sha256": "e22dff75e7909bfac892ad415492a857a9d4aadad03d99c29079b9ef0c5ce6fd",
+          "metadata": {
+            "duration_ms": 5040,
+            "width": 1248,
+            "height": 704,
+            "fps": 24
+          }
+        },
+        {
+          "asset_id": "asset_03ed4227fc544b66828c",
+          "node_id": "director-video-179511978c1f8ff9f9fa-2",
+          "node_record_id": "node_11a53fd11de44c2c8276",
+          "execution_id": "nexec_1f1b3363cc7042659884",
+          "sha256": "a790eef459298e17e337f2c4913a11470d61ed6dfe634b2e11cf747edc5c7cdf",
+          "metadata": {
+            "duration_ms": 5040,
+            "width": 1248,
+            "height": 704,
+            "fps": 24
+          }
+        }
+      ],
+      "title": "成片视频",
+      "request_id": "film:dact_d1bd6a3a7c46468383f8",
+      "expires_at": 1793176976.930872,
+      "expired": true,
+      "created_at": 1793176976.930872,
+      "submitted_at": 1793176976.930872,
+      "submit_client_request_id": null,
+      "requires_user_action": false,
+      "estimated_cost_cny": 0,
+      "model_called": false,
+      "no_trim": true,
+      "asset_available": true,
+      "asset_error": null,
+      "generation_action_id": "dact_d1bd6a3a7c46468383f8",
+      "composition_id": "comp_09c2a3cd153744818a66",
+      "job": {
+        "id": "comp_09c2a3cd153744818a66",
+        "project_id": "prj_7d52f89107db4ce4b9b4",
+        "action_id": "film_dact_d1bd6a3a7c46468383f8",
+        "status": "succeeded",
+        "output_asset_id": "asset_eb92ba6675554a4d8e96",
+        "result_node_id": "composition_comp_09c2a3cd153744818a66",
+        "created_at": 1793176976.930872,
+        "updated_at": 1793176977.3062232,
+        "started_at": 1793176976.939203,
+        "finished_at": 1793176977.3062232,
+        "error": null
+      },
+      "asset": {
+        "id": "asset_eb92ba6675554a4d8e96",
+        "kind": "video",
+        "mime": "video/mp4",
+        "width": 1248,
+        "height": 704,
+        "duration_ms": 10080
+      },
+      "asset_id": "asset_eb92ba6675554a4d8e96",
+      "result_node_id": "composition_comp_09c2a3cd153744818a66",
+      "actual_duration_ms": 10080,
+      "planned_duration_ms": 10080
+    },
+    "error": null,
+    "scope": {
+      "generate": true,
+      "compose": true,
+      "ordered_node_ids": [
+        "director-video-179511978c1f8ff9f9fa-1",
+        "director-video-179511978c1f8ff9f9fa-2"
+      ],
+      "no_trim": true,
+      "composition_cost_cny": 0
+    },
+    "created_at": 1793176767.208351,
+    "submitted_at": 1793176843.962753,
+    "idempotent_replay": true,
+    "current_role": "editor",
+    "workflow_revision": 529144220205562
+  },
+  "finished_at": 1793177214.961484
+}

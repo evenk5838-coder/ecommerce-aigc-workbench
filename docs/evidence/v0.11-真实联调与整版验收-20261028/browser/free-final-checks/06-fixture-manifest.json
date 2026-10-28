@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/private/tmp/ecom-v011-frontend-preview/run-moicnel8/fixtures/fixture-blue.png",
+    "size": 782,
+    "sha256": "03b6b95a8b3c5ec0c80a29550a6638edb0d754d8f8d20edb0f8fb743af8d14af",
+    "mime": "image/png"
+  },
+  {
+    "path": "/private/tmp/ecom-v011-frontend-preview/run-moicnel8/fixtures/fixture-blue.mp4",
+    "size": 1833,
+    "sha256": "d77fd58203295cd8701e6f1b0257000720970feebf81a446b034b3003540a468",
+    "mime": "video/mp4"
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "backend": {
+    "exit_code": 0
+  },
+  "legacy": {
+    "exit_code": 0
+  },
+  "source_files": 54,
+  "source_changes_during_checks": [],
+  "real_model_calls": 0,
+  "finished_at_utc": "2026-10-28T08:28:57.855775+00:00"
+}

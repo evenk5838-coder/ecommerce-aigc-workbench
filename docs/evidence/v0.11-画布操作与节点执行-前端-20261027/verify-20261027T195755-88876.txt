@@ -1,0 +1,64 @@
+Canvas operations and node execution frontend verification: 20261027T195755-88876
+Scope: current frontend source + isolated build + independent HTTP restart; real media/LLM and browser acceptance remain separate
+Recorded live frontend build fingerprint: 3 files
+1/5 Frontend lint, strict types and isolated production build
+v24.18.0
+11.16.0
+
+> ecommerce-local-studio@0.1.0 lint
+> eslint src --max-warnings 0
+
+
+> ecommerce-local-studio@0.1.0 typecheck
+> tsc --noEmit
+
+
+> ecommerce-local-studio@0.1.0 build
+> tsc --noEmit && vite build --outDir /private/tmp/ecom-v011-frontend-preview/dist --emptyOutDir
+
+vite v7.3.7 building client environment for production...
+transforming...
+✓ 1648 modules transformed.
+rendering chunks...
+computing gzip size...
+../../../../../../private/tmp/ecom-v011-frontend-preview/dist/index.html                   0.60 kB │ gzip:   0.45 kB
+../../../../../../private/tmp/ecom-v011-frontend-preview/dist/assets/index-C0L32_pj.css  211.60 kB │ gzip:  39.21 kB
+../../../../../../private/tmp/ecom-v011-frontend-preview/dist/assets/index-DX4l5pVK.js   629.17 kB │ gzip: 198.16 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 1.83s
+Recorded isolated frontend build fingerprint: 3 files
+2/5 Full frontend test suite
+
+> ecommerce-local-studio@0.1.0 test
+> vitest run --run
+
+
+ RUN  v5.0.5 /Users/niannian/Documents/VScode/电商工作平台/frontend
+
+
+ Test Files  28 passed (28)
+      Tests  660 passed (660)
+   Start at  19:58:09
+   Duration  925ms (tests 48%, import 32%, transform 16%, worker 4%)
+
+    Isolate  28 workers spawned · ~113ms startup each (spawn + environment, per file)
+             at least ~339ms faster with isolate: false — reuses workers across files instead of one per file
+
+3/5 Credential exclusion, including the isolated frontend build
+PASS: .env ignored and untracked; production source/built text assets contain no scanned credential patterns
+Scope: pattern scan only; historical Git objects and arbitrary archives were not scanned
+Isolated served output included: /private/tmp/ecom-v011-frontend-preview/dist
+4/5 Independent HTTP restart: queued node execution, deletion history, undo and idempotent replay
+Write: real HTTP quote -> one queued task -> batch deletion + unrelated edit; server stopped
+Read: original queued task/quote/history recovered; undo restores nodes/config/edges; replay adds no task
+PASS: private HTTP restart, persistent undo and generation receipt recovery; 0 paid calls
+5/5 Required technical files, whitespace and unchanged existing frontend build
+PASS: 28 canvas core frontend technical files; git diff --check
+Scope: technical files only; browser evidence, real-model evidence and final acceptance checked separately
+PASS: existing frontend/dist unchanged (3 file fingerprints)
+PASS: frontend automated checks only; restart worker disabled; no real provider, browser or complete Agent workflow acceptance claim
+Evidence: docs/evidence/v0.11-画布操作与节点执行-前端-20261027/verify-20261027T195755-88876.txt

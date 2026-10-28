@@ -1,0 +1,34 @@
+{
+  "status": "offline_guard_checks_passed",
+  "real_provider_calls": 0,
+  "test_count": 17,
+  "service_started": false,
+  "approval_created": false,
+  "commands": [
+    {
+      "command": [
+        "/private/tmp/ecom-v011-backend-20261027/bin/python",
+        "scripts/real-director-acceptance.py"
+      ],
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/private/tmp/ecom-v011-backend-20261027/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "backend/tests",
+        "-p",
+        "test_real_acceptance_guard.py",
+        "-v"
+      ],
+      "returncode": 0
+    }
+  ],
+  "sources": {
+    "scripts/real-director-acceptance.py": "46ad5791572180ebb4aa6e933e356141fc774792b4fcd0b803a492c7a463d2f2",
+    "backend/tests/test_real_acceptance_guard.py": "5c5e69795f8de3066eb38f1a1909c2f9278d81bbb7553dd5a6a92dc677bcda52"
+  }
+}

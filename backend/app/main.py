@@ -10,10 +10,10 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from . import config, db, projects, templates, worker
+from . import config, db, director_composition, director_recovery, projects, templates, worker
 from .engines import GUARD, MANAGER
 from .errors import AppError, app_error_handler, err, unhandled_handler
-from .storage import asset_path, load_asset, save_bytes, validate_image_asset
+from .storage import asset_path, load_asset, save_bytes, save_upload_bytes, validate_image_asset
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "static"
@@ -29,10 +29,15 @@ async def lifespan(app: FastAPI):
     except Exception as e:  # noqa: BLE001  模板播种失败不阻塞服务启动
         app.state.template_seed = {"error": f"{type(e).__name__}: {e}"}
     rec = worker.reconcile()
+    rec["director_requests"] = director_recovery.recover_interrupted_requests()
     worker.start()
     app.state.recovery = rec
-    yield
-    worker.stop()
+    try:
+        director_composition.start()
+        yield
+    finally:
+        director_composition.stop()
+        worker.stop()
 
 
 app = FastAPI(title="电商 AIGC 本地工作台", version="0.1.0", lifespan=lifespan)
@@ -188,13 +193,17 @@ def get_template(template_id: str, version: int | None = None):
 # ---------- 素材 ----------
 @app.post("/api/assets")
 async def upload_asset(file: UploadFile):
-    data = await file.read()
+    data = await file.read(config.MAX_UPLOAD_MB * 1024 * 1024 + 1)
     if len(data) > config.MAX_UPLOAD_MB * 1024 * 1024:
         raise err("UPLOAD_REJECTED", f"文件超过 {config.MAX_UPLOAD_MB}MB 上限")
     if not data:
         raise err("UPLOAD_REJECTED", "空文件")
-    a = save_bytes(data, "image", "upload", meta={"filename": file.filename})
-    return {"asset_id": a["id"], "sha256": a["sha256"], "width": a["width"], "height": a["height"]}
+    # Validation may decode a video. Keep it off the event loop so progress
+    # polling and the rest of the local workspace remain responsive.
+    import asyncio
+    a = await asyncio.to_thread(save_upload_bytes, data, file.filename)
+    return {"asset_id": a["id"], "sha256": a["sha256"], "width": a["width"], "height": a["height"],
+            "kind": a["kind"], "mime": a["mime"], "duration_ms": a.get("duration_ms")}
 
 
 @app.get("/api/assets")
@@ -569,6 +578,8 @@ def retry_task(task_id: str, body: RetryIn | None = None):
     if not t:
         raise err("TASK_NOT_FOUND", f"任务不存在：{task_id}")
     projects.assert_task_project_active(task_id)
+    if db.query("SELECT id FROM canvas_node_executions WHERE task_id=?", (task_id,)):
+        raise err("NODE_EXECUTION_CONFLICT", "请在原画布节点重新报价并生成，避免重复提交或丢失关联。")
     if t["status"] in worker.ACTIVE:
         raise err("CANCEL_REJECTED_PHASE", "任务仍在执行，请先取消")
     stored = (db.loads(t["params_json"]) or {})

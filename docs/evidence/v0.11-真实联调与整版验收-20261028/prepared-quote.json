@@ -1,0 +1,41 @@
+{
+  "status": "prepared_not_approved",
+  "real_calls": 0,
+  "image_model": "doubao-seedream-5-0-flash-260915",
+  "video_model": "doubao-seedance-1-0-pro-fast-251015",
+  "image_spec": {
+    "size": "2688x1536",
+    "ratio": "16:9"
+  },
+  "video_spec": {
+    "duration": 5,
+    "resolution": "720p",
+    "ratio": "16:9"
+  },
+  "media_calls": {
+    "text_to_image": 2,
+    "image_to_image": 1,
+    "image_to_video": 2,
+    "text_to_video": 1
+  },
+  "media_estimate_cny": 1.7208,
+  "video_lifecycle": {
+    "status": "eos_scheduled",
+    "eos_at": "2026-11-24T14:00:00+08:00",
+    "eom_at": "2026-09-24T10:00:00+08:00",
+    "migrate_to": "doubao-seedance-2-0-mini-260615",
+    "migrate_to_activation": "not_opened",
+    "action": "关停",
+    "announce_url": "https://www.volcengine.com/docs/82379/1350667",
+    "seconds_remaining": 2324581,
+    "eom_passed": true
+  },
+  "proposed_limits": {
+    "llm_requests": 20,
+    "llm_cny": 1,
+    "media_calls": 6,
+    "media_cny": 3,
+    "total_cny": 4
+  },
+  "billing_note": "应用估算与提交前预留，不是供应商账单；异常不自动重试。"
+}

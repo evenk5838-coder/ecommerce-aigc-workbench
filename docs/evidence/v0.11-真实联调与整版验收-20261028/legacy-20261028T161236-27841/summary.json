@@ -1,0 +1,175 @@
+{
+  "scope": "Fresh retained feature checks; fixed providers only, no browser acceptance",
+  "runs": [
+    {
+      "name": "project-lifecycle",
+      "exit_code": 0,
+      "details": {
+        "suite": "project-lifecycle",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-u25o2zws/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-lcmt8qzg/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-x3bu3vh2/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-iuokusik/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-zny_r1vj/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-jwq6bpek/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-1kdr7bfp/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-1kdr7bfp/legacy.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-qtmx42c1/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-u3545km9/app.db",
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-3bgq72qj/project-delete-tests-iozcerqu/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 10,
+        "failed": 0,
+        "skipped": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "projects",
+      "exit_code": 0,
+      "details": {
+        "suite": "projects",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-wjgv1qub/s2-ufopjtcl/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 13,
+        "failed": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "four-modes",
+      "exit_code": 0,
+      "details": {
+        "suite": "four-modes",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-keyfvlx6/modes-7fk68gr4/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 12,
+        "failed": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "template-contracts",
+      "exit_code": 0,
+      "details": {
+        "suite": "template-contracts",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-c8ugkr3t/s1-fix-ttiqf91r/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 18,
+        "failed": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "structure-and-zip",
+      "exit_code": 0,
+      "details": {
+        "suite": "structure-and-zip",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-93a0vt9a/s56-uryfrrnp/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 9,
+        "failed": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "pipeline-and-zip",
+      "exit_code": 0,
+      "details": {
+        "suite": "pipeline-and-zip",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-oldi35gs/pipeline-a5z5mwvi/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 9,
+        "failed": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "retained-director",
+      "exit_code": 0,
+      "details": {
+        "suite": "retained-director",
+        "real_provider_calls": 0,
+        "network_attempts_blocked": 0,
+        "business_database_opened": false,
+        "dotenv_read": false,
+        "sqlite_paths": [
+          "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-oc_z2nhz/dirchat-2bca4e6u/app.db"
+        ],
+        "fixture_budget_cny": 1000,
+        "total": 21,
+        "failed": 0,
+        "exit_code": 0
+      }
+    },
+    {
+      "name": "frontend-unit",
+      "exit_code": 0,
+      "test_files": [
+        "src/generation-modes.test.ts",
+        "src/generation.test.ts",
+        "src/estimates.test.ts",
+        "src/capabilities.test.ts",
+        "src/image-specs.test.ts",
+        "src/single-templates.test.ts",
+        "src/editor.test.ts",
+        "src/creative/StructureTemplates.test.ts",
+        "src/creative/api.test.ts",
+        "src/creative/state.test.ts",
+        "src/creative/creative-location.test.ts",
+        "src/creative/production-api.test.ts",
+        "src/creative/production-wire.test.ts",
+        "src/creative/production-guards.test.ts"
+      ],
+      "total": 313,
+      "passed": 313,
+      "failed": 0,
+      "files": 14
+    }
+  ],
+  "live_build_unchanged": true,
+  "browser_pending": [
+    "Actual PNG canvas render and file download",
+    "Asset ZIP browser download",
+    "Project create/delete controls and stale-project landing in browser",
+    "Template apply controls"
+  ],
+  "real_model_calls": 0,
+  "paid_calls": 0
+}

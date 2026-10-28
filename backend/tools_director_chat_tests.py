@@ -256,13 +256,17 @@ def run() -> int:
     def shot_plan_requires_script_confirm():
         pid = proj()
         p = stub([tc("propose_script", {"summary": "两镜", "shots": [{"seq": 1, "hint": "整体"},
-                                                                   {"seq": 2, "hint": "细节"}]}),
-                  tc("propose_shot_plan", {"shots": [
+                                                                   {"seq": 2, "hint": "细节"}]})])
+        first = director_chat.chat(pid, {"message": "两镜脚本", "client_request_id": "req-sp-script"}, provider=p)
+        assert len(p.calls) == 1 and first["outcome"]["status"] == "saved"
+        # v0.11 stops once a script is saved. Plan drafting is a separate user
+        # turn; the original unconfirmed-script apply guard must still hold.
+        plan_provider = stub([tc("propose_shot_plan", {"shots": [
                       {"seq": 1, "description": "整体展示", "duration_s": 5},
                       {"seq": 2, "description": "瓶盖特写", "duration_s": 5}]}),
-                  {"reply": "脚本与镜头计划草案已保存。"}])
+                  {"reply": "镜头计划草案已保存。"}])
         out = director_chat.chat(pid, {"message": "两镜计划", "client_request_id": "req-sp"},
-                                 provider=p)
+                                 provider=plan_provider)
         plan = [a for a in out["artifacts"] if a["type"] == "shot_plan"][0]
         # 脚本未确认 → 应用请求被拒
         d = expect("SCRIPT_NOT_CONFIRMED", lambda: director_chat.apply_proposal(

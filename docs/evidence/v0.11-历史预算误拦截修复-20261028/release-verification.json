@@ -1,0 +1,24 @@
+{
+  "verified_at": "2026-10-28T19:51:36.600018+08:00",
+  "health_status": "ok",
+  "projects_readable": true,
+  "tables_identical": true,
+  "asset_files_identical": true,
+  "frontend_identical": true,
+  "source_matches_tested": true,
+  "quick_check": "ok",
+  "counts": {
+    "projects": 4,
+    "tasks": 70,
+    "assets": 25,
+    "drafts": 5,
+    "draft_versions": 98,
+    "canvas_nodes": 10,
+    "script_versions": 4,
+    "director_requests": 9,
+    "director_actions": 2
+  },
+  "new_service_pid": 44828,
+  "new_paid_calls": 0,
+  "backup": "/Users/niannian/Documents/VScode/电商工作平台/data/backups/budget-fix-20261028T195001"
+}

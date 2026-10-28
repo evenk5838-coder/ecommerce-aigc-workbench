@@ -1,0 +1,14 @@
+{
+  "suite": "retained-director",
+  "real_provider_calls": 0,
+  "network_attempts_blocked": 0,
+  "business_database_opened": false,
+  "dotenv_read": false,
+  "sqlite_paths": [
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-oc_z2nhz/dirchat-2bca4e6u/app.db"
+  ],
+  "fixture_budget_cny": 1000,
+  "total": 21,
+  "failed": 0,
+  "exit_code": 0
+}

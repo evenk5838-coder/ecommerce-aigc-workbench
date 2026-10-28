@@ -1,0 +1,131 @@
+{
+  "date": "2026-10-28 16:12:39",
+  "scope": "B0 四模式：T2V/T2I/I2V/I2I 分支、payload、批量、重试、旧请求兼容",
+  "isolation": {
+    "fresh_db": true,
+    "business_db_opened": false,
+    "provider": "未调用（providers_ark._request 守卫）",
+    "worker": "未启动"
+  },
+  "paid_calls": 0,
+  "real_llm_calls": 0,
+  "generation_tasks_executed": 0,
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "cases": [
+    {
+      "case": "四模式各自合法输入可解析，effective 回显模式",
+      "ok": true,
+      "detail": {
+        "T2V": "text_to_video",
+        "I2V": "image_to_video",
+        "T2I": "text_to_image",
+        "I2I": "image_to_image"
+      }
+    },
+    {
+      "case": "错误 kind / 未知模式 / 空提示词 / 缺图 → 拒绝且不建任务",
+      "ok": true,
+      "detail": {
+        "T2V带图冲突": "GENERATION_MODE_CONFLICT",
+        "T2V空prompt": "VALIDATION_FAILED",
+        "I2V无图": "REFERENCE_IMAGE_REQUIRED",
+        "未知mode": "VALIDATION_FAILED",
+        "无mode无图": "VALIDATION_FAILED",
+        "图片用视频mode": "VALIDATION_FAILED"
+      }
+    },
+    {
+      "case": "模型不支持该模式 → MODEL_CAPABILITY_MISMATCH",
+      "ok": true,
+      "detail": {
+        "code": "MODEL_CAPABILITY_MISMATCH",
+        "http": 400
+      }
+    },
+    {
+      "case": "T2V：estimate 零副作用，estimate 与 create 的模式/时长/规格/费用一致",
+      "ok": true,
+      "detail": {
+        "estimate_mode": "text_to_video",
+        "saved_mode": "text_to_video",
+        "same_duration": true,
+        "estimated": true
+      }
+    },
+    {
+      "case": "T2V 供应商 payload：仅文字，无 image_url",
+      "ok": true,
+      "detail": {
+        "payload_types": [
+          "text"
+        ]
+      }
+    },
+    {
+      "case": "I2V：非图片 / 不存在 / 坏图 → 均拒绝（不建任务）",
+      "ok": true,
+      "detail": {
+        "video_asset": "ASSET_NOT_IMAGE",
+        "missing": "ASSET_NOT_FOUND",
+        "broken": "INVALID_REFERENCE_IMAGE"
+      }
+    },
+    {
+      "case": "I2V 供应商 payload：文字 + 首帧图，MIME 为真实 jpeg",
+      "ok": true,
+      "detail": {
+        "types": [
+          "text",
+          "image_url"
+        ],
+        "mime": "data:image/jpeg"
+      }
+    },
+    {
+      "case": "显式 T2V 混入参考图 → 拒绝；参数残留也被剥离",
+      "ok": true,
+      "detail": {
+        "code": "GENERATION_MODE_CONFLICT",
+        "http": 400,
+        "residual_stripped": true
+      }
+    },
+    {
+      "case": "重试：T2V 仍不带图；I2V 保留模式与首帧",
+      "ok": true,
+      "detail": {
+        "t2v_retry_mode": "text_to_video",
+        "t2v_retry_img": null,
+        "i2v_retry_mode": "image_to_video",
+        "i2v_retry_img": "kept"
+      }
+    },
+    {
+      "case": "批量：每项按自身模式校验，不串图/参数；非法项整批拒绝",
+      "ok": true,
+      "detail": {
+        "mixed_batch": "ok",
+        "invalid_batch": "rejected_atomically"
+      }
+    },
+    {
+      "case": "旧请求（无 mode + 首帧）→ 归一为 image_to_video，不被改成 T2V",
+      "ok": true,
+      "detail": {
+        "mode": "image_to_video",
+        "has_image": true
+      }
+    },
+    {
+      "case": "旧历史行（无 mode）不被改写；重试归一化并保留首帧",
+      "ok": true,
+      "detail": {
+        "history_unchanged": true,
+        "retry_mode": "image_to_video"
+      }
+    }
+  ],
+  "disclaimer": "T2V/I2V 供应商 payload 仅做分支与 MIME 断言，未真实调用。"
+}

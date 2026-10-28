@@ -2,14 +2,35 @@ import { ApiError } from '../api';
 import { isRecord, isText } from './production-guards';
 import type { CreativeRequestOptions } from './types';
 export interface DirectorAction { type:'confirm_script'|'apply_shot_plan'|'apply_brief'|'quote_generation'; target_id?:string; target_version?:number; proposal_id?:string; proposal_version?:number; requires_user_action:true }
-export interface DirectorArtifact {type:string;proposal_id:string;proposal_version:number;target_id:string|null;target_version:number|null;persistence:'saved';confirmed:false}
+export interface DirectorArtifact {type:string;proposal_id:string;proposal_version:number;target_id:string|null;target_version:number|null;node_id?:string;persistence:'saved';confirmed:false}
+export type DirectorIntent = 'auto'|'script';
+export interface DirectorOutcome {status:'saved'|'clarify'|'message'|'failed'|'partial';goal:DirectorIntent;node_ids:string[];error?:{code:string;message:string}}
 export interface DirectorTurn {turn_id:string;request_id:string;user:string;reply:string;reply_type:string;created_at:number;structured:Record<string,unknown>}
 export interface DirectorMessages {project_id:string;session_id:string|null;workflow_revision:number;actions:DirectorAction[];items:DirectorTurn[];next_cursor:string|null;has_more:boolean}
-export interface DirectorReply {session_id:string;request_id:string;request_status:'completed';reply:string;reply_type:string;artifacts:DirectorArtifact[];actions:DirectorAction[];workflow_revision:number}
+export interface DirectorReply {session_id:string;request_id:string;request_status:'completed'|'failed';reply:string;reply_type:string;artifacts:DirectorArtifact[];actions:DirectorAction[];workflow_revision:number;outcome?:DirectorOutcome}
 export interface DirectorProposal {proposal_id:string;kind:string;version:number;status:string;target_id:string|null;target_version:number|null;content:Record<string,unknown>}
-export interface DirectorPendingRequest {id:string;message:string;session_id?:string;revision?:number}
+export interface DirectorPendingRequest {id:string;message:string;session_id?:string;revision?:number;intent?:DirectorIntent}
 const validVersion=(x:unknown):x is number=>typeof x==='number'&&Number.isSafeInteger(x)&&x>=0;
 const invalid=():never=>{throw new ApiError('DIRECTOR_RESPONSE_INVALID','导演回复暂时无法读取，请恢复会话核对。',0);};
+export function parseDirectorOutcome(value:unknown):DirectorOutcome {
+ if(!isRecord(value)||!['saved','clarify','message','failed','partial'].includes(String(value.status))||!['auto','script'].includes(String(value.goal))||!Array.isArray(value.node_ids)||value.node_ids.some(id=>!isText(id)))return invalid();
+ if(value.error!==undefined&&(!isRecord(value.error)||!isText(value.error.code)||!isText(value.error.message)))return invalid();
+ if((value.status==='failed'||value.status==='partial')&&!value.error)return invalid();
+ if(['message','clarify','failed'].includes(String(value.status))&&value.node_ids.length)return invalid();
+ return value as unknown as DirectorOutcome;
+}
+/** Old saved proposals remain readable, but an HTTP acknowledgement or prose alone is never an artifact. */
+export function directorOutcome(value:{outcome?:unknown;artifacts?:unknown;request_status?:string}):DirectorOutcome {
+ if(value.outcome!==undefined)return parseDirectorOutcome(value.outcome);
+ const artifacts=Array.isArray(value.artifacts)?value.artifacts.filter(a=>isRecord(a)&&a.persistence==='saved'&&isText(a.target_id)):[];
+ return {status:value.request_status==='failed'?'failed':artifacts.length?'saved':'message',goal:'auto',node_ids:artifacts.flatMap(a=>isText(a.node_id)?[a.node_id]:[]),...(value.request_status==='failed'?{error:{code:'DIRECTOR_REQUEST_FAILED',message:'这次操作未完成，请调整后再试。'}}:{})};
+}
+export function directorNodeIds(value:{outcome?:unknown;artifacts?:unknown;request_status?:string}):string[] {
+ const outcome=directorOutcome(value);
+ if(outcome.status!=='saved'&&outcome.status!=='partial')return [];
+ const ids=Array.isArray(value.artifacts)?value.artifacts.flatMap(a=>isRecord(a)&&a.persistence==='saved'&&isText(a.node_id)?[a.node_id]:[]):[];
+ return [...new Set([...outcome.node_ids,...ids])];
+}
 export function parseDirectorActions(value:unknown):DirectorAction[]{
  if(!Array.isArray(value))return invalid();
  return value.map(a=>{
@@ -20,13 +41,14 @@ export function parseDirectorActions(value:unknown):DirectorAction[]{
  });
 }
 export function parseDirectorReply(value:unknown,requestId:string):DirectorReply{
- if(!isRecord(value)||value.request_id!==requestId||value.request_status!=='completed'||!isText(value.session_id)||typeof value.reply!=='string'||typeof value.reply_type!=='string'||!validVersion(value.workflow_revision)||!Array.isArray(value.artifacts))return invalid();
- for(const a of value.artifacts){if(!isRecord(a)||a.persistence!=='saved'||a.confirmed!==false||!isText(a.type)||!isText(a.proposal_id)||!validVersion(a.proposal_version))return invalid();if(a.type==='brief'){if(!(a.target_id===null||isText(a.target_id))||!(a.target_version===null||validVersion(a.target_version)))return invalid();}else if(!isText(a.target_id)||!validVersion(a.target_version)||a.target_version<1)return invalid();}
+ if(!isRecord(value)||value.request_id!==requestId||!['completed','failed'].includes(String(value.request_status))||!isText(value.session_id)||typeof value.reply!=='string'||typeof value.reply_type!=='string'||!validVersion(value.workflow_revision)||!Array.isArray(value.artifacts))return invalid();
+ for(const a of value.artifacts){if(!isRecord(a)||a.persistence!=='saved'||a.confirmed!==false||!isText(a.type)||!isText(a.proposal_id)||!validVersion(a.proposal_version)||(a.node_id!==undefined&&!isText(a.node_id)))return invalid();if(a.type==='brief'){if(!(a.target_id===null||isText(a.target_id))||!(a.target_version===null||validVersion(a.target_version)))return invalid();}else if(!isText(a.target_id)||!validVersion(a.target_version)||a.target_version<1)return invalid();}
+ if(value.outcome!==undefined){const outcome=parseDirectorOutcome(value.outcome);if(['saved','partial'].includes(outcome.status)&&!value.artifacts.length)return invalid();if(value.request_status==='failed'&&!['failed','partial'].includes(outcome.status))return invalid();}
  return {...value,actions:parseDirectorActions(value.actions)} as unknown as DirectorReply;
 }
 export function parseDirectorMessages(value:unknown,projectId:string):DirectorMessages{
  if(!isRecord(value)||value.project_id!==projectId||!(value.session_id===null||isText(value.session_id))||!validVersion(value.workflow_revision)||!Array.isArray(value.items)||typeof value.has_more!=='boolean'||!(value.next_cursor===null||isText(value.next_cursor)))return invalid();
- for(const t of value.items)if(!isRecord(t)||!isText(t.turn_id)||!isText(t.request_id)||typeof t.user!=='string'||typeof t.reply!=='string'||typeof t.reply_type!=='string'||typeof t.created_at!=='number'||!isRecord(t.structured))return invalid();
+ for(const t of value.items){if(!isRecord(t)||!isText(t.turn_id)||!isText(t.request_id)||typeof t.user!=='string'||typeof t.reply!=='string'||typeof t.reply_type!=='string'||typeof t.created_at!=='number'||!Number.isFinite(t.created_at)||!isRecord(t.structured))return invalid();if(t.structured.outcome!==undefined)parseDirectorOutcome(t.structured.outcome);}
  return {...value,actions:parseDirectorActions(value.actions)} as unknown as DirectorMessages;
 }
 export function createProjectDirectorApi(fetcher:typeof fetch=(...args)=>fetch(...args)){
@@ -52,8 +74,14 @@ export function createProjectDirectorApi(fetcher:typeof fetch=(...args)=>fetch(.
  return {
   async proposals(id:string,options?:CreativeRequestOptions){const v=await request(base(id)+'/proposals','GET',undefined,options);if(!isRecord(v)||!Array.isArray(v.items))return invalid();for(const p of v.items)if(!isRecord(p)||!isText(p.proposal_id)||!isText(p.kind)||!validVersion(p.version)||!isText(p.status)||!isRecord(p.content))return invalid();return v.items as unknown as DirectorProposal[];},
   async messages(id:string,cursor?:string,options?:CreativeRequestOptions){return parseDirectorMessages(await request(base(id)+'/messages'+(cursor?'?cursor='+encodeURIComponent(cursor):''),'GET',undefined,options),id);},
-  async chat(id:string,p:DirectorPendingRequest,options?:CreativeRequestOptions){return parseDirectorReply(await request(base(id)+'/chat','POST',{client_request_id:p.id,message:p.message,session_id:p.session_id,expected_workflow_revision:p.revision},options),p.id);},
-  async receipt(id:string,requestId:string,options?:CreativeRequestOptions){const v=await request(base(id)+'/requests/'+encodeURIComponent(requestId),'GET',undefined,options);if(!isRecord(v)||v.client_request_id!==requestId||!['pending','completed','failed'].includes(String(v.status)))return invalid();return {status:v.status as 'pending'|'completed'|'failed',error_code:typeof v.error_code==='string'?v.error_code:undefined,response:v.status==='completed'?parseDirectorReply(v.response,requestId):null};},
+  async chat(id:string,p:DirectorPendingRequest,options?:CreativeRequestOptions){return parseDirectorReply(await request(base(id)+'/chat','POST',{client_request_id:p.id,message:p.message,session_id:p.session_id,expected_workflow_revision:p.revision,...(p.intent?{intent:p.intent}:{})},options),p.id);},
+  async receipt(id:string,requestId:string,options?:CreativeRequestOptions){
+   const v=await request(base(id)+'/requests/'+encodeURIComponent(requestId),'GET',undefined,options);
+   if(!isRecord(v)||v.client_request_id!==requestId||!['pending','completed','failed'].includes(String(v.status)))return invalid();
+   const response=v.status==='pending'||v.status==='failed'&&v.response==null?null:parseDirectorReply(v.response,requestId);
+   if(response&&response.request_status!==v.status)return invalid();
+   return {status:v.status as 'pending'|'completed'|'failed',error_code:typeof v.error_code==='string'?v.error_code:undefined,response};
+  },
   async apply(id:string,action:DirectorAction,requestId:string,options?:CreativeRequestOptions){if(!action.proposal_id||!action.proposal_version)return invalid();const v=await request(base(id)+'/proposals/'+encodeURIComponent(action.proposal_id)+'/apply','POST',{expected_version:action.proposal_version,client_request_id:requestId,user_action:'apply_proposal'},options);if(!isRecord(v)||v.proposal_id!==action.proposal_id||typeof v.applied!=='boolean')return invalid();return v;},
  };
 }

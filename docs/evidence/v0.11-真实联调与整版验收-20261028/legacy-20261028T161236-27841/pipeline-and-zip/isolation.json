@@ -1,0 +1,14 @@
+{
+  "suite": "pipeline-and-zip",
+  "real_provider_calls": 0,
+  "network_attempts_blocked": 0,
+  "business_database_opened": false,
+  "dotenv_read": false,
+  "sqlite_paths": [
+    "/private/var/folders/rk/6x1tc_5n0ylfbyw4z72fqwlr0000gn/T/release-legacy-oldi35gs/pipeline-a5z5mwvi/app.db"
+  ],
+  "fixture_budget_cny": 1000,
+  "total": 9,
+  "failed": 0,
+  "exit_code": 0
+}

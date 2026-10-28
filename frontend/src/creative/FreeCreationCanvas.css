@@ -1,4 +1,4 @@
-.free-creation-canvas{position:relative;display:flex;flex:1;isolation:isolate;width:100%;height:100%;min-width:0;min-height:440px;overflow:hidden;background:var(--studio-bg,#f7f8f4);color:var(--studio-text,#22291f);border:1px solid var(--studio-line,#dfe4d8);border-radius:16px}
+.free-creation-canvas{position:relative;display:flex;flex:1;isolation:isolate;width:100%;height:100%;min-width:0;min-height:0;overflow:hidden;background:var(--studio-bg,#f7f8f4);color:var(--studio-text,#22291f);border:0;border-radius:0}
 .fcc-viewport{position:relative;flex:1;min-width:0;min-height:inherit;height:100%;overflow:hidden;touch-action:none;outline:none;background-color:var(--studio-bg,#f7f8f4);background-image:radial-gradient(circle,var(--studio-line,#dfe4d8) 1.1px,transparent 1.1px);cursor:grab;overscroll-behavior:contain}
 .fcc-viewport.is-dragging,.fcc-viewport.is-dragging .fcc-node{cursor:grabbing;user-select:none}
 .fcc-viewport:focus-visible{outline:2px solid var(--studio-accent,#526c35);outline-offset:-3px}
@@ -43,7 +43,7 @@
 .fcc-empty p{margin:0;font-size:12px}
 .fcc-warning{position:absolute;z-index:21;left:16px;right:16px;top:45px;margin:0;padding:9px 12px;max-width:550px;border:1px solid var(--studio-warning-line,#e6d3ad);border-radius:8px;background:var(--studio-warning-bg,#fff7e9);color:var(--studio-warning,#89632e);font-size:11px;line-height:1.7;cursor:auto}
 .fcc-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:600px){.free-creation-canvas{min-height:510px;border-radius:11px}.fcc-caption{top:12px;left:12px}.fcc-caption small{font-size:10px}.fcc-toolbar{bottom:35px;gap:0;max-width:calc(100% - 20px)}.fcc-toolbar button{min-width:36px;padding:7px}.fcc-help{padding:0 14px;font-size:9px}.fcc-panel-content{padding:12px}}
+@media(max-width:600px){.free-creation-canvas{min-height:0;border-radius:0}.fcc-caption{top:12px;left:12px}.fcc-caption small{font-size:10px}.fcc-toolbar{bottom:35px;gap:0;max-width:calc(100% - 20px)}.fcc-toolbar button{min-width:36px;padding:7px}.fcc-help{padding:0 14px;font-size:9px}.fcc-panel-content{padding:12px}}
 @media(prefers-reduced-motion:reduce){.fcc-node{transition:none}}
 
 .fcc-media-empty{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;color:var(--studio-muted);font-size:10px}
@@ -53,3 +53,65 @@
 .fcc-sync button:disabled{opacity:.5;cursor:not-allowed}.fcc-sync button:focus-visible{outline:2px solid var(--studio-accent);outline-offset:2px}
 .fcc-sync-choices{display:flex;gap:7px;flex-basis:100%}.fcc-sync-choices button:first-child{background:var(--studio-accent-soft);color:var(--studio-accent-ink)}
 @media(max-width:600px){.fcc-sync{top:43px;right:10px;left:10px;max-width:none}.fcc-warning{top:110px}}
+
+/* The work area fills its parent. Only transient errors use a status surface. */
+.fcc-caption{top:24px;opacity:.65}
+.fcc-node{z-index:1;border-radius:12px;box-shadow:0 8px 30px #00000012}
+.fcc-node-panel>header button{margin-left:auto;display:flex;align-items:center;justify-content:center;width:26px;height:26px;border:0;border-radius:6px;background:transparent;color:var(--studio-muted);cursor:pointer}
+.fcc-node-panel>header button:hover{background:var(--studio-panel);color:var(--studio-text)}
+.fcc-create-tools{position:absolute;right:20px;top:50%;transform:translateY(-50%);z-index:20;display:flex;flex-direction:column;gap:4px;padding:6px;border:1px solid var(--studio-line);border-radius:16px;background:var(--studio-panel);box-shadow:0 8px 28px #00000018;cursor:auto}
+.fcc-create-tools button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:44px;min-height:51px;border:0;border-radius:10px;color:var(--studio-muted);background:transparent;cursor:pointer;font:inherit}
+.fcc-create-tools button span{font-size:10px}
+.fcc-create-tools button:hover{background:var(--studio-accent-soft);color:var(--studio-accent)}
+.fcc-create-tools button:focus-visible{outline:2px solid var(--studio-accent);outline-offset:1px}
+.fcc-edges{position:absolute;overflow:visible;pointer-events:none;z-index:0}
+.fcc-edges path{fill:none;stroke:var(--studio-muted);stroke-width:1.5;opacity:.45}
+.fcc-drop-hint{position:absolute;inset:12px;z-index:30;display:flex;align-items:center;justify-content:center;border:2px dashed var(--studio-accent);border-radius:14px;background:color-mix(in srgb,var(--studio-accent-soft) 85%,transparent);color:var(--studio-accent);font-size:18px;font-weight:650;pointer-events:none}
+.fcc-toolbar{bottom:31px;max-width:calc(100% - 24px);border-radius:14px}
+.fcc-help{bottom:11px;font-size:10px;opacity:.65}
+.fcc-sync{max-width:min(420px,calc(100% - 32px));top:18px;right:18px;font-size:12px}
+.fcc-sync button{font-size:11px}
+.fcc-empty{gap:14px;padding-right:74px}
+.fcc-empty>svg{opacity:.35;width:42px;height:42px;stroke-width:1.2}
+.fcc-empty strong{font-size:19px;font-weight:550}
+.fcc-empty p{font-size:12px;line-height:1.9;max-width:260px}
+@media(max-width:760px){.fcc-create-tools{right:12px}.fcc-caption{top:18px}.fcc-toolbar button span{display:none}.fcc-toolbar button{min-width:34px}.fcc-help{font-size:9px}.fcc-sync{left:12px;right:12px;max-width:none;top:12px}}
+
+/* Selection lives in world coordinates; controls remain compact in viewport coordinates. */
+.fcc-viewport.is-select-tool{cursor:default}
+.fcc-viewport.is-pan-tool,.fcc-viewport.is-pan-tool .fcc-node{cursor:grab}
+.fcc-viewport.is-dragging,.fcc-viewport.is-dragging .fcc-node{cursor:grabbing;user-select:none}
+.fcc-viewport.is-marquee-selecting,.fcc-viewport.is-marquee-selecting .fcc-node{cursor:crosshair}
+.fcc-marquee{position:absolute;z-index:5;box-sizing:border-box;border:1px solid var(--studio-accent);background:color-mix(in srgb,var(--studio-accent) 14%,transparent);pointer-events:none}
+.fcc-node-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.fcc-node-header-actions button{display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:0;border-radius:5px;background:transparent;color:var(--studio-muted);cursor:pointer}
+.fcc-node-header-actions button:hover:not(:disabled){background:var(--studio-error-bg,#fff1f2);color:var(--studio-error,#a83f4c)}
+.fcc-node-header-actions button:focus-visible,.fcc-selection-toolbar button:focus-visible,.fcc-action-error button:focus-visible{outline:2px solid var(--studio-accent);outline-offset:2px}
+.fcc-node-header-actions button:disabled,.fcc-selection-toolbar button:disabled{opacity:.4;cursor:not-allowed}
+.fcc-toolbar button[aria-pressed=true]{background:var(--studio-accent-soft);color:var(--studio-accent)}
+.fcc-toolbar{overflow-x:auto;scrollbar-width:thin}
+.fcc-toolbar button,.fcc-toolbar output,.fcc-toolbar i{flex-shrink:0}
+.fcc-selection-toolbar{position:absolute;z-index:21;bottom:88px;display:flex;align-items:center;gap:13px;padding:5px 6px 5px 12px;max-width:calc(100% - 24px);transform:translateX(-50%);border:1px solid var(--studio-line);border-radius:10px;background:var(--studio-panel);box-shadow:0 4px 18px #00000013;color:var(--studio-muted);font-size:11px;cursor:auto;white-space:nowrap;touch-action:manipulation}
+.fcc-selection-toolbar button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:29px;padding:5px 9px;border:0;border-radius:6px;background:var(--studio-soft);color:var(--studio-text);font:inherit;cursor:pointer}
+.fcc-selection-toolbar button:hover:not(:disabled){background:var(--studio-error-bg,#fff1f2);color:var(--studio-error,#a83f4c)}
+.fcc-action-error{position:absolute;z-index:23;top:64px;right:18px;display:flex;align-items:center;gap:12px;max-width:min(420px,calc(100% - 36px));padding:10px 12px;border:1px solid var(--studio-warning-line,#e6d3ad);border-radius:9px;background:var(--studio-warning-bg,#fff7e9);color:var(--studio-warning,#89632e);font-size:12px;line-height:1.6;cursor:auto}
+.fcc-action-error button{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:24px;height:24px;padding:0;border:0;border-radius:5px;background:transparent;color:inherit;cursor:pointer}
+@media(max-width:760px){.fcc-toolbar{gap:0}.fcc-toolbar button{padding:7px}.fcc-toolbar output{min-width:36px}.fcc-toolbar i{margin:0 2px}.fcc-selection-toolbar{bottom:83px}.fcc-action-error{right:12px;max-width:calc(100% - 24px)}}
+
+/* Reference ports are part of the node's world: position and scale follow it. */
+.fcc-node{overflow:visible}
+.fcc-reference-port{position:absolute;z-index:4;top:50%;display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:0;border:1px solid var(--studio-line);border-radius:50%;background:var(--studio-panel);color:var(--studio-muted);cursor:crosshair;touch-action:none;transform:translateY(-50%)}
+.fcc-reference-output{right:-14px}
+.fcc-reference-input{left:-14px}
+.fcc-reference-input span{width:7px;height:7px;border:1.5px solid currentColor;border-radius:50%}
+.fcc-reference-port:hover:not(:disabled),.fcc-reference-port:focus-visible{outline:2px solid var(--studio-accent);outline-offset:2px;color:var(--studio-accent);background:var(--studio-accent-soft)}
+.fcc-reference-port:disabled{cursor:default;color:var(--studio-line)}
+.fcc-reference-preview{z-index:4}
+.fcc-reference-preview path{stroke:var(--studio-accent);stroke-width:2;stroke-dasharray:7 5;opacity:1}
+.fcc-viewport.is-connecting-reference,.fcc-viewport.is-connecting-reference .fcc-node{cursor:crosshair}
+.fcc-node.is-reference-target{border-color:var(--studio-accent)}
+.fcc-node.is-reference-hovered{box-shadow:0 0 0 3px var(--studio-accent),0 8px 26px #00000012}
+.fcc-node.is-reference-hovered .fcc-reference-input,.fcc-node.is-reference-source .fcc-reference-output{border-color:var(--studio-accent);background:var(--studio-accent);color:var(--studio-panel)}
+.fcc-reference-hint{position:absolute;z-index:24;top:66px;display:flex;align-items:center;gap:8px;transform:translateX(-50%);padding:8px 10px;border:1px solid var(--studio-accent);border-radius:10px;background:var(--studio-panel);color:var(--studio-accent);font-size:11px;line-height:1.5;white-space:nowrap;box-shadow:0 4px 20px #00000018;cursor:default}
+.fcc-reference-hint button{display:flex;align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:0;border-radius:5px;background:var(--studio-soft);color:inherit;cursor:pointer}
+.fcc-reference-hint button:focus-visible{outline:2px solid var(--studio-accent);outline-offset:2px}

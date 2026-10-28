@@ -1,0 +1,126 @@
+{
+  "label": "Actual isolated HTTP restart; worker disabled; zero external model calls",
+  "project_id": "prj_abbd9c107c7647cb83df",
+  "quote_id": "nquote_a3dc059f528a443ea0c7",
+  "execution_id": "nexec_c845b3aef25a494d9d81",
+  "task_id": "task_8a81495540b94634a4b8",
+  "operation_id": "cdel_90a96130f67c4420a421",
+  "task_count": 1,
+  "restored_nodes": [
+    "picture",
+    "words",
+    "later"
+  ],
+  "nodes_after_restart_before_undo": [
+    "later"
+  ],
+  "idempotent_replay": true,
+  "real_model_calls": 0,
+  "worker_executed": false,
+  "canvas": {
+    "project_id": "prj_abbd9c107c7647cb83df",
+    "schema_version": 1,
+    "layout_revision": 4,
+    "viewport": {
+      "x": 5,
+      "y": 7,
+      "zoom": 0.8
+    },
+    "nodes": [
+      {
+        "node_id": "picture",
+        "type": "image",
+        "position": {
+          "x": 200,
+          "y": 100
+        },
+        "config": {
+          "generation_mode": "text_to_image",
+          "model_id": "doubao-seedream-5-0-flash-260915",
+          "prompt": "A cup in morning light",
+          "params": {
+            "ratio": "16:9",
+            "size": "2688x1536"
+          }
+        },
+        "binding": {},
+        "config_revision": 2,
+        "last_execution": {
+          "execution_id": "nexec_c845b3aef25a494d9d81",
+          "project_id": "prj_abbd9c107c7647cb83df",
+          "node_id": "picture",
+          "quote_id": "nquote_a3dc059f528a443ea0c7",
+          "client_request_id": "once-after-restart",
+          "task_id": "task_8a81495540b94634a4b8",
+          "status": "queued",
+          "stage": "queued",
+          "progress": 0.0,
+          "active": true,
+          "output_asset_id": null,
+          "asset_id": null,
+          "asset": null,
+          "error": null,
+          "estimated_cost_cny": 0.12,
+          "input": {
+            "kind": "image",
+            "model_id": "doubao-seedream-5-0-flash-260915",
+            "params": {
+              "ratio": "16:9",
+              "size": "2688x1536",
+              "watermark": false,
+              "prompt": "A cup in morning light",
+              "generation_mode": "text_to_image"
+            },
+            "input_asset_id": null,
+            "reference": null
+          },
+          "cost_cny": null,
+          "created_at": 1793099746.031717,
+          "finished_at": null,
+          "config_revision": 1,
+          "input_hash": "sha256:1904cfeb91b3be4845b146873149b5db58efd660efe9afd91bc83da525a16679",
+          "last_successful_execution": null
+        },
+        "asset": null
+      },
+      {
+        "node_id": "words",
+        "type": "text",
+        "position": {
+          "x": 20,
+          "y": 30
+        },
+        "config": {
+          "text": "Keep my script"
+        },
+        "binding": {},
+        "config_revision": 2,
+        "last_execution": null,
+        "asset": null
+      },
+      {
+        "node_id": "later",
+        "type": "text",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "config": {
+          "text": "New unrelated edit"
+        },
+        "binding": {},
+        "config_revision": 1,
+        "last_execution": null,
+        "asset": null
+      }
+    ],
+    "edges": [
+      {
+        "from": "words",
+        "to": "picture"
+      }
+    ],
+    "deleted_node_ids": [],
+    "note": "布局与生成配置分开；last_execution 只读，不可 PATCH"
+  }
+}
