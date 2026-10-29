@@ -12,6 +12,28 @@ from app.assistant.provider import FixedReplyProvider
 
 
 class ContextProjectionTests(unittest.TestCase):
+    def test_media_state_distinguishes_current_output_old_revision_and_failure(self):
+        success = {"config_revision": 2, "status": "succeeded", "active": False,
+                   "asset_id": "result", "asset_available": True}
+        cases = [(success, "completed"),
+            ({**success, "config_revision": 1}, "settings_changed"),
+            ({**success, "asset_available": False}, "output_unavailable"),
+            ({**success, "status": "running", "active": True}, "running"),
+            ({**success, "status": "failed", "last_successful_execution": success}, "failed"),
+            ({**success, "status": "canceled"}, "canceled"),
+            ({**success, "status": "interrupted"}, "interrupted"),
+            ({"status": "succeeded", "asset_available": True}, "unknown"),
+            (None, "not_submitted")]
+        for execution, expected in cases:
+            with self.subTest(expected=expected):
+                source = {"nodes": [{"node_id": "image-1", "type": "image", "config_revision": 2,
+                    "config": {"prompt": "current settings"}, "last_execution": execution}]}
+                before = deepcopy(source)
+                projected = compact.creation_for_model(source)["nodes"][0]
+                self.assertEqual(projected["execution_state"], expected)
+                self.assertEqual(source, before)
+                self.assertNotIn("requires_user_action", projected)
+
     def setUp(self):
         self.node = {"node_id": "script", "type": "script", "config_revision": 2,
             "position": {"x": 20, "y": 80}, "binding": {"script_id": "s1", "script_version": 2},
@@ -75,6 +97,36 @@ class WorkflowContextTests(unittest.TestCase):
     call = staticmethod(fixture.DirectorWorkflowTests.call)
     conversation = fixture.DirectorWorkflowTests.conversation
     no_tasks = fixture.DirectorWorkflowTests.no_tasks
+
+    def test_latest_state_follows_old_pending_confirmation_reply_and_new_idea_is_not_saved(self):
+        canvas.patch_canvas(self.pid, {"nodes": [{"node_id": "image-1", "type": "image",
+            "config": {"model_id": "doubao-seedream-5-0-flash-260915", "prompt": "saved neutral grey",
+                       "params": {"size": "2688x1536"}}}]})
+        db.insert("director_turns", {"id": "old-status", "project_id": self.pid,
+            "user_text": "刚才重做第二镜", "reply_text": "等待你确认后才会生成。",
+            "structured_json": db.dumps({}), "created_at": 1})
+        real_context = workflow.creation.creation_context(self.pid)
+        real_context["nodes"][0]["last_execution"] = {"status": "succeeded", "active": False,
+            "config_revision": real_context["nodes"][0]["config_revision"], "asset_available": True,
+            "asset_id": "completed-output", "execution_id": "completed-run"}
+        before = canvas.get_canvas(self.pid)
+        provider = FixedReplyProvider([{"tool_calls": [self.call("respond_to_user", {
+            "kind": "discuss", "message": "已保存的灰背景版本已经完成；新提出的浅蓝灰还没有保存或生成。",
+            "missing_fields": []}, "reply-status")]}])
+        with patch.object(workflow.creation, "creation_context", return_value=real_context):
+            result = self.conversation(provider, message="只讨论：新背景改成浅蓝灰，别执行。之前的重做完成了吗？")
+        sent = provider.calls[0]["messages"]
+        context_index = next(i for i, item in enumerate(sent) if item["role"] == "context")
+        old_index = next(i for i, item in enumerate(sent) if item.get("content") == "等待你确认后才会生成。")
+        self.assertGreater(context_index, old_index)
+        node = sent[context_index]["content"]["creation"]["nodes"][0]
+        self.assertEqual(node["execution_state"], "completed")
+        self.assertEqual(node["config"]["prompt"], "saved neutral grey")
+        self.assertEqual(sent[-1]["role"], "user")
+        self.assertEqual(result["outcome"]["status"], "message")
+        self.assertEqual(result["actions"], [])
+        self.assertEqual(canvas.get_canvas(self.pid), before)
+        self.no_tasks()
 
     def test_history_preserves_user_and_reply_and_retains_more_recent_turns(self):
         cfg = {"text": "商品要求" * 1000}

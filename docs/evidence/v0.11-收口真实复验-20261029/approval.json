@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "approved": true,
+  "authorization_reference": "User reply: 后端模型已切好，批准本轮 ¥2，继续",
+  "run_id": "closing-20261029-113020",
+  "approved_at": "2026-10-29T11:30:20.424218+08:00",
+  "total_cny": "2",
+  "llm_cny": "1",
+  "media_cny": "1",
+  "max_calls": {
+    "llm": 20,
+    "text_to_image": 0,
+    "image_to_image": 3,
+    "image_to_video": 0,
+    "text_to_video": 0
+  },
+  "image_model": "doubao-seedream-5-0-flash-260915",
+  "video_model": "doubao-seedance-1-0-pro-fast-251015",
+  "llm_model": "deepseek-flash",
+  "image_size": "2688x1536",
+  "video": {
+    "duration": 5,
+    "resolution": "720p",
+    "ratio": "16:9"
+  },
+  "no_automatic_retry": true
+}

@@ -1,0 +1,21 @@
+{
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/verify-20261029T121825-89259.txt": "b550d571a0cdcba1c635891d3f8a5dfd7d506009e7e0858142ddfa06a1cf0ef9",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/release-verification.json": "70c13fb20e8abb5494e8c40ecebcdb46f9085c9e86914c3d8a4b5b9c1b90ea8d",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/verify-输出.txt": "b550d571a0cdcba1c635891d3f8a5dfd7d506009e7e0858142ddfa06a1cf0ef9",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/initial-failure.md": "a7777d1ca8a1151ebb778a6691e74f5af0250db38719640b3296bc491338a362",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/照着做清单.md": "32f5302b7a1f85593ae03af46d1d79597d7c541984c272d3766083b6adbff409",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/local-http-note.md": "34b574c9c18aa5c5a96e1381af1924f683cbfd644a0658e98e8cd91518eb6e54",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/verify-20261029T121658-88796.txt": "a7ee60cb3e70d97a916b103b40867c83e68e5d422c168b57cfa263c1a919e6dd",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/是否表.md": "6cff6046d628385dc0a41126e9d19f00940af2560aff729e1ed250a1939d2add",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/release-check.py": "a7e7f58498f21a277a35b762e87379512443e640a0724b521504530adc79fbd9",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/release-preparation.json": "8d5defb2baef6eb864526d4bf00a1b8556002be1506ca34007de7eaf8692198f",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/run-20261029T121825-89259/live-build-before.json": "93b05af7790ee85d73eed844d1a60fb8fde6ce0155440596a692518866fbcd61",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/run-20261029T121658-88796/live-build-before.json": "93b05af7790ee85d73eed844d1a60fb8fde6ce0155440596a692518866fbcd61",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/run-20261029T121825-89259/http-film/fixed-blue-then-red.mp4": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/run-20261029T121825-89259/http-film/director-workflow-http.json": "1455952be70d5f65d886d9a9feb2d8ac032175e06df44db159b3b39d803a6e25",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/run-20261029T121825-89259/http-clips/fixed-blue-then-red.mp4": "c500dd7d4942c920344d582c48262550dceef573cb76976db717c41b6479a8d4",
+  "docs/evidence/v0.11-Agent澄清修复-后端-20261029/run-20261029T121825-89259/http-clips/director-workflow-http.json": "f236a601b44ca3e6acbe7ce2f02f69f81ba1ab610aae7abb27f89d3e0755453f",
+  "backend/app/director_workflow.py": "e2b23fd4e2a8fae453408354e71d60a905f29d99383c36db42fec17a66245781",
+  "backend/tests/test_director_workflow.py": "3fcc338fc8e762fcfbb04e5c3852f9c5b5ed2b6a4696f3096bc7214683385567",
+  "verify.sh": "841b836543ebeb6fd0a807c7067f55961e45902419d395c79a4691c9c32afb74"
+}

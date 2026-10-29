@@ -192,6 +192,38 @@ class DirectorWorkflowTests(unittest.TestCase):
         self.assertEqual(db.query("SELECT * FROM director_requests"), [])
         self.no_tasks()
 
+    def test_answered_visual_choice_stays_in_context_without_discussion_side_effects(self):
+        """Recorded failure shape; fixed model verifies harness, not LLM judgement."""
+        self.make_script(confirmed=True)
+        self.conversation(self.provider("respond_to_user", {"kind": "clarify",
+            "message": "背景要纯灰还是偏暖灰？", "missing_fields": ["背景色调"]}),
+            request="old-question", message="先讨论第二镜背景")
+        before = self.snapshot()
+        reply = "理解：第二镜背景改成中性浅灰，第一镜保持原样。现在只讨论，不修改或生成。"
+        provider = self.provider("respond_to_user", {"kind": "discuss", "message": reply, "missing_fields": []})
+        message = "中性浅灰已经确定。继续只讨论、不写入，请简短确认理解，不再重写脚本或生成。"
+        out = self.conversation(provider, request="answered-choice", message=message)
+        sent = provider.calls[0]["messages"]
+        self.assertEqual(sent[-1], {"role": "user", "content": message})
+        self.assertTrue(any("纯灰还是偏暖灰" in str(m.get("content")) for m in sent[:-1]))
+        self.assertIn("已明确或已回答的要求不再问", sent[0]["content"])
+        self.assertEqual(out["reply"], reply)
+        self.assertEqual(out["outcome"]["status"], "message")
+        self.assertEqual((out["artifacts"], out["actions"]), ([], []))
+        after = self.snapshot()
+        for table in ("script_versions", "canvas_nodes", "director_actions", "confirmations", "confirmation_events", "tasks"):
+            self.assertEqual(after[table], before[table], table)
+        self.no_tasks()
+
+    def test_clear_request_saves_without_an_extra_clarification_round(self):
+        provider = self.provider("write_script", self.script_args("中性浅灰背景，白色无把手杯，不添加杯碟"))
+        out = self.conversation(provider, message="背景已选中性浅灰，单只白色无把手杯，横版10秒两镜，不加杯碟，直接写脚本。")
+        self.assertEqual(out["outcome"]["status"], "saved")
+        self.assertEqual(len(provider.calls), 1)
+        self.assertEqual(len(out["actions"]), 1)
+        self.assertTrue(out["actions"][0]["requires_user_action"])
+        self.no_tasks()
+
     def test_foreign_selection_and_session_rejected_before_llm(self):
         canvas.patch_canvas(self.other, {"nodes": [{"node_id": "foreign-note", "type": "text", "config": {"text": "private"}}]})
         foreign = service.conversation(self.other, {"message": "hello", "client_request_id": "other"},

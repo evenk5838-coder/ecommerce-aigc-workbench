@@ -1,0 +1,7 @@
+{
+  "new_profile_three_i2i_and_block_fourth": true,
+  "blocks_text_to_image": true,
+  "persistent_count": true,
+  "real_calls": 0,
+  "default_guard_tests": 18
+}

@@ -250,3 +250,7 @@ docs/              产品文档、路线图、交接与实测证据
 2026-10-24 建立 Git 基线，归档至 GitHub 私有仓库 `evenk5838-coder/ecommerce-aigc-workbench`。`baseline-before-frontend-20261024` 标记本轮前端优化开始前的快照；快照包含当时已有的后端 v0.7 增量，具体能力与验收状态以对应版本文档为准，归档不代表整版验收通过。
 
 仓库保留源码、依赖清单、项目文档与验收证据，不包含 `.env`、`data/` 运行数据库与素材、日志、模型权重、依赖环境或构建产物。恢复个人草稿和素材仍需另行备份 `data/`；重新运行需配置本地环境与密钥。数据备份、恢复演练和干净环境复现仍是待办。
+
+后端澄清规则修复（2026-10-29）：`APP_PYTHON=backend/.venv/bin/python bash verify.sh director-clarification`。374 项后端与 21 项保留回归通过，8100 已更新；修复后真实模型语义复验待验，详见 `docs/阶段文档/Agent澄清修复-后端-20261029.md`。
+
+状态描述修复（2026-10-29）：`APP_PYTHON=backend/.venv/bin/python bash verify.sh director-status`。376项后端和21项保留回归通过；真实文本样例已区分已完成任务与未保存的新想法，8100已更新，费用及证据见项目状态。

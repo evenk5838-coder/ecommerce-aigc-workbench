@@ -1,0 +1,690 @@
+{
+  "flow_version": 2,
+  "session_id": "asst_037a8be62fdf40c5bb15",
+  "request_id": "07839d4583114c80899af4c6ad702832",
+  "request_status": "completed",
+  "reply": "节点设置和生成方案已准备好，请确认本次素材与费用后开始生成。",
+  "reply_type": "saved",
+  "outcome": {
+    "status": "saved",
+    "node_ids": [
+      "director-image-e5edd4a74f2f4ecae934-1",
+      "director-image-e5edd4a74f2f4ecae934-2"
+    ]
+  },
+  "artifacts": [
+    {
+      "type": "image",
+      "node_id": "director-image-e5edd4a74f2f4ecae934-1",
+      "config_revision": 1,
+      "config": {
+        "generation_mode": "image_to_image",
+        "model_id": "doubao-seedream-5-0-flash-260915",
+        "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。全景构图：杯子静置于木桌台面，位于画面偏右三分线处，圆口朝上。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+        "input_asset_id": "asset_22708849afa5481d8b48",
+        "params": {
+          "size": "2688x1536",
+          "ratio": "16:9"
+        },
+        "title": "镜1 全景：木桌晨光中的白杯"
+      },
+      "binding": {
+        "shot_id": "shot_e5edd4a74f2f4ecae934_1",
+        "script_id": "scr_bb8e2115c22e4ebc8312",
+        "script_version": 1
+      },
+      "position": {
+        "x": 560,
+        "y": 100
+      },
+      "saved": true,
+      "confirmed": false,
+      "source": {
+        "node_id": "script",
+        "config_revision": 1,
+        "type": "script",
+        "script_id": "scr_bb8e2115c22e4ebc8312",
+        "script_version": 1,
+        "content_hash": "sha256:b0a61157f3c8589d1919a60adf9b710ee8836c53a235bf3df5ad681c04a14802"
+      },
+      "reference": {
+        "id": "asset_22708849afa5481d8b48",
+        "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+        "kind": "image",
+        "mime": "image/jpeg",
+        "width": 2688,
+        "height": 1536
+      },
+      "seq": 1,
+      "persistence": "saved"
+    },
+    {
+      "type": "image",
+      "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+      "config_revision": 1,
+      "config": {
+        "generation_mode": "image_to_image",
+        "model_id": "doubao-seedream-5-0-flash-260915",
+        "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+        "input_asset_id": "asset_22708849afa5481d8b48",
+        "params": {
+          "size": "2688x1536",
+          "ratio": "16:9"
+        },
+        "title": "镜2 特写：杯口圆润口沿与釉面"
+      },
+      "binding": {
+        "shot_id": "shot_e5edd4a74f2f4ecae934_2",
+        "script_id": "scr_bb8e2115c22e4ebc8312",
+        "script_version": 1
+      },
+      "position": {
+        "x": 560,
+        "y": 440
+      },
+      "saved": true,
+      "confirmed": false,
+      "source": {
+        "node_id": "script",
+        "config_revision": 1,
+        "type": "script",
+        "script_id": "scr_bb8e2115c22e4ebc8312",
+        "script_version": 1,
+        "content_hash": "sha256:b0a61157f3c8589d1919a60adf9b710ee8836c53a235bf3df5ad681c04a14802"
+      },
+      "reference": {
+        "id": "asset_22708849afa5481d8b48",
+        "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+        "kind": "image",
+        "mime": "image/jpeg",
+        "width": 2688,
+        "height": 1536
+      },
+      "seq": 2,
+      "persistence": "saved"
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "dact_61642e2987124c4c90dc",
+      "project_id": "prj_d2a48fbf369f46cd8c4e",
+      "kind": "generation",
+      "status": "proposed",
+      "action_status": "proposed",
+      "request_id": "07839d4583114c80899af4c6ad702832",
+      "node_ids": [
+        "director-image-e5edd4a74f2f4ecae934-1",
+        "director-image-e5edd4a74f2f4ecae934-2"
+      ],
+      "quotes": [
+        {
+          "quote_id": "nquote_7e2a803e08eb4663ae6a",
+          "project_id": "prj_d2a48fbf369f46cd8c4e",
+          "node_id": "director-image-e5edd4a74f2f4ecae934-1",
+          "config_revision": 1,
+          "input_hash": "sha256:86448dea39a2125c253e5e7ac00b6161edf86b246c6b517369047f714d001110",
+          "estimated_cost_cny": 0.12,
+          "expires_at": 1793245391.7101161,
+          "input": {
+            "kind": "image",
+            "model_id": "doubao-seedream-5-0-flash-260915",
+            "params": {
+              "size": "2688x1536",
+              "ratio": "16:9",
+              "watermark": false,
+              "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。全景构图：杯子静置于木桌台面，位于画面偏右三分线处，圆口朝上。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+              "generation_mode": "image_to_image",
+              "input_asset_id": "asset_22708849afa5481d8b48"
+            },
+            "input_asset_id": "asset_22708849afa5481d8b48",
+            "reference": {
+              "asset_id": "asset_22708849afa5481d8b48",
+              "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+              "mime": "image/jpeg"
+            }
+          },
+          "side_effects": {
+            "task_created": false,
+            "model_called": false,
+            "budget_deducted": false
+          }
+        },
+        {
+          "quote_id": "nquote_1eb69d2b6be742949e9c",
+          "project_id": "prj_d2a48fbf369f46cd8c4e",
+          "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+          "config_revision": 1,
+          "input_hash": "sha256:4bd818ceefc038af90c0cde9df1cf630a0e8d779be3776de07299bbd4ea0c31a",
+          "estimated_cost_cny": 0.12,
+          "expires_at": 1793245391.713279,
+          "input": {
+            "kind": "image",
+            "model_id": "doubao-seedream-5-0-flash-260915",
+            "params": {
+              "size": "2688x1536",
+              "ratio": "16:9",
+              "watermark": false,
+              "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+              "generation_mode": "image_to_image",
+              "input_asset_id": "asset_22708849afa5481d8b48"
+            },
+            "input_asset_id": "asset_22708849afa5481d8b48",
+            "reference": {
+              "asset_id": "asset_22708849afa5481d8b48",
+              "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+              "mime": "image/jpeg"
+            }
+          },
+          "side_effects": {
+            "task_created": false,
+            "model_called": false,
+            "budget_deducted": false
+          }
+        }
+      ],
+      "output_mode": "clips",
+      "estimated_cost_cny": 0.24,
+      "expires_at": 1793245391.7101161,
+      "expired": false,
+      "requires_user_action": true,
+      "batch_id": null,
+      "tasks": [],
+      "executions": [],
+      "submit_client_request_id": null,
+      "auto_film": false,
+      "media_status": "proposed",
+      "composition": null,
+      "error": null,
+      "scope": {
+        "generate": true,
+        "compose": false,
+        "ordered_node_ids": [
+          "director-image-e5edd4a74f2f4ecae934-1",
+          "director-image-e5edd4a74f2f4ecae934-2"
+        ],
+        "no_trim": false,
+        "composition_cost_cny": 0
+      },
+      "created_at": 1793244791.713355,
+      "submitted_at": null,
+      "idempotent_replay": false,
+      "side_effects": {
+        "tasks_created": 0,
+        "model_called": false,
+        "budget_deducted": false
+      }
+    }
+  ],
+  "current_role": "director",
+  "current": {
+    "project_id": "prj_d2a48fbf369f46cd8c4e",
+    "name": "收口真实复验 · 白色无把手杯",
+    "brief": {
+      "subject": "白色无把手陶瓷杯",
+      "quantity": 1,
+      "style": "自然晨光、干净产品画面",
+      "target_duration_s": 10
+    },
+    "current_stage": "storyboard",
+    "script": {
+      "script_id": "scr_bb8e2115c22e4ebc8312",
+      "version": 1,
+      "content": {
+        "summary": "10秒横屏产品空镜，两镜各5秒。白色无把手陶瓷杯（圆口、杯壁略向底部收拢、无标识）置于木桌，自然晨光。第一镜全景交代环境与器物轮廓，第二镜杯口特写呈现圆润口沿与釉面质感。不出现碟子、杯盖、文字、把手，不涉及任何产品性能表述。",
+        "shots": [
+          {
+            "seq": 1,
+            "hint": "全景：木桌台面，白色无把手陶瓷杯静置于画面偏右三分线处，圆口朝上，杯壁略向底部收拢，杯身无任何标识。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。固定机位，轻微缓慢横移，5秒。",
+            "duration_s": 5,
+            "motion": "固定机位轻微缓慢横移"
+          },
+          {
+            "seq": 2,
+            "hint": "杯口特写：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。极缓慢推近，5秒。",
+            "duration_s": 5,
+            "motion": "极缓慢推近"
+          }
+        ]
+      },
+      "confirmed": true
+    },
+    "shots": [
+      {
+        "shot_id": "shot_e5edd4a74f2f4ecae934_1",
+        "seq": 1,
+        "duration_s": 5,
+        "description": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。全景构图：杯子静置于木桌台面，位于画面偏右三分线处，圆口朝上。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。"
+      },
+      {
+        "shot_id": "shot_e5edd4a74f2f4ecae934_2",
+        "seq": 2,
+        "duration_s": 5,
+        "description": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。"
+      }
+    ],
+    "allowed_actions": [
+      "edit_brief",
+      "regenerate_script",
+      "edit_shot_plan",
+      "generate_storyboard",
+      "review_storyboard"
+    ],
+    "draft_proposals": [
+      {
+        "kind": "script",
+        "version": 1,
+        "proposal_id": "prop_5d4a5027c1d7413bae86",
+        "content": {
+          "summary": "10秒横屏产品空镜，两镜各5秒。白色无把手陶瓷杯（圆口、杯壁略向底部收拢、无标识）置于木桌，自然晨光。第一镜全景交代环境与器物轮廓，第二镜杯口特写呈现圆润口沿与釉面质感。不出现碟子、杯盖、文字、把手，不涉及任何产品性能表述。",
+          "shots": [
+            {
+              "seq": 1,
+              "hint": "全景：木桌台面，白色无把手陶瓷杯静置于画面偏右三分线处，圆口朝上，杯壁略向底部收拢，杯身无任何标识。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。固定机位，轻微缓慢横移，5秒。",
+              "duration_s": 5,
+              "motion": "固定机位轻微缓慢横移"
+            },
+            {
+              "seq": 2,
+              "hint": "杯口特写：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。极缓慢推近，5秒。",
+              "duration_s": 5,
+              "motion": "极缓慢推近"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 10320,
+    "output_tokens": 554,
+    "cost_cny": 0.009517,
+    "estimated_cny": 0.053526
+  },
+  "tool_calls": [
+    {
+      "tool": "list_models",
+      "tool_call_id": "call_00_8tB2mJCRqPkEAlBmn3TK2464",
+      "ok": true,
+      "result": {
+        "items": [
+          {
+            "id": "sd15",
+            "kind": "image",
+            "submittable": true,
+            "reasons": [],
+            "input_modes": [],
+            "duration_policy": null,
+            "capabilities": {}
+          },
+          {
+            "id": "sdxl-base-1.0",
+            "kind": "image",
+            "submittable": false,
+            "reasons": [
+              "MODEL_NOT_DOWNLOADED"
+            ],
+            "input_modes": [],
+            "duration_policy": null,
+            "capabilities": {}
+          },
+          {
+            "id": "doubao-seedream-5-0-pro-260628",
+            "kind": "image",
+            "submittable": false,
+            "reasons": [
+              "MODEL_NOT_OPENED"
+            ],
+            "input_modes": [
+              "text_to_image",
+              "image_to_image"
+            ],
+            "duration_policy": null,
+            "capabilities": {
+              "input_modes": [
+                "text_to_image",
+                "image_to_image"
+              ],
+              "max_reference_images": 10,
+              "ratios": [
+                "1:1",
+                "3:4",
+                "4:3",
+                "9:16",
+                "16:9"
+              ],
+              "resolutions": [],
+              "sizes": [
+                "1024x1024",
+                "2048x2048",
+                "1728x2304",
+                "2304x1728",
+                "1536x2688",
+                "2688x1536"
+              ],
+              "duration_s": [],
+              "supports": [
+                "图层拆分",
+                "单图生成",
+                "文生图",
+                "单张图生图",
+                "多参考图生图"
+              ],
+              "max_ipm": 500,
+              "pricing": {
+                "kind": "per_pixel_tier",
+                "tiers": [
+                  {
+                    "max_mp": 2.61,
+                    "cny": 0.3
+                  },
+                  {
+                    "max_mp": null,
+                    "cny": 0.6
+                  }
+                ],
+                "input_image": {
+                  "first_free": true,
+                  "from_second_cny": 0.02
+                }
+              },
+              "note": "能力项与 flash 一致；画质/速度差异待同题实测"
+            }
+          },
+          {
+            "id": "doubao-seedream-5-0-flash-260915",
+            "kind": "image",
+            "submittable": true,
+            "reasons": [],
+            "input_modes": [
+              "text_to_image",
+              "image_to_image"
+            ],
+            "duration_policy": null,
+            "capabilities": {
+              "input_modes": [
+                "text_to_image",
+                "image_to_image"
+              ],
+              "max_reference_images": 10,
+              "ratios": [
+                "1:1",
+                "3:4",
+                "4:3",
+                "9:16",
+                "16:9"
+              ],
+              "resolutions": [],
+              "sizes": [
+                "1024x1024",
+                "2048x2048",
+                "1728x2304",
+                "2304x1728",
+                "1536x2688",
+                "2688x1536"
+              ],
+              "duration_s": [],
+              "supports": [
+                "图层拆分",
+                "单图生成",
+                "文生图",
+                "单张图生图",
+                "多参考图生图"
+              ],
+              "max_ipm": 500,
+              "pricing": {
+                "kind": "per_image",
+                "cny_per_image": 0.12,
+                "input_image": "免费"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "tool": "prepare_storyboards",
+      "tool_call_id": "call_00_dZYgLf5n5aex73wwqGC94120",
+      "ok": true,
+      "result": {
+        "saved": true,
+        "confirmed": false,
+        "artifacts": [
+          {
+            "type": "image",
+            "node_id": "director-image-e5edd4a74f2f4ecae934-1",
+            "config_revision": 1,
+            "config": {
+              "generation_mode": "image_to_image",
+              "model_id": "doubao-seedream-5-0-flash-260915",
+              "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。全景构图：杯子静置于木桌台面，位于画面偏右三分线处，圆口朝上。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+              "input_asset_id": "asset_22708849afa5481d8b48",
+              "params": {
+                "size": "2688x1536",
+                "ratio": "16:9"
+              },
+              "title": "镜1 全景：木桌晨光中的白杯"
+            },
+            "binding": {
+              "shot_id": "shot_e5edd4a74f2f4ecae934_1",
+              "script_id": "scr_bb8e2115c22e4ebc8312",
+              "script_version": 1
+            },
+            "position": {
+              "x": 560,
+              "y": 100
+            },
+            "saved": true,
+            "confirmed": false,
+            "source": {
+              "node_id": "script",
+              "config_revision": 1,
+              "type": "script",
+              "script_id": "scr_bb8e2115c22e4ebc8312",
+              "script_version": 1,
+              "content_hash": "sha256:b0a61157f3c8589d1919a60adf9b710ee8836c53a235bf3df5ad681c04a14802"
+            },
+            "reference": {
+              "id": "asset_22708849afa5481d8b48",
+              "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+              "kind": "image",
+              "mime": "image/jpeg",
+              "width": 2688,
+              "height": 1536
+            },
+            "seq": 1
+          },
+          {
+            "type": "image",
+            "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+            "config_revision": 1,
+            "config": {
+              "generation_mode": "image_to_image",
+              "model_id": "doubao-seedream-5-0-flash-260915",
+              "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+              "input_asset_id": "asset_22708849afa5481d8b48",
+              "params": {
+                "size": "2688x1536",
+                "ratio": "16:9"
+              },
+              "title": "镜2 特写：杯口圆润口沿与釉面"
+            },
+            "binding": {
+              "shot_id": "shot_e5edd4a74f2f4ecae934_2",
+              "script_id": "scr_bb8e2115c22e4ebc8312",
+              "script_version": 1
+            },
+            "position": {
+              "x": 560,
+              "y": 440
+            },
+            "saved": true,
+            "confirmed": false,
+            "source": {
+              "node_id": "script",
+              "config_revision": 1,
+              "type": "script",
+              "script_id": "scr_bb8e2115c22e4ebc8312",
+              "script_version": 1,
+              "content_hash": "sha256:b0a61157f3c8589d1919a60adf9b710ee8836c53a235bf3df5ad681c04a14802"
+            },
+            "reference": {
+              "id": "asset_22708849afa5481d8b48",
+              "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+              "kind": "image",
+              "mime": "image/jpeg",
+              "width": 2688,
+              "height": 1536
+            },
+            "seq": 2
+          }
+        ],
+        "node_ids": [
+          "director-image-e5edd4a74f2f4ecae934-1",
+          "director-image-e5edd4a74f2f4ecae934-2"
+        ],
+        "source": {
+          "node_id": "script",
+          "config_revision": 1,
+          "type": "script",
+          "script_id": "scr_bb8e2115c22e4ebc8312",
+          "script_version": 1,
+          "content_hash": "sha256:b0a61157f3c8589d1919a60adf9b710ee8836c53a235bf3df5ad681c04a14802"
+        },
+        "layout_revision": 2,
+        "legacy_media_created": false,
+        "side_effects": {
+          "task_created": false,
+          "model_called": false,
+          "budget_deducted": false
+        },
+        "idempotent_replay": false,
+        "actions": [
+          {
+            "action_id": "dact_61642e2987124c4c90dc",
+            "project_id": "prj_d2a48fbf369f46cd8c4e",
+            "kind": "generation",
+            "status": "proposed",
+            "action_status": "proposed",
+            "request_id": "07839d4583114c80899af4c6ad702832",
+            "node_ids": [
+              "director-image-e5edd4a74f2f4ecae934-1",
+              "director-image-e5edd4a74f2f4ecae934-2"
+            ],
+            "quotes": [
+              {
+                "quote_id": "nquote_7e2a803e08eb4663ae6a",
+                "project_id": "prj_d2a48fbf369f46cd8c4e",
+                "node_id": "director-image-e5edd4a74f2f4ecae934-1",
+                "config_revision": 1,
+                "input_hash": "sha256:86448dea39a2125c253e5e7ac00b6161edf86b246c6b517369047f714d001110",
+                "estimated_cost_cny": 0.12,
+                "expires_at": 1793245391.7101161,
+                "input": {
+                  "kind": "image",
+                  "model_id": "doubao-seedream-5-0-flash-260915",
+                  "params": {
+                    "size": "2688x1536",
+                    "ratio": "16:9",
+                    "watermark": false,
+                    "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。全景构图：杯子静置于木桌台面，位于画面偏右三分线处，圆口朝上。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+                    "generation_mode": "image_to_image",
+                    "input_asset_id": "asset_22708849afa5481d8b48"
+                  },
+                  "input_asset_id": "asset_22708849afa5481d8b48",
+                  "reference": {
+                    "asset_id": "asset_22708849afa5481d8b48",
+                    "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+                    "mime": "image/jpeg"
+                  }
+                },
+                "side_effects": {
+                  "task_created": false,
+                  "model_called": false,
+                  "budget_deducted": false
+                }
+              },
+              {
+                "quote_id": "nquote_1eb69d2b6be742949e9c",
+                "project_id": "prj_d2a48fbf369f46cd8c4e",
+                "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+                "config_revision": 1,
+                "input_hash": "sha256:4bd818ceefc038af90c0cde9df1cf630a0e8d779be3776de07299bbd4ea0c31a",
+                "estimated_cost_cny": 0.12,
+                "expires_at": 1793245391.713279,
+                "input": {
+                  "kind": "image",
+                  "model_id": "doubao-seedream-5-0-flash-260915",
+                  "params": {
+                    "size": "2688x1536",
+                    "ratio": "16:9",
+                    "watermark": false,
+                    "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。不出现碟子、杯盖、文字、把手，不添加任何标识或装饰。横屏16:9，写实产品摄影质感，浅景深。",
+                    "generation_mode": "image_to_image",
+                    "input_asset_id": "asset_22708849afa5481d8b48"
+                  },
+                  "input_asset_id": "asset_22708849afa5481d8b48",
+                  "reference": {
+                    "asset_id": "asset_22708849afa5481d8b48",
+                    "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+                    "mime": "image/jpeg"
+                  }
+                },
+                "side_effects": {
+                  "task_created": false,
+                  "model_called": false,
+                  "budget_deducted": false
+                }
+              }
+            ],
+            "output_mode": "clips",
+            "estimated_cost_cny": 0.24,
+            "expires_at": 1793245391.7101161,
+            "expired": false,
+            "requires_user_action": true,
+            "batch_id": null,
+            "tasks": [],
+            "executions": [],
+            "submit_client_request_id": null,
+            "auto_film": false,
+            "media_status": "proposed",
+            "composition": null,
+            "error": null,
+            "scope": {
+              "generate": true,
+              "compose": false,
+              "ordered_node_ids": [
+                "director-image-e5edd4a74f2f4ecae934-1",
+                "director-image-e5edd4a74f2f4ecae934-2"
+              ],
+              "no_trim": false,
+              "composition_cost_cny": 0
+            },
+            "created_at": 1793244791.713355,
+            "submitted_at": null,
+            "idempotent_replay": false,
+            "side_effects": {
+              "tasks_created": 0,
+              "model_called": false,
+              "budget_deducted": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "finish_reason": "tool_calls",
+      "input_tokens": 4802,
+      "output_tokens": 38
+    },
+    {
+      "round": 2,
+      "finish_reason": "tool_calls",
+      "input_tokens": 5518,
+      "output_tokens": 516
+    }
+  ],
+  "workflow_revision": 2974071095927825
+}

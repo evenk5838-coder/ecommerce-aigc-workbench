@@ -1,0 +1,14 @@
+{
+  "business_tables_identical": true,
+  "table_count": 40,
+  "assets_identical": true,
+  "frontend_identical": true,
+  "source_sha256": "e2b23fd4e2a8fae453408354e71d60a905f29d99383c36db42fec17a66245781",
+  "real_model_calls": 0,
+  "backup": "/Users/niannian/Documents/VScode/\u7535\u5546\u5de5\u4f5c\u5e73\u53f0/data/backups/agent-clarification-20261029T121929",
+  "http": {
+    "/api/system/status": 200,
+    "/api/projects": 200
+  },
+  "pid": 90021
+}

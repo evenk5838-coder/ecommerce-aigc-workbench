@@ -3,12 +3,16 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 mode="${1:-}"
-if [[ "$mode" != "v0.11-backend" && "$mode" != "v0.11-frontend" && "$mode" != "canvas-core-backend" && "$mode" != "canvas-core-frontend" && "$mode" != "director-workflow-backend" && "$mode" != "director-workflow-frontend" && "$mode" != "frontend-closing" && "$mode" != "budget-reservation-fix" && "$mode" != "director-context" && "$mode" != "director-reference" && "$mode" != "web-closing" ]]; then
-  echo 'Usage: APP_PYTHON=/absolute/python bash verify.sh v0.11-backend|v0.11-frontend|canvas-core-backend|canvas-core-frontend|director-workflow-backend|director-workflow-frontend|frontend-closing|budget-reservation-fix|director-context|director-reference|web-closing'
+if [[ "$mode" != "v0.11-backend" && "$mode" != "v0.11-frontend" && "$mode" != "canvas-core-backend" && "$mode" != "canvas-core-frontend" && "$mode" != "director-workflow-backend" && "$mode" != "director-workflow-frontend" && "$mode" != "frontend-closing" && "$mode" != "budget-reservation-fix" && "$mode" != "director-context" && "$mode" != "director-reference" && "$mode" != "web-closing" && "$mode" != "director-clarification" && "$mode" != "director-status" ]]; then
+  echo 'Usage: APP_PYTHON=/absolute/python bash verify.sh v0.11-backend|v0.11-frontend|canvas-core-backend|canvas-core-frontend|director-workflow-backend|director-workflow-frontend|frontend-closing|budget-reservation-fix|director-context|director-reference|web-closing|director-clarification|director-status'
   exit 2
 fi
 app_python="${APP_PYTHON:-python3}"
-if [[ "$mode" == "web-closing" ]]; then
+if [[ "$mode" == "director-status" ]]; then
+  evidence_dir="docs/evidence/v0.11-Agent状态描述-后端-20261029"
+elif [[ "$mode" == "director-clarification" ]]; then
+  evidence_dir="docs/evidence/v0.11-Agent澄清修复-后端-20261029"
+elif [[ "$mode" == "web-closing" ]]; then
   evidence_dir="docs/evidence/v0.11-Web收尾-20261029"
   export V011_WORKFLOW_DIST="/private/tmp/ecom-v011-frontend-preview/web-closing-dist"
 elif [[ "$mode" == "director-reference" ]]; then
@@ -207,7 +211,7 @@ run_budget_reservation_checks() {
   echo '5/5 Technical files, Python syntax and whitespace'
   "$app_python" scripts/check-v011-files.py files-director-workflow
   "$app_python" -m py_compile backend/app/config.py backend/app/node_execution.py backend/app/errors.py scripts/check-director-workflow-http.py
-  if [[ "$mode" == "director-context" || "$mode" == "director-reference" ]]; then
+  if [[ "$mode" == "director-context" || "$mode" == "director-reference" || "$mode" == "director-clarification" || "$mode" == "director-status" ]]; then
     "$app_python" -m py_compile backend/app/director_context.py backend/app/director_workflow.py backend/app/director_chat.py scripts/check-director-recorded-context.py
     "$app_python" -m py_compile backend/app/director_creation.py
     "$app_python" -c "from pathlib import Path; paths=['backend/app/director_context.py','backend/tests/test_director_context.py','docs/阶段文档/长对话上下文-后端-20261029.md','docs/evidence/v0.11-长对话上下文-后端-20261029/是否表.md','docs/evidence/v0.11-长对话上下文-后端-20261029/照着做清单.md']; assert all(Path(p).is_file() and Path(p).stat().st_size for p in paths); print('PASS: 5 context batch technical/evidence files')"
@@ -225,7 +229,7 @@ run_budget_reservation_checks() {
   echo "Evidence: $log_path"
 }
 
-if [[ "$mode" == "budget-reservation-fix" || "$mode" == "director-context" || "$mode" == "director-reference" ]]; then
+if [[ "$mode" == "budget-reservation-fix" || "$mode" == "director-context" || "$mode" == "director-reference" || "$mode" == "director-clarification" || "$mode" == "director-status" ]]; then
   run_budget_reservation_checks 2>&1 | tee "$log_path"
   cp "$log_path" "$evidence_dir/verify-输出.txt"
 elif [[ "$mode" == "frontend-closing" || "$mode" == "web-closing" ]]; then

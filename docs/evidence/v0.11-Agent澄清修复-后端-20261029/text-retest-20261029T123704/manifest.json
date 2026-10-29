@@ -1,0 +1,17 @@
+{
+  "creative-before.json": "25b62bee9864d311f658e54eaa52ba6fef2d0aded3627f84bc03463691c8348e",
+  "summary.json": "93669e6a08b9028a4358ee77a9dc4eb60199014e7aef54eff0616e4ec5cf78c6",
+  "01-original-wording-input.json": "13bc9aff66833002d092e15a06287c6f5b969a5270a9581c008661af4daad873",
+  "server.py": "d80407860a9156949def874273d6786f135bcf86641dc9b18734663665674e11",
+  "03-latest-answer.json": "0db652913e935dbc31e704457b88b7ac8af99ba746e7f96945c3e87ded6f7d58",
+  "ledger-progress.json": "d212b386870bc73af98b14b6d4868b565636abb8d4d6fd611c6abf7b4184e9a5",
+  "client.py": "d3131f13485a012cdbd515feaf520df980e30b65525ae3cc1b414917c01f41fe",
+  "01-original-wording.json": "d767fa29e5dae8985b38ee08c219bc67c0999228c88d4ae179999369e983af4b",
+  "03-latest-answer-input.json": "be1b9889750ce999c8c859c25ba0cd1c3f48c75d22f63b4bd6dfebb3a23041cc",
+  "ledger-after.json": "d212b386870bc73af98b14b6d4868b565636abb8d4d6fd611c6abf7b4184e9a5",
+  "authorization.json": "d43956613993b13041448cb81d19d6f75beadb64c0b16f60eb97f3862ef64041",
+  "creative-after.json": "25b62bee9864d311f658e54eaa52ba6fef2d0aded3627f84bc03463691c8348e",
+  "ledger-before.json": "a3a7cfb3e14fd969c78e1f2eb916c6ced2736d46cbde782e79ac716c1ba63c24",
+  "02-explicit-resolved.json": "e6d28c0ad9470d252c2463e979df9a3e55f24213839ee34b22fdf2ac10a932d3",
+  "02-explicit-resolved-input.json": "d86c18546b50741c804b3dcf6aeea45da916b0c01a1588a4d8c707ff2c2affa9"
+}

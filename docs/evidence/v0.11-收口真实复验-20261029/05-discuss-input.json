@@ -1,0 +1,10 @@
+{
+  "message": "继续只讨论、不写入：保持白色、无把手、圆口、不加文字、不加碟子杯盖。第二镜只是背景色调整，仍是杯口特写。请简短确认你理解，不重写脚本、不建视频节点。",
+  "client_request_id": "20d96a6d2bd640518b1901a85b85cb99",
+  "selected_node_ids": [
+    "director-image-e5edd4a74f2f4ecae934-1",
+    "director-image-e5edd4a74f2f4ecae934-2"
+  ],
+  "expected_workflow_revision": 1764528176281561,
+  "session_id": "asst_037a8be62fdf40c5bb15"
+}

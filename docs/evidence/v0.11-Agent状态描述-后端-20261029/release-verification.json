@@ -1,0 +1,14 @@
+{
+  "business_tables_identical": true,
+  "table_count": 40,
+  "assets_identical": true,
+  "frontend_identical": true,
+  "source_sha256": "9fc0c11717e47de63f1a5df16bcf85e4ef6c7cb8d5339f188f8504f1f7a5a0de",
+  "real_model_calls": 0,
+  "backup": "/Users/niannian/Documents/VScode/\u7535\u5546\u5de5\u4f5c\u5e73\u53f0/data/backups/agent-status-20261029T125158",
+  "http": {
+    "/api/system/status": 200,
+    "/api/projects": 200
+  },
+  "pid": 92726
+}

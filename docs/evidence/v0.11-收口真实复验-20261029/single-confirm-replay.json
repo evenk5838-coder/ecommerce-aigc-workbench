@@ -1,0 +1,130 @@
+{
+  "action_id": "dact_8c849eb170904284955b",
+  "project_id": "prj_d2a48fbf369f46cd8c4e",
+  "kind": "generation",
+  "status": "completed",
+  "action_status": "submitted",
+  "request_id": "c63c12d6b8a4475d921cf65e81ff930c",
+  "node_ids": [
+    "director-image-e5edd4a74f2f4ecae934-2"
+  ],
+  "quotes": [
+    {
+      "quote_id": "nquote_388d68cfb5d44098ab1e",
+      "project_id": "prj_d2a48fbf369f46cd8c4e",
+      "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+      "config_revision": 2,
+      "input_hash": "sha256:71d0837c027baf677735d8706a10b66fe18c1c9338dfca403738edfc87089927",
+      "estimated_cost_cny": 0.12,
+      "expires_at": 1793245859.1780212,
+      "input": {
+        "kind": "image",
+        "model_id": "doubao-seedream-5-0-flash-260915",
+        "params": {
+          "size": "2688x1536",
+          "ratio": "16:9",
+          "watermark": false,
+          "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手，杯身保持纯白，不得染灰。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和暖色亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景为虚化的中性浅灰色（浅灰仅指背景，不影响杯身颜色）。不出现碟子、杯盖、文字、花纹、道具、把手，不添加任何标识或装饰，不涉及任何产品性能表述。横屏16:9，写实产品摄影质感，浅景深。",
+          "generation_mode": "image_to_image",
+          "input_asset_id": "asset_22708849afa5481d8b48"
+        },
+        "input_asset_id": "asset_22708849afa5481d8b48",
+        "reference": {
+          "asset_id": "asset_22708849afa5481d8b48",
+          "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+          "mime": "image/jpeg"
+        }
+      },
+      "side_effects": {
+        "task_created": false,
+        "model_called": false,
+        "budget_deducted": false
+      }
+    }
+  ],
+  "output_mode": "clips",
+  "estimated_cost_cny": 0.12,
+  "expires_at": 1793245859.1780212,
+  "expired": false,
+  "requires_user_action": false,
+  "batch_id": "batch_c2d000b7a49d45a48f49",
+  "tasks": [
+    {
+      "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+      "execution_id": "nexec_ee70e19e715a4413a8ac",
+      "task_id": "task_84103bc369c34bbaae4f",
+      "quote_id": "nquote_388d68cfb5d44098ab1e"
+    }
+  ],
+  "executions": [
+    {
+      "execution_id": "nexec_ee70e19e715a4413a8ac",
+      "project_id": "prj_d2a48fbf369f46cd8c4e",
+      "node_id": "director-image-e5edd4a74f2f4ecae934-2",
+      "quote_id": "nquote_388d68cfb5d44098ab1e",
+      "client_request_id": "director:dact_8c849eb170904284955b:0",
+      "task_id": "task_84103bc369c34bbaae4f",
+      "status": "succeeded",
+      "stage": "done",
+      "progress": 1.0,
+      "active": false,
+      "output_asset_id": "asset_6253f47598a44e08ac47",
+      "asset_id": "asset_6253f47598a44e08ac47",
+      "asset": {
+        "id": "asset_6253f47598a44e08ac47",
+        "kind": "image",
+        "mime": "image/jpeg",
+        "width": 2688,
+        "height": 1536,
+        "duration_ms": null
+      },
+      "asset_available": true,
+      "asset_error": null,
+      "result_status": "available",
+      "error": null,
+      "estimated_cost_cny": 0.12,
+      "input": {
+        "kind": "image",
+        "model_id": "doubao-seedream-5-0-flash-260915",
+        "params": {
+          "size": "2688x1536",
+          "ratio": "16:9",
+          "watermark": false,
+          "prompt": "严格保持参考图中白色无把手陶瓷杯的外形：圆口、杯壁略向底部收拢、杯身无任何标识、无把手，杯身保持纯白，不得染灰。杯口特写构图：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和暖色亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景为虚化的中性浅灰色（浅灰仅指背景，不影响杯身颜色）。不出现碟子、杯盖、文字、花纹、道具、把手，不添加任何标识或装饰，不涉及任何产品性能表述。横屏16:9，写实产品摄影质感，浅景深。",
+          "generation_mode": "image_to_image",
+          "input_asset_id": "asset_22708849afa5481d8b48"
+        },
+        "input_asset_id": "asset_22708849afa5481d8b48",
+        "reference": {
+          "asset_id": "asset_22708849afa5481d8b48",
+          "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+          "mime": "image/jpeg"
+        }
+      },
+      "cost_cny": 0.12,
+      "created_at": 1793245444.986093,
+      "finished_at": 1793245468.826849,
+      "config_revision": 2,
+      "input_hash": "sha256:71d0837c027baf677735d8706a10b66fe18c1c9338dfca403738edfc87089927"
+    }
+  ],
+  "submit_client_request_id": "79c57a85c3e9418b98b04ec319028508",
+  "auto_film": false,
+  "media_status": "completed",
+  "composition": null,
+  "error": null,
+  "scope": {
+    "generate": true,
+    "compose": false,
+    "ordered_node_ids": [
+      "director-image-e5edd4a74f2f4ecae934-2"
+    ],
+    "no_trim": false,
+    "composition_cost_cny": 0
+  },
+  "created_at": 1793245259.178335,
+  "submitted_at": 1793245444.982235,
+  "idempotent_replay": true,
+  "current_role": "cinematographer",
+  "workflow_revision": 4405229301669213
+}

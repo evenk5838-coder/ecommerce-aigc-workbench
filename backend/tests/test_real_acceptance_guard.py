@@ -223,5 +223,34 @@ class RealAcceptanceGuardTests(unittest.TestCase):
         self.send.assert_not_called()
 
 
+class ClosingProfileTests(unittest.TestCase):
+    def setUp(self):
+        self.enterContext(patch.multiple(MODULE, **{key: getattr(MODULE, key)
+            for key in ('CAPS', 'MAX_TOTAL', 'MAX_LLM', 'MAX_MEDIA', 'CLOSING', 'FRONTEND')}))
+        MODULE.closing_profile()
+        self.approval = MODULE.approval_template()
+        self.approval.update(approved=True, authorization_reference='OFFLINE TEST ONLY',
+            run_id='closing-unit-test', approved_at='2026-10-29T11:00:00+08:00')
+        self.tmp = self.enterContext(tempfile.TemporaryDirectory())
+        self.guard = MODULE.Guard(self.tmp, self.approval)
+
+    def test_three_images_and_restart_do_not_restore_fourth_allowance(self):
+        for _ in range(3):
+            self.guard.reserve('image_to_image', MODULE.IMAGE_RESERVE, {})
+        resumed = MODULE.Guard(self.tmp, self.approval)
+        with self.assertRaises(ValueError):
+            resumed.reserve('image_to_image', MODULE.IMAGE_RESERVE, {})
+
+    def test_other_media_categories_are_forbidden(self):
+        for kind in ('text_to_image', 'text_to_video', 'image_to_video'):
+            with self.assertRaises(ValueError):
+                self.guard.reserve(kind, MODULE.IMAGE_RESERVE, {})
+
+    def test_larger_old_batch_approval_is_rejected(self):
+        value = dict(self.approval, total_cny='4', media_cny='3')
+        with self.assertRaises(ValueError):
+            MODULE.validate_approval(value)
+
+
 if __name__ == "__main__":
     unittest.main()

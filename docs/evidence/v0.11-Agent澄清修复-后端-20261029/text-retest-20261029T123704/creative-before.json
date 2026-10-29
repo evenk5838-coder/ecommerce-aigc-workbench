@@ -1,0 +1,34 @@
+{
+  "script_versions": {
+    "count": 1,
+    "sha256": "2e318ef9fd573329a74d7cccb5f2b4133810c1e0ab9aa9049cb34013dca6864f"
+  },
+  "canvas_nodes": {
+    "count": 3,
+    "sha256": "661ddedb15f103d475caa0ada2a28c222e8a28de1ebeeed2d63b67f48ba8e796"
+  },
+  "director_actions": {
+    "count": 3,
+    "sha256": "fbc09206b2298603f560a56c7cdb789ec5f66170f9739f851e1752f2db08c674"
+  },
+  "confirmations": {
+    "count": 1,
+    "sha256": "5d1d0bfd559e185365f6eed425065ecbffa1b3f400a544fb8aa656306179fcac"
+  },
+  "confirmation_events": {
+    "count": 0,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  "tasks": {
+    "count": 3,
+    "sha256": "0cb3bf3f4bccec2f2b4527c812d74418285207ac5aabed52a6e0877d32197e6d"
+  },
+  "assets": {
+    "count": 4,
+    "sha256": "66caf93e9da12cabea3245722eaac92431c3ef8ab4b645dbfc4741ca09774bba"
+  },
+  "shots": {
+    "count": 2,
+    "sha256": "c9d1e45bd5bcc5dc88b3272bcecfb6933a1d0a882ed50e4e9ea13b5f9fcff338"
+  }
+}

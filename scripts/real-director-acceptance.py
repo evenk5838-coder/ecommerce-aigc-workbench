@@ -32,6 +32,17 @@ CAPS = {"llm": 20, "text_to_image": 2, "image_to_image": 1,
         "image_to_video": 2, "text_to_video": 1}
 MAX_TOTAL, MAX_LLM, MAX_MEDIA = Decimal("4"), Decimal("1"), Decimal("3")
 IMAGE_RESERVE, VIDEO_RESERVE = Decimal("0.12"), Decimal("0.50")
+CLOSING = False
+
+
+def closing_profile():
+    """Explicit new batch; never reuses or broadens an earlier approval."""
+    global CAPS, MAX_TOTAL, MAX_LLM, MAX_MEDIA, CLOSING, FRONTEND
+    CLOSING = True
+    CAPS = {"llm": 20, "text_to_image": 0, "image_to_image": 3,
+            "image_to_video": 0, "text_to_video": 0}
+    MAX_TOTAL, MAX_LLM, MAX_MEDIA = Decimal("2"), Decimal("1"), Decimal("1")
+    FRONTEND = Path("/private/tmp/ecom-v011-frontend-preview/web-closing-dist")
 SAFE_ID = re.compile(r"^[A-Za-z0-9_-]{1,160}$")
 
 
@@ -60,7 +71,7 @@ def approval_template():
     return {"schema_version": 1, "approved": False,
             "authorization_reference": "Fill only after a new human approval; do not infer from .env or prior batches",
             "run_id": "replace-with-unique-run-name", "approved_at": None,
-            "total_cny": "4.00", "llm_cny": "1.00", "media_cny": "3.00",
+            "total_cny": str(MAX_TOTAL), "llm_cny": str(MAX_LLM), "media_cny": str(MAX_MEDIA),
             "max_calls": CAPS, "image_model": IMAGE, "video_model": VIDEO,
             "llm_model": "deepseek-flash", "image_size": "2688x1536",
             "video": {"duration": 5, "resolution": "720p", "ratio": "16:9"},
@@ -349,8 +360,8 @@ def serve(approval_path, port):
     config.DATA, config.DB_PATH = directory, directory / "acceptance.db"
     config.ASSETS, config.MODELS = directory / "assets", directory / "models"
     config.BUDGET_CNY = float(money(approval["media_cny"]))
-    config.DIRECTOR_MAX_COST_PER_CALL_CNY = .15
-    config.DIRECTOR_MAX_SESSION_COST_CNY = float(money(approval["llm_cny"]))
+    config.DIRECTOR_MAX_COST_PER_CALL_CNY = .05 if CLOSING else .15
+    config.DIRECTOR_MAX_SESSION_COST_CNY = .30 if CLOSING else float(money(approval["llm_cny"]))
     config.DIRECTOR_MAX_OUTPUT_TOKENS = 1600
     config.CONCURRENCY = 1
     for folder in (config.ASSETS, config.MODELS):
@@ -400,9 +411,12 @@ def serve(approval_path, port):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serve", action="store_true")
+    parser.add_argument("--closing", action="store_true", help="New ¥2 image-only closing batch; needs its own approval")
     parser.add_argument("--approval", help="JSON record of this run's actual human authorization")
     parser.add_argument("--port", type=int, default=52662)
     args = parser.parse_args()
+    if args.closing:
+        closing_profile()
     if args.serve:
         if not args.approval:
             parser.error("--serve requires --approval; prior budgets are not reusable")

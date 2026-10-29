@@ -1,0 +1,9 @@
+{
+  "message": "脚本已确认。请作为导演按脚本创建两张图片分镜节点并准备整组报价，不要生成视频。两镜都必须使用商品参考图 asset_22708849afa5481d8b48，在prepare_storyboards顶层指定input_asset_id让本组共用；模型doubao-seedream-5-0-flash-260915，size=2688x1536。不改变白色无把手杯外形、不加碟子杯盖标识；按已确认的两镜构图即可。",
+  "client_request_id": "07839d4583114c80899af4c6ad702832",
+  "selected_node_ids": [
+    "script"
+  ],
+  "expected_workflow_revision": 3138698892244543,
+  "session_id": "asst_037a8be62fdf40c5bb15"
+}

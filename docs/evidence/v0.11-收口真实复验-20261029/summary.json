@@ -1,0 +1,67 @@
+{
+  "project_id": "prj_d2a48fbf369f46cd8c4e",
+  "counts": {
+    "llm": 9,
+    "image_to_image": 3
+  },
+  "conservative_guard_cny": "0.547775",
+  "provider_bill_verified": false,
+  "first_node_byte_equivalent": true,
+  "node_count": 3,
+  "single_confirm_replay_no_new_calls": true,
+  "tasks": [
+    {
+      "id": "task_a1ab56d60848412ba46b",
+      "kind": "image",
+      "status": "succeeded",
+      "attempts": 1,
+      "output_asset_id": "asset_433fde3bee24424c9752"
+    },
+    {
+      "id": "task_522e5973319e43c48794",
+      "kind": "image",
+      "status": "succeeded",
+      "attempts": 1,
+      "output_asset_id": "asset_e11aacba85c743de8246"
+    },
+    {
+      "id": "task_84103bc369c34bbaae4f",
+      "kind": "image",
+      "status": "succeeded",
+      "attempts": 1,
+      "output_asset_id": "asset_6253f47598a44e08ac47"
+    }
+  ],
+  "input_characters": 1787,
+  "real_model_quality": "本例目视检查基本商品特征保留；背景修改生效，重做仍微调构图，非严格几何一致性保证",
+  "minor_issue": "Agent repeated an already resolved background-color clarification in two discussion replies",
+  "assets": [
+    {
+      "id": "asset_22708849afa5481d8b48",
+      "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+      "rel_path": "ce/f5/cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336.jpg",
+      "source": "upload"
+    },
+    {
+      "id": "asset_433fde3bee24424c9752",
+      "sha256": "47dd9c7cb504af89823a8a4730dadef3543232fdf3df62fcbbd51737abe4feb1",
+      "rel_path": "47/dd/47dd9c7cb504af89823a8a4730dadef3543232fdf3df62fcbbd51737abe4feb1.jpg",
+      "source": "cloud_generated"
+    },
+    {
+      "id": "asset_e11aacba85c743de8246",
+      "sha256": "f4b746f8c9b7df5d0267c8a264666eb314a5fede040543f800c2e3770214d2ac",
+      "rel_path": "f4/b7/f4b746f8c9b7df5d0267c8a264666eb314a5fede040543f800c2e3770214d2ac.jpg",
+      "source": "cloud_generated"
+    },
+    {
+      "id": "asset_6253f47598a44e08ac47",
+      "sha256": "8370caf2958332db9d831ac333445ec7659d3ed82e297ad73f8f54389c821b40",
+      "rel_path": "83/70/8370caf2958332db9d831ac333445ec7659d3ed82e297ad73f8f54389c821b40.jpg",
+      "source": "cloud_generated"
+    }
+  ],
+  "guard_tests": 21,
+  "discussion_case": "two real discussion turns; repeated clarification observed",
+  "product_code_changed": false
+}

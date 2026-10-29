@@ -1,0 +1,39 @@
+{
+  "action_id": "dact_ae87e9840f9849748bab",
+  "project_id": "prj_d2a48fbf369f46cd8c4e",
+  "kind": "confirm_script",
+  "request_id": "59c0952a78bb446c98a94ee9350cf552",
+  "node_ids": [
+    "script"
+  ],
+  "script_id": "scr_bb8e2115c22e4ebc8312",
+  "script_version": 1,
+  "status": "completed",
+  "action_status": "submitted",
+  "estimated_cost_cny": 0,
+  "expires_at": 1793331137.771661,
+  "expired": false,
+  "stale": false,
+  "requires_user_action": false,
+  "result": {
+    "script_id": "scr_bb8e2115c22e4ebc8312",
+    "version": 1,
+    "confirmed_at": 1793244781.2948742,
+    "confirmation": {
+      "confirmation_id": "cfm_0c580c307dbf4e32914e",
+      "status": "active",
+      "object_type": "script",
+      "object_id": "scr_bb8e2115c22e4ebc8312",
+      "object_version": 1,
+      "reused": false
+    },
+    "unlocked": [
+      "storyboard_plan"
+    ]
+  },
+  "submit_client_request_id": "a80021f153934876bee39f9e7cf3ed7a",
+  "created_at": 1793244737.771661,
+  "idempotent_replay": false,
+  "current_role": "director",
+  "workflow_revision": 3138698892244543
+}

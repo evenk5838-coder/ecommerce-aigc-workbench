@@ -25,6 +25,23 @@ def _execution(value: dict | None) -> dict | None:
     return result
 
 
+def execution_state(node: dict) -> str:
+    """Describe only this saved revision; never infer confirmation from history."""
+    execution = node.get("last_execution")
+    if not execution:
+        return "not_submitted"
+    if execution.get("config_revision") is None:
+        return "unknown"
+    if execution["config_revision"] != node.get("config_revision"):
+        return "settings_changed"
+    if execution.get("active"):
+        return "running"
+    status = execution.get("status")
+    if status == "succeeded":
+        return "completed" if execution.get("asset_available") is True else "output_unavailable"
+    return status if status in ("failed", "canceled", "interrupted") else "unknown"
+
+
 def creation_for_model(value: dict) -> dict:
     result = _pick(value, ("project_id", "current_role", "selected_node_ids", "script",
                           "total_nodes", "nodes_truncated"))
@@ -33,6 +50,8 @@ def creation_for_model(value: dict) -> dict:
         node = _pick(source, ("node_id", "type", "config", "binding", "config_revision", "asset",
                             "input_asset", "script_content", "content_truncated"))
         node["last_execution"] = _execution(source.get("last_execution"))
+        if source.get("type") in ("image", "video"):
+            node["execution_state"] = execution_state(source)
         # Script nodes expose the same summary as both editable text and content.
         # Keep the authoritative structured script, with an explicit reference.
         content, cfg = node.get("script_content") or {}, node.get("config") or {}

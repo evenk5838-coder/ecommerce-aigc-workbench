@@ -1,0 +1,196 @@
+{
+  "flow_version": 2,
+  "session_id": "asst_037a8be62fdf40c5bb15",
+  "request_id": "59c0952a78bb446c98a94ee9350cf552",
+  "request_status": "completed",
+  "reply": "脚本已放入画布，请查看并确认。",
+  "reply_type": "saved",
+  "outcome": {
+    "status": "saved",
+    "node_ids": [
+      "script"
+    ]
+  },
+  "artifacts": [
+    {
+      "proposal_id": "prop_5d4a5027c1d7413bae86",
+      "kind": "script",
+      "version": 1,
+      "target_id": "scr_bb8e2115c22e4ebc8312",
+      "target_version": 1,
+      "type": "script",
+      "node_id": "script",
+      "saved": true,
+      "confirmed": false,
+      "persistence": "saved"
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "dact_ae87e9840f9849748bab",
+      "project_id": "prj_d2a48fbf369f46cd8c4e",
+      "kind": "confirm_script",
+      "request_id": "59c0952a78bb446c98a94ee9350cf552",
+      "node_ids": [
+        "script"
+      ],
+      "script_id": "scr_bb8e2115c22e4ebc8312",
+      "script_version": 1,
+      "status": "proposed",
+      "action_status": "proposed",
+      "estimated_cost_cny": 0,
+      "expires_at": 1793331137.771661,
+      "expired": false,
+      "stale": false,
+      "requires_user_action": true,
+      "result": null,
+      "submit_client_request_id": null,
+      "created_at": 1793244737.771661
+    }
+  ],
+  "current_role": "writer",
+  "current": {
+    "project_id": "prj_d2a48fbf369f46cd8c4e",
+    "name": "收口真实复验 · 白色无把手杯",
+    "brief": {
+      "subject": "白色无把手陶瓷杯",
+      "quantity": 1,
+      "style": "自然晨光、干净产品画面",
+      "target_duration_s": 10
+    },
+    "current_stage": "script",
+    "script": {
+      "script_id": "scr_bb8e2115c22e4ebc8312",
+      "version": 1,
+      "content": {
+        "summary": "10秒横屏产品空镜，两镜各5秒。白色无把手陶瓷杯（圆口、杯壁略向底部收拢、无标识）置于木桌，自然晨光。第一镜全景交代环境与器物轮廓，第二镜杯口特写呈现圆润口沿与釉面质感。不出现碟子、杯盖、文字、把手，不涉及任何产品性能表述。",
+        "shots": [
+          {
+            "seq": 1,
+            "hint": "全景：木桌台面，白色无把手陶瓷杯静置于画面偏右三分线处，圆口朝上，杯壁略向底部收拢，杯身无任何标识。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。固定机位，轻微缓慢横移，5秒。",
+            "duration_s": 5,
+            "motion": "固定机位轻微缓慢横移"
+          },
+          {
+            "seq": 2,
+            "hint": "杯口特写：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。极缓慢推近，5秒。",
+            "duration_s": 5,
+            "motion": "极缓慢推近"
+          }
+        ]
+      },
+      "confirmed": false
+    },
+    "shots": [],
+    "allowed_actions": [
+      "edit_brief",
+      "regenerate_script",
+      "confirm_script"
+    ],
+    "draft_proposals": [
+      {
+        "kind": "script",
+        "version": 1,
+        "proposal_id": "prop_5d4a5027c1d7413bae86",
+        "content": {
+          "summary": "10秒横屏产品空镜，两镜各5秒。白色无把手陶瓷杯（圆口、杯壁略向底部收拢、无标识）置于木桌，自然晨光。第一镜全景交代环境与器物轮廓，第二镜杯口特写呈现圆润口沿与釉面质感。不出现碟子、杯盖、文字、把手，不涉及任何产品性能表述。",
+          "shots": [
+            {
+              "seq": 1,
+              "hint": "全景：木桌台面，白色无把手陶瓷杯静置于画面偏右三分线处，圆口朝上，杯壁略向底部收拢，杯身无任何标识。清晨自然光从画面左侧斜射入，在桌面拉出柔和长影，背景为虚化的浅色墙面与窗光，画面干净留白。固定机位，轻微缓慢横移，5秒。",
+              "duration_s": 5,
+              "motion": "固定机位轻微缓慢横移"
+            },
+            {
+              "seq": 2,
+              "hint": "杯口特写：镜头贴近杯口，圆润口沿占据画面主体，可见杯壁向内收拢的弧度与釉面细腻反光，晨光在口沿形成一道柔和亮边，杯内为干净的浅色空腔。焦点落在近侧口沿，背景木桌纹理虚化。极缓慢推近，5秒。",
+              "duration_s": 5,
+              "motion": "极缓慢推近"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 3716,
+    "output_tokens": 361,
+    "cost_cny": 0.004048,
+    "estimated_cny": 0.023136
+  },
+  "tool_calls": [
+    {
+      "tool": "write_script",
+      "tool_call_id": "call_00_wlFTUKQBvxJW93l9RWjx0175",
+      "ok": true,
+      "result": {
+        "proposal_id": "prop_5d4a5027c1d7413bae86",
+        "kind": "script",
+        "version": 1,
+        "target_id": "scr_bb8e2115c22e4ebc8312",
+        "target_version": 1,
+        "type": "script",
+        "node_id": "script",
+        "saved": true,
+        "confirmed": false,
+        "node_ids": [
+          "script"
+        ],
+        "artifacts": [
+          {
+            "proposal_id": "prop_5d4a5027c1d7413bae86",
+            "kind": "script",
+            "version": 1,
+            "target_id": "scr_bb8e2115c22e4ebc8312",
+            "target_version": 1,
+            "type": "script",
+            "node_id": "script",
+            "saved": true,
+            "confirmed": false
+          }
+        ],
+        "action_ids": [
+          "dact_ae87e9840f9849748bab"
+        ],
+        "side_effects": {
+          "task_created": false,
+          "model_called": false,
+          "budget_deducted": false
+        },
+        "idempotent_replay": false,
+        "actions": [
+          {
+            "action_id": "dact_ae87e9840f9849748bab",
+            "project_id": "prj_d2a48fbf369f46cd8c4e",
+            "kind": "confirm_script",
+            "request_id": "59c0952a78bb446c98a94ee9350cf552",
+            "node_ids": [
+              "script"
+            ],
+            "script_id": "scr_bb8e2115c22e4ebc8312",
+            "script_version": 1,
+            "status": "proposed",
+            "action_status": "proposed",
+            "estimated_cost_cny": 0,
+            "expires_at": 1793331137.771661,
+            "expired": false,
+            "stale": false,
+            "requires_user_action": true,
+            "result": null,
+            "submit_client_request_id": null,
+            "created_at": 1793244737.771661
+          }
+        ]
+      }
+    }
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "finish_reason": "tool_calls",
+      "input_tokens": 3716,
+      "output_tokens": 361
+    }
+  ],
+  "workflow_revision": 563579513845490
+}

@@ -1,0 +1,158 @@
+{
+  "docs/evidence/v0.11-收口真实复验-20261029/价格核对.md": {
+    "sha256": "ac57c66d3bf65e6507bfcf6b00f78bad6b5ed162302504d80d57e87858f1c07f",
+    "bytes": 535
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/05-discuss-input.json": {
+    "sha256": "6cdca05055df922090420ea61b472bd6c170e62ea0dd4168d3e8c1e8d0906071",
+    "bytes": 514
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/client-final.py": {
+    "sha256": "187cac053857a06df17463c01fdce232fd189bc39777b13a8380da112ee5d4b5",
+    "bytes": 3030
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/summary.json": {
+    "sha256": "088069f81f2b3e191d86099a03395be17f67cb09cb1581a816333b1d1f747fba",
+    "bytes": 2351
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/session.json": {
+    "sha256": "75e52c76661f78565ecad0070e8a4b66d4b2e740e6f9d9f13bb46a5952ef288b",
+    "bytes": 84
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/03-boards-progress.json": {
+    "sha256": "7d6a798c618776c60e3207224790134a0a0cdfca5acd2bf13651432300b22d57",
+    "bytes": 9243
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/single-confirm-replay.json": {
+    "sha256": "5c00fb0c94cb7822cf845cdb6cf46f98d8de84a01a8cd503a4b2326c38228e08",
+    "bytes": 5462
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/验收前方案.md": {
+    "sha256": "254155a40812cb9a9dec1dbd2beb0007c2c188de8a94a92ca3b77e37883ac549",
+    "bytes": 2246
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/final-canvas.json": {
+    "sha256": "77d5affd4a273cbf74a7f51e4694682ca81ded1a014137bb5de52c4bbaf0fa30",
+    "bytes": 13511
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/client-generate.py": {
+    "sha256": "9fa0779327d9170d4ce22695bf2f75846344d6c0cf23b64d44cb919585bb9e23",
+    "bytes": 985
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/02-script-confirm.json": {
+    "sha256": "c9ac6367eeb2bf606de5e834472d83cd0d0f47ed5e2be4f76172a842854e30b1",
+    "bytes": 1067
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/04-discuss.json": {
+    "sha256": "ad2f9094ff4179fa7f85d3263fa593d8238a2713858a9177f8dc0829d897f54b",
+    "bytes": 9114
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/01-script-input.json": {
+    "sha256": "a760e9ff550335e6675a2e9d41341ab62dd30c6d8129349a316065055c950044",
+    "bytes": 622
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/06-single-edit-input.json": {
+    "sha256": "fa1456402b9252f5ca3e93ef8db19210681224c4f846651151c7efe3244a6096",
+    "bytes": 5033
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/after-edit-canvas.json": {
+    "sha256": "fe8639a564860b62c692c9a93c6ab4190733a9db3afc80ebdf10da6da31ebdf8",
+    "bytes": 13205
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/03-boards-input.json": {
+    "sha256": "05340558e9b699846a1af8f9dc876244d914de13becc511379bbd86ffbf2c8eb",
+    "bytes": 622
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/client-boards.py": {
+    "sha256": "d4799615ec8a4a4b1f7e544b2349e7b946d2da8a7f8736791a71e37591d84062",
+    "bytes": 928
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/06-single-edit-confirm.json": {
+    "sha256": "cf196fa076a29e64ad97efd0f6668b68ee088bf1dd2f81d355128f8b7963c5ba",
+    "bytes": 5216
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/approval.json": {
+    "sha256": "894c8a47af07808ee99c827a84cdb4b53ad98f6e08972a65f3cba50d8b59ccf9",
+    "bytes": 707
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/03-boards-confirm.json": {
+    "sha256": "9d817fcaa82d7ed229921a8982409b56b78e18856a99f38bfcdfb44b99f937d0",
+    "bytes": 8776
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/03-boards.json": {
+    "sha256": "d4d7bf94de0681a65c789d7db800644f62443a98d7fef13baa25f9074602cf0d",
+    "bytes": 28515
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/05-discuss.json": {
+    "sha256": "40e4c8c47342d9c8891c3eb74755e65c83308d971513f2110e636271e6a0b373",
+    "bytes": 7392
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/reference.json": {
+    "sha256": "13a88547f66d021d8cfad20daeeb144bccf85f38cdcaf6d4959927fe1a8e5428",
+    "bytes": 227
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/before-edit-canvas.json": {
+    "sha256": "48437dec299692ec9294a7941db2eeccda8d497079be4d6a4177e8ff59cc19f1",
+    "bytes": 13028
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/client-edit.py": {
+    "sha256": "d5b68de97afd7f84bab95dd249390677e6fe2307515a92ff983c0f952ea02d2f",
+    "bytes": 2165
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/01-script.json": {
+    "sha256": "856e62c682c5c1a352fbdcffcff516f4ef79802a062dd2cce68109b1b0337057",
+    "bytes": 6911
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/guard-preflight.json": {
+    "sha256": "94b5dadf9e93a4b95596b77047de4ec75d35204f64f737f7a4114624441b6a36",
+    "bytes": 160
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/guard-tests.txt": {
+    "sha256": "24df0315b39ceaf90011f741d800d96ed7713841bf9e9ef588b0d8c27f0d679f",
+    "bytes": 3607
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/long-input-measure.json": {
+    "sha256": "b353dd8aded29034ab99167bbc5a4e439049ee015b7ce954db9976b32353363d",
+    "bytes": 69
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/client-client.py": {
+    "sha256": "0f8ced41c4183077e76502ad37dcc05b677bb56994c30cbe6f6e05f0817466c0",
+    "bytes": 2175
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/ledger.json": {
+    "sha256": "a3a7cfb3e14fd969c78e1f2eb916c6ced2736d46cbde782e79ac716c1ba63c24",
+    "bytes": 7536
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/04-discuss-input.json": {
+    "sha256": "13ebc074625a0f7c86be00178c73f8309db5b1166c750121179940641b665cf9",
+    "bytes": 601
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/06-single-edit.json": {
+    "sha256": "ea4116abb5c84ea32adcfd28e35e89045b89b1c971c8b8cc7ac66afee202a836",
+    "bytes": 15879
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/06-single-edit-progress.json": {
+    "sha256": "cae450024098642c0dfd84c7e5ae90c14f91dd16a50c369430492fdf19deed06",
+    "bytes": 5433
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/media/reference.jpg": {
+    "sha256": "cef5b44088ef4f7bb245bbbaa2098ccf5614f2bf1ede6339d282245b8ace5336",
+    "bytes": 222515
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/media/comparison.jpg": {
+    "sha256": "ea139118db396b543a31333a502fcf5c6b212e350917a46f8bc5ea92ae13de9c",
+    "bytes": 67134
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/media/shot-02.jpg": {
+    "sha256": "f4b746f8c9b7df5d0267c8a264666eb314a5fede040543f800c2e3770214d2ac",
+    "bytes": 183100
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/media/shot-01.jpg": {
+    "sha256": "47dd9c7cb504af89823a8a4730dadef3543232fdf3df62fcbbd51737abe4feb1",
+    "bytes": 229142
+  },
+  "docs/evidence/v0.11-收口真实复验-20261029/media/shot-02-regenerated.jpg": {
+    "sha256": "8370caf2958332db9d831ac333445ec7659d3ed82e297ad73f8f54389c821b40",
+    "bytes": 152438
+  }
+}
