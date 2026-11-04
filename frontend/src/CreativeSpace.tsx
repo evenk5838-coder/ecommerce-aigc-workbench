@@ -1,3 +1,4 @@
+import { withDefaultNodeModel } from './creative/node-config';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, FileStack, FileText, FolderOpen, LoaderCircle, MessageSquare, Plus, RefreshCw, Trash2, X } from 'lucide-react';
 import { api, ApiError, mediaUrl } from './api';
@@ -320,7 +321,7 @@ function ProjectEditor({ projectId, onDirtyChange, onChanged, onBack }: { projec
     nodeLock.current=true;setNodeBusy(true);setError('');
     try{const controller=requireCanvas(),id=`${kind}-${crypto.randomUUID()}`;
       const config:NodeConfig={title:kind==='text'?'文本笔记':kind==='image'?'图片创作':'视频创作',...(kind==='text'?{text:''}:{generation_mode:`${inputAssetId?'image':'text'}_to_${kind}`,prompt:'',...(inputAssetId?{input_asset_id:inputAssetId}:{})})};
-      await controller.mutate({nodes:[{node_id:id,type:kind,position:position??controller.positionForNewNode(),config}]});setSelectedNodeId(id);if(narrow)setChatOpen(false);
+      await controller.mutate({nodes:[{node_id:id,type:kind,position:position??controller.positionForNewNode(),config:kind==='text'?config:withDefaultNodeModel(config,kind,models)}]});setSelectedNodeId(id);if(narrow)setChatOpen(false);
     }catch(e){setError(errorMessage(e));}finally{nodeLock.current=false;setNodeBusy(false);}
   };
   const placeAsset=async(id:string,name:string,position?:FreePoint)=>{

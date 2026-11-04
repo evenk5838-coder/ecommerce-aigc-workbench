@@ -11,7 +11,12 @@ export type DurationPolicy =
   | { kind: 'range'; min: number; max: number; step: number; allowed?: null }
   | { kind: 'enum'; min?: null; max?: null; step?: null; allowed: number[] }
   | { kind: 'unavailable'; min?: null; max?: null; step?: null; allowed?: null };
+export interface ParameterCombination {
+  generation_mode?: string[]; ratio?: string[]; resolution?: string[]; size?: string[];
+  duration?: number[] | { min: number; max: number; step: number }; generate_audio?: boolean[];
+}
 export interface ModelCapabilities {
+  parameter_combinations?: ParameterCombination[];
   input_modes?: string[]; ratios?: string[]; resolutions?: string[]; sizes?: string[];
   /** Compatibility fields only: duration_policy is the sole frontend authority. */
   duration_s?: number[]; duration_range_s?: number[] | null; duration_step_s?: number | null;
@@ -32,14 +37,15 @@ export interface ModelSubmittability {
   activation?: string; lifecycle_status?: string; duration_policy_kind?: string | null;
 }
 export interface Model {
-  provider?: 'ark' | 'local';
-  activation?: 'verified' | 'not_opened' | 'local_history' | 'unknown';
+  provider?: 'ark' | 'aihubmix' | 'local';
+  activation?: 'verified' | 'not_opened' | 'local_history' | 'pending_validation' | 'unknown';
   capabilities?: ModelCapabilities; lifecycle?: ModelLifecycle;
   submittability?: ModelSubmittability | null;
   id: string; name: string; kind: 'image' | 'video'; downloaded: boolean;
   loaded: boolean; weights_mb: number; note?: string;
 }
 export interface Task {
+  caller_id?: string | null; external_request_id?: string | null; finished_at?: number | null;
   provider?: string; cost_cny?: number; remote_task_id?: string; remote_status?: string;
   id: string; kind: 'image' | 'video'; model_id: string; status: string;
   params_json: string; progress: number; stage: string; created_at: number;
@@ -71,12 +77,14 @@ export interface GenerationSettings {
   purpose: 'white' | 'scene' | 'custom'; imagePrompt: string; videoPrompt: string;
   imageRatio: string; videoRatio: string; imageReference: string | null; videoReference: string | null;
   batchCount: number; duration: number; imageSize?: string; videoResolution?: string;
+  imageModelId?: string; videoModelId?: string;
 }
 export interface Draft {
   id: string; name: string; version: number;
   content: { canvas: CanvasDocument; assetGroups?: Record<string, string>; generation?: GenerationSettings; meta?: { name?: string; assistantProjectId?: string } };
 }
 export interface TaskInput {
+  caller_id?: string;
   kind: 'image' | 'video'; model_id: string; params: Record<string, unknown>;
   input_asset_id?: string | null; client_request_id: string;
   template_id?:string;template_version?:number;template_fields?:Record<string,string>;

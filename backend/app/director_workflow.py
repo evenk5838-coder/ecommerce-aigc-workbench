@@ -284,7 +284,10 @@ def execute_tool(name: str, args: dict, ctx: dict) -> dict:
             raise err("VALIDATION_FAILED", "kind 必须为 image 或 video")
         result = legacy.execute_tool(name, args, ctx)
         for model in result["items"]:
-            model["capabilities"] = config.MODEL_CAPABILITIES.get(model["id"], {})
+            model["capabilities"] = config.public_model_capabilities(model["id"])
+            pricing = (config.MODEL_CAPABILITIES.get(model["id"]) or {}).get("pricing")
+            if pricing is not None:
+                model["capabilities"]["pricing"] = pricing
         return result
     if name in ("write_script", "prepare_script_confirmation", "prepare_storyboards", "prepare_video_nodes", "update_node"):
         result = getattr(creation, name)(project_id, args, ctx)

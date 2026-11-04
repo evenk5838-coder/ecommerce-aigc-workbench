@@ -101,7 +101,7 @@ def models():
     now = _now()
     out = []
     for mid, meta in config.MODEL_REGISTRY.items():
-        is_cloud = meta.get("provider") == "ark"
+        is_cloud = meta.get("provider") in config.CLOUD_PROVIDERS
         caps = config.MODEL_CAPABILITIES.get(mid, {})
         out.append({
             "id": mid,
@@ -116,31 +116,33 @@ def models():
             "max_size": meta.get("max_size"),
             "default_steps": meta.get("default_steps"),
             "default_frames": meta.get("default_frames"),
-            "note": meta.get("note"),
-            "activation": config.MODEL_ACTIVATION.get(mid, "unknown"),
+            "note": config.model_note(mid),
+            "activation": config.model_activation(mid),
             # v0.7：能力发现 + 生命周期（EOS）
-            "capabilities": {
-                "input_modes": caps.get("input_modes", []),
-                "ratios": caps.get("ratios", []),
-                "resolutions": caps.get("resolutions", []),
-                "sizes": caps.get("sizes", []),
-                "duration_s": caps.get("duration_s", []),
-                "duration_range_s": caps.get("duration_range_s"),
-                "duration_step_s": caps.get("duration_step_s"),
-                # B10：前端只按 duration_policy 渲染（range 优先，其次 enum，否则不可用）
-                "duration_policy": (config.duration_policy(mid)
-                                    if meta["kind"] == "video" else None),
-                "max_reference_images": caps.get("max_reference_images"),
-                "supports": caps.get("supports", []),
-                "fps": caps.get("fps"),
-                "limits": caps.get("limits"),
-            },
-            "pricing": caps.get("pricing"),
+            "capabilities": config.public_model_capabilities(mid),
+            "pricing": config.model_pricing(mid),
             # 生命周期由 config.model_lifecycle_state() 计算（服务端时间比较，到期即 expired）
             "lifecycle": config.model_lifecycle_state(mid, now),
             "submittability": config.model_submittability(mid, now),
         })
     return {"items": out}
+
+
+@app.get("/api/providers/aihubmix")
+def aihubmix_status():
+    """Local readiness only; no outbound call and no credential in response."""
+    from . import aihubmix_models, providers_aihubmix
+    items = [{"id": mid, **config.model_submittability(mid),
+              "validation": aihubmix_models.validation_info(mid)} for mid in aihubmix_models.MODELS]
+    enabled = aihubmix_models.enabled_models_config()
+    available = [item["id"] for item in items if item["submittable"]]
+    return {"provider": "aihubmix", "configured": providers_aihubmix.configured(),
+            # Retain the old all-model boolean; use per-model readiness for UI.
+            "generation_verified": all(item["activation"] == "verified" for item in items),
+            "sample_verified_models": sorted(aihubmix_models.SAMPLE_PROFILES),
+            "enabled_models": enabled["models"], "enabled_models_config_valid": enabled["valid"],
+            "available_models": available, "any_submittable": bool(available),
+            "async_enabled": None, "items": items}
 
 
 # ---------- 模板（v0.7 单次创作模板） ----------
@@ -293,6 +295,11 @@ def resolve_task(body: TaskIn, now_ts: float | None = None, *,
     # ---- 模型可提交性：账号未开通 / 已 EOS 一律拒绝新提交 ----
     # preview=True（仅费用预估）时允许返回报价，但必须标记 submittable=false。
     submittability = config.model_submittability(body.model_id, now)
+    if "MODEL_NOT_VERIFIED" in submittability["reasons"] and not preview:
+        raise err("MODEL_NOT_VERIFIED", "该通道尚未启用或未完成对应规格验证，暂不可提交",
+                  detail={"reasons": submittability["reasons"]})
+    if "AUTH_MISSING" in submittability["reasons"] and not preview:
+        raise err("AUTH_MISSING", "生成服务尚未配置，请先配置后再试")
     not_opened = "MODEL_NOT_OPENED" in submittability["reasons"]
     if not_opened and not preview:
         raise err("MODEL_NOT_OPENED",
@@ -402,18 +409,35 @@ def resolve_task(body: TaskIn, now_ts: float | None = None, *,
             params["ignored_reference"] = True
             params["input_asset_id"] = body.input_asset_id
 
+    # New candidate contracts must fill missing fields before the legacy
+    # 9:16/720p defaults become explicit. Never replace user-supplied values.
+    params = config.aihubmix_models.effective_candidate_params(body.model_id, body.kind, params)
+
     # ---- B10：时长先解析为唯一有效整数，并**写回** params ----
     # 之后落库、估价、供应商请求都读同一个值，避免"校验用 A、落库用 B"。
     if body.kind == "video":
         params["duration"] = config.resolve_duration_s(
             body.model_id, params.get("duration"), strict=True, legacy=legacy)
 
+    # Persist exactly the defaults used during validation and provider execution.
+    from .model_specs import effective_params, image_ratio
+    if body.model_id == config.aihubmix_models.FAST and body.kind == "video":
+        # Application defaults match the explicitly exposed operational profile;
+        # persist them before validation so the native request sends these exact
+        # values. Explicit unsupported values are never silently replaced.
+        for key, value in (("duration", 5), ("ratio", "16:9"), ("resolution", "480p"),
+                           ("generate_audio", False)):
+            params.setdefault(key, value)
+    params = effective_params(body.kind, params)
+    if body.kind == "image" and params.get("ratio") != image_ratio(params.get("size")):
+        raise err("MODEL_CAPABILITY_MISMATCH", "画面比例与图片尺寸不匹配")
+
     # ---- 最终生效参数的模型能力校验 ----
     problems = config.validate_params_for_model(body.model_id, body.kind, params)
     if problems:
         raise err("MODEL_CAPABILITY_MISMATCH",
                   f"模型 {body.model_id} 不支持所选参数：" +
-                  "，".join(f"{p['field']}={p['got']}" for p in problems),
+                  "，".join(f"{p['field']}={p.get('got', p.get('reason'))}" for p in problems),
                   detail={"template_id": (tpl_info or {}).get("template_id"), "problems": problems})
 
     # ---- 费用估算（与提交共用同一函数）----
@@ -485,6 +509,10 @@ def _insert_resolved(resolved: dict, body: TaskIn) -> dict:
         "caller_id": resolved["caller_id"],
         "concept_mode": 1 if resolved["concept_mode"] else 0,
     }
+    if config.MODEL_REGISTRY[resolved["model_id"]].get("provider") == "aihubmix":
+        from . import node_execution
+        task["usage_json"] = db.dumps({"cost_reservation": node_execution.freeze_task_cost_reservation(
+            task, resolved["estimated_cost_cny"])})
     db.insert("tasks", task)
     q = db.query("SELECT COUNT(*) c FROM tasks WHERE status='queued'")[0]["c"]
     return {**task, "queue_position": q, "estimated_cost_cny": resolved["estimated_cost_cny"]}
@@ -578,6 +606,19 @@ def retry_task(task_id: str, body: RetryIn | None = None):
     if not t:
         raise err("TASK_NOT_FOUND", f"任务不存在：{task_id}")
     projects.assert_task_project_active(task_id)
+    if config.MODEL_REGISTRY.get(t["model_id"], {}).get("provider") == "aihubmix":
+        # Recovery is a query/download of the same remote job, never a second
+        # paid POST. Keep the original canvas execution, frozen quote and scope.
+        if t.get("error_code") == "CREATE_RESULT_UNKNOWN" and not t.get("remote_task_id"):
+            raise err("CREATE_RESULT_UNKNOWN", "请先在 AiHubMix 核对原请求结果，不能重复提交")
+        if t.get("remote_task_id") and t.get("status") != "succeeded" and t.get("remote_status") not in ("failed", "canceled", "cancelled"):
+            if t["status"] not in ("failed", "interrupted", "canceled") or task_id in worker.TOKENS:
+                raise err("NODE_EXECUTION_ACTIVE", "原生成任务仍在等待，请勿重复恢复")
+            if body and body.params:
+                raise err("VALIDATION_FAILED", "恢复原任务不能修改生成参数")
+            db.update("tasks", task_id, {"status": "queued", "stage": "resume_poll", "finished_at": None,
+                       "cancel_requested": 0, "error_code": None, "error_message": None})
+            return {"task_id": task_id, "status": "queued", "resumed": True, "model_called": False}
     if db.query("SELECT id FROM canvas_node_executions WHERE task_id=?", (task_id,)):
         raise err("NODE_EXECUTION_CONFLICT", "请在原画布节点重新报价并生成，避免重复提交或丢失关联。")
     if t["status"] in worker.ACTIVE:

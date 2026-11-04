@@ -17,6 +17,7 @@ import urllib.request
 from pathlib import Path
 
 from .errors import err
+from . import media_policy
 
 BASE_URL = os.getenv("ARK_BASE_URL", "https://ark.cn-beijing.volces.com/api/v3")
 TIMEOUT = float(os.getenv("ARK_TIMEOUT", "120"))
@@ -95,6 +96,8 @@ def _request(method: str, path: str, body: dict | None = None, timeout: float | 
 def image_generate(model_id: str, prompt: str, size: str = "1024x1024",
                    watermark: bool = False, response_format: str = "b64_json",
                    image: str | None = None, timeout: float | None = None) -> dict:
+    media_policy.require_no_watermark(watermark)
+    media_policy.require_safe_prompt(prompt)
     body: dict = {"model": model_id, "prompt": prompt, "size": size,
                   "response_format": response_format, "watermark": watermark}
     if image:
@@ -118,6 +121,10 @@ def video_create(model_id: str, content: list[dict], *, duration: int | None = N
                  generate_audio: bool = False, watermark: bool = False,
                  seed: int | None = None, safety_identifier: str | None = None,
                  output_format: str = "mp4", timeout: float | None = None) -> dict:
+    media_policy.require_no_watermark(watermark)
+    for item in content:
+        if item.get("type") == "text":
+            media_policy.require_safe_prompt(item.get("text", ""))
     body: dict = {"model": model_id, "content": content}
     if duration is not None:
         body["duration"] = duration

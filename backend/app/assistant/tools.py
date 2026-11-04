@@ -73,6 +73,8 @@ def _list_models(args: dict) -> dict:
         "ratios": m["capabilities"]["ratios"],
         "resolutions": m["capabilities"]["resolutions"],
         "duration_s": m["capabilities"]["duration_s"],
+        **({"parameter_combinations": m["capabilities"]["parameter_combinations"]}
+           if "parameter_combinations" in m["capabilities"] else {}),
     } for m in items]}
 
 

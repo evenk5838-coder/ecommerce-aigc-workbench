@@ -55,6 +55,13 @@ def _validate_canvas_reference(task: dict) -> None:
     if not rows:
         return  # Retained non-canvas task contract.
     frozen = db.loads(rows[0]["frozen_json"]) or {}
+    if config.MODEL_REGISTRY.get(task["model_id"], {}).get("provider") in config.CLOUD_PROVIDERS:
+        from . import media_policy, providers_aihubmix
+        current_policy = (providers_aihubmix.output_policy(task["kind"], task["model_id"])
+                          if config.MODEL_REGISTRY[task["model_id"]]["provider"] == "aihubmix"
+                          else media_policy.specification(task["kind"]))
+        if frozen.get("output_policy") != current_policy:
+            raise err("NODE_QUOTE_STALE", "生成规则已更新，请重新确认后生成")
     reference = frozen.get("reference")
     if not reference:
         return
@@ -86,16 +93,21 @@ def execute(task: dict) -> None:
         _validate_canvas_reference(task)
 
         meta = config.MODEL_REGISTRY.get(model_id, {})
-        if meta.get("provider") == "ark":
+        if meta.get("provider") in config.CLOUD_PROVIDERS:
             from . import cloud_tasks
 
+            _set(task_id, provider=meta["provider"])
             params = {**params, "input_asset_id": params.get("input_asset_id") or task.get("input_asset_id")}
-            runner = cloud_tasks.run_image if task["kind"] == "image" else cloud_tasks.run_video
+            if meta["provider"] == "aihubmix":
+                from .providers_aihubmix import run_media
+                runner = run_media
+            else:
+                runner = cloud_tasks.run_image if task["kind"] == "image" else cloud_tasks.run_video
             res = runner(task_id, model_id, params, token, on_progress=progress)
             peak = SAMPLER.stop()
             asset = storage.save_bytes(
                 res["data"], res["kind"], "cloud_generated",
-                meta={"model_id": model_id, "provider": "ark", "prompt": params.get("prompt"),
+                meta={"model_id": model_id, "provider": meta["provider"], "prompt": params.get("prompt"),
                       "task_id": task_id, "remote_task_id": res.get("remote_task_id"),
                       "usage": res.get("usage"), "cost_cny": res.get("cost_cny"),
                       "seed": params.get("seed")},
@@ -105,7 +117,7 @@ def execute(task: dict) -> None:
                  width=asset.get("width"), height=asset.get("height"), frames=asset.get("frames"),
                  fps=asset.get("fps"), duration_ms=asset.get("duration_ms"),
                  usage_json=db.dumps(res.get("usage") or {}), cost_cny=res.get("cost_cny"),
-                 provider="ark", finished_at=db.now())
+                 provider=meta["provider"], finished_at=db.now())
             db.insert("task_attempts", {
                 "id": db.new_id("att"), "task_id": task_id, "attempt_no": task["attempts"],
                 "started_at": started, "finished_at": db.now(), "result": "succeeded",
@@ -242,6 +254,13 @@ def cancel(task_id: str) -> dict:
         return {"result": "canceled", "phase": "queued"}
     remote_id = task.get("remote_task_id")
     if remote_id:
+        if config.MODEL_REGISTRY.get(task["model_id"], {}).get("provider") == "aihubmix":
+            # Native schemas expose no cancel endpoint. Stop only the local
+            # wait and keep ID/reservation; never issue Ark DELETE for this ID.
+            TOKENS.setdefault(task_id, CancelToken()).request()
+            _set(task_id, cancel_requested=1, stage="cancel_requested_cloud_running")
+            return {"result": "cancel_requested", "phase": "cloud_running", "cloud_canceled": False,
+                    "message": "已停止本地等待；AiHubMix 任务可能仍在执行并计费"}
         # 先向云端确认真实状态（本地 remote_status 可能已过期）
         try:
             from . import providers_ark as ark

@@ -10,19 +10,17 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import re
 from typing import Any
 
 from . import cloud_tasks, config, db, projects, storage
 from .errors import AppError, err
+from .model_specs import image_ratio
 
 QUOTE_TTL_S = 600
 TERMINAL = ("succeeded", "failed", "canceled", "interrupted")
 REMOTE_TERMINAL = ("succeeded", "success", "failed", "cancelled", "canceled")
 PARAM_KEYS = {"image": {"size", "ratio", "watermark"},
               "video": {"duration", "ratio", "resolution", "generate_audio", "watermark", "seed"}}
-IMAGE_PRESET_RATIOS = {"2048x2048": "1:1", "1728x2304": "3:4", "2304x1728": "4:3",
-                       "1536x2688": "9:16", "2688x1536": "16:9"}
 
 
 def _body(body: dict | None, allowed: set[str]) -> dict:
@@ -82,7 +80,7 @@ def _freeze(node: dict) -> tuple[dict, dict]:
     if not isinstance(model_id, str) or not model_id.strip():
         raise err("VALIDATION_FAILED", "请为节点选择模型")
     # Local historical engines do not implement the same four-mode contract.
-    if model_id in config.MODEL_REGISTRY and config.MODEL_REGISTRY[model_id].get("provider") != "ark":
+    if model_id in config.MODEL_REGISTRY and config.MODEL_REGISTRY[model_id].get("provider") not in config.CLOUD_PROVIDERS:
         raise err("NODE_NOT_EXECUTABLE", "当前节点生成仅支持已接入的云端图片或视频模型")
     prompt = cfg.get("prompt", "")
     if not isinstance(prompt, str) or len(prompt) > 20000:
@@ -97,17 +95,17 @@ def _freeze(node: dict) -> tuple[dict, dict]:
             raise err("VALIDATION_FAILED", f"{key} 必须为布尔值")
     if "seed" in params and (isinstance(params["seed"], bool) or not isinstance(params["seed"], int)):
         raise err("VALIDATION_FAILED", "seed 必须为整数")
+    if model_id in config.aihubmix_models.EXTENSIONS:
+        params = config.aihubmix_models.effective_candidate_params(
+            model_id, kind, {**params, "generation_mode": mode})
     if kind == "image":
         params.setdefault("size", "1024x1024")
         # These pixel-aligned presets use the same display ratios as the canvas
         # controls.  In particular 2688x1536 is intentionally labelled 16:9.
         size = params["size"]
-        match = re.fullmatch(r"([1-9][0-9]{0,5})x([1-9][0-9]{0,5})", size) if isinstance(size, str) else None
-        if not match:
+        display_ratio = image_ratio(size)
+        if display_ratio is None:
             raise err("MODEL_CAPABILITY_MISMATCH", "请选择模型支持的图片尺寸")
-        width, height = int(match[1]), int(match[2])
-        divisor = math.gcd(width, height)
-        display_ratio = IMAGE_PRESET_RATIOS.get(size, f"{width // divisor}:{height // divisor}")
         params.setdefault("ratio", display_ratio)
         if params["ratio"] not in (config.MODEL_CAPABILITIES.get(model_id) or {}).get("ratios", []) or params["ratio"] != display_ratio:
             raise err("MODEL_CAPABILITY_MISMATCH", "画面比例与图片尺寸不匹配")
@@ -132,6 +130,11 @@ def _freeze(node: dict) -> tuple[dict, dict]:
     frozen = {"kind": resolved["kind"], "model_id": resolved["model_id"],
               "params": resolved["params"], "input_asset_id": resolved["input_asset_id"],
               "reference": reference}
+    if config.MODEL_REGISTRY.get(model_id, {}).get("provider") in config.CLOUD_PROVIDERS:
+        from . import media_policy, providers_aihubmix
+        frozen["output_policy"] = (providers_aihubmix.output_policy(kind, model_id)
+                                   if config.MODEL_REGISTRY[model_id]["provider"] == "aihubmix"
+                                   else media_policy.specification(kind))
     return frozen, resolved
 
 
@@ -179,6 +182,20 @@ def _active(task: dict) -> bool:
             task.get("error_code") == "CREATE_RESULT_UNKNOWN")
 
 
+def _task_cost_input(task: dict) -> dict:
+    return {"kind": task.get("kind"), "model_id": task.get("model_id"),
+            "params": db.loads(task.get("params_json")) or {},
+            "input_asset_id": task.get("input_asset_id")}
+
+
+def freeze_task_cost_reservation(task: dict, cost: float) -> dict:
+    """Bind a direct task's positive estimate without duplicating its prompt."""
+    if isinstance(cost, bool) or not isinstance(cost, (int, float)) or not math.isfinite(cost) or cost <= 0:
+        raise err("BUDGET_RESERVATION_UNAVAILABLE", "生成费用预留无法确认，请重新报价")
+    return {"version": 1, "kind": task["kind"], "model_id": task["model_id"],
+            "input_hash": _hash(_task_cost_input(task)), "estimated_cost_cny": float(cost)}
+
+
 def _reserved_cost_in_tx(connection: Any, task: dict) -> float:
     # A consumed, linked quote is the authoritative price for canvas/director
     # tasks, including after a capability or price-list change.
@@ -198,8 +215,28 @@ def _reserved_cost_in_tx(connection: Any, task: dict) -> float:
             return float(cost)
         raise err("BUDGET_RESERVATION_UNAVAILABLE", "有历史任务的费用记录需要核对，请核对后继续生成",
                   task_id=task["id"])
+    if config.MODEL_REGISTRY.get(task["model_id"], {}).get("provider") == "aihubmix":
+        usage = db.loads(task.get("usage_json")) or {}
+        if not isinstance(usage, dict):
+            raise err("BUDGET_RESERVATION_UNAVAILABLE", "历史费用记录格式需要核对", task_id=task["id"])
+        if usage.get("cost_basis") == "unknown" or usage.get("cost_pending_verification") is True:
+            raise err("BUDGET_RESERVATION_UNAVAILABLE", "已有生成费用待核对，请核对后继续生成",
+                      task_id=task["id"])
+        if "cost_reservation" in usage:
+            reservation = usage["cost_reservation"]
+            cost = reservation.get("estimated_cost_cny") if isinstance(reservation, dict) else None
+            if (isinstance(reservation, dict) and type(reservation.get("version")) is int
+                    and reservation["version"] == 1
+                    and reservation.get("kind") == task["kind"]
+                    and reservation.get("model_id") == task["model_id"]
+                    and reservation.get("input_hash") == _hash(_task_cost_input(task))
+                    and not isinstance(cost, bool) and isinstance(cost, (int, float))
+                    and math.isfinite(cost) and cost > 0):
+                return float(cost)
+            raise err("BUDGET_RESERVATION_UNAVAILABLE", "费用预留与当前生成输入不一致，请先核对",
+                      task_id=task["id"])
     try:
-        if task["kind"] == "video":
+        if task["kind"] == "video" and config.MODEL_REGISTRY.get(task["model_id"], {}).get("provider") != "aihubmix":
             return config.historical_video_reservation_cny(task["model_id"], params)
         return cloud_tasks.estimate_cost(task["kind"], task["model_id"], params, legacy=True)
     except AppError as exc:
@@ -221,7 +258,7 @@ def _budget_in_tx(connection: Any, cost: float) -> None:
         task = dict(record)
         remote_charge_unsettled = bool(task.get("remote_task_id") and
             task.get("remote_status") in ("success", "succeeded") and task.get("cost_cny") is None)
-        if (not _active(task) and not remote_charge_unsettled) or config.MODEL_REGISTRY.get(task["model_id"], {}).get("provider") != "ark":
+        if (not _active(task) and not remote_charge_unsettled) or config.MODEL_REGISTRY.get(task["model_id"], {}).get("provider") not in config.CLOUD_PROVIDERS:
             continue
         reserved += _reserved_cost_in_tx(connection, task)
     if not math.isfinite(cost) or cost < 0 or not math.isfinite(reserved):

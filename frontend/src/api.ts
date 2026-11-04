@@ -21,7 +21,7 @@ export const api = {
   createBatch: (name: string, items: TaskInput[]) => request<{ batch_id: string; task_ids: string[] }>('/batches', json('POST', { name, items })),
   cancelTask: (id: string) => request<{ result: string; message?: string; cloud_canceled?: boolean }>(`/tasks/${encodeURIComponent(id)}/cancel`, { method: 'POST' }),
   usage: () => request<{ budget_cny: number; spent_today_cny: number }>('/usage'),
-  retryTask: (id: string) => request<{ task_id: string }>(`/tasks/${encodeURIComponent(id)}/retry`, json('POST', {})),
+  retryTask: (id: string) => request<{ task_id: string; resumed?: boolean }>(`/tasks/${encodeURIComponent(id)}/retry`, json('POST', {})),
   upload: (file: File) => { const body = new FormData(); body.append('file', file); return request<{ asset_id: string }>('/assets', { method: 'POST', body }); },
   draft: (id: string) => request<Draft>(`/drafts/${encodeURIComponent(id)}`),
   drafts: () => request<{ items: Draft[] }>('/drafts?limit=20'),

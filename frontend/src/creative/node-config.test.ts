@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nodeGenerationIssue, sameNodeConfig, withNodeMode, withNodeModel } from './node-config';
+import { nodeGenerationIssue, sameNodeConfig, withDefaultNodeModel, withNodeMode, withNodeModel } from './node-config';
 import type { Model } from '../types';
 describe('independent node settings',()=>{
   it('recognizes a saved config after top-level and params field normalization',()=>{
@@ -61,5 +61,41 @@ describe('node generation input before quote', () => {
     expect(nodeGenerationIssue('image', { ...imageConfig, generation_mode: 'image_to_image', input_asset_id: 'ref' }, { ...image, capabilities: { ...image.capabilities, input_modes: ['text_to_image'] } })).toMatch('输入方式');
     expect(nodeGenerationIssue('image', imageConfig, undefined)).toMatch('选择一个生成模型');
     expect(nodeGenerationIssue('image', { ...imageConfig, prompt: '  ' }, image)).toMatch('先描述');
+  });
+});
+
+describe('AiHubMix canvas selections', () => {
+  const flash: Model = { id: 'aihubmix:flash', name: 'Flash', kind: 'image', provider: 'aihubmix', downloaded: false, loaded: false, weights_mb: 0,
+    submittability: { submittable: true, reasons: [] }, capabilities: { input_modes: ['text_to_image', 'image_to_image'], ratios: ['1:1'], sizes: ['1024x1024'],
+      parameter_combinations: [{ generation_mode: ['text_to_image', 'image_to_image'], ratio: ['1:1'], size: ['1024x1024'] }] } };
+  const fast: Model = { ...flash, id: 'aihubmix:fast', name: 'Fast', kind: 'video', capabilities: { input_modes: ['text_to_video', 'image_to_video'], ratios: ['16:9'], resolutions: ['480p'], duration_policy: { kind: 'enum', allowed: [5] },
+    parameter_combinations: [{ generation_mode: ['text_to_video', 'image_to_video'], ratio: ['16:9'], resolution: ['480p'], duration: [5], generate_audio: [false] }] } };
+  const ark: Model = { ...flash, id: 'ark-flash', provider: 'ark' };
+
+  it('new nodes prefer available AiHubMix and adopt only public permitted specs', () => {
+    const image = withDefaultNodeModel({ prompt: 'one cup', generation_mode: 'text_to_image' }, 'image', [ark, flash, fast]);
+    expect(image).toMatchObject({ model_id: flash.id, params: { ratio: '1:1', size: '1024x1024' } });
+    expect(nodeGenerationIssue('image', image, flash)).toBeNull();
+    const video = withDefaultNodeModel({ prompt: 'move', generation_mode: 'image_to_video', input_asset_id: 'reference' }, 'video', [ark, fast]);
+    expect(video).toMatchObject({ model_id: fast.id, params: { ratio: '16:9', resolution: '480p', duration: 5, generate_audio: false } });
+    expect(nodeGenerationIssue('video', video, fast)).toBeNull();
+  });
+
+  it('does not replace historical choices, cleared choices or inputs when metadata refreshes', () => {
+    for (const model_id of [ark.id, '', 'removed-model']) {
+      const stored = { prompt: 'old prompt', model_id, params: { ratio: '9:16', size: '1536x2688' } };
+      expect(withDefaultNodeModel(stored, 'image', [flash, ark])).toBe(stored);
+    }
+    const closed = { ...flash, submittability: { submittable: false, reasons: ['MODEL_NOT_VERIFIED'] } };
+    expect(withDefaultNodeModel({ generation_mode: 'text_to_image' }, 'image', [closed, ark]).model_id).toBe(ark.id);
+    expect(withDefaultNodeModel({ generation_mode: 'text_to_image' }, 'image', [closed])).not.toHaveProperty('model_id');
+  });
+
+  it('changing provider retains prompt/reference while replacing incompatible specs', () => {
+    const original = { prompt: 'keep cup', generation_mode: 'image_to_video', input_asset_id: 'original', model_id: 'old-video', params: { ratio: '9:16', resolution: '720p', duration: 10, generate_audio: true } };
+    const switched = withNodeModel(original, fast);
+    expect(switched).toMatchObject({ prompt: original.prompt, input_asset_id: original.input_asset_id, model_id: fast.id, params: { ratio: '16:9', resolution: '480p', duration: 5, generate_audio: false } });
+    expect(original.params).toEqual({ ratio: '9:16', resolution: '720p', duration: 10, generate_audio: true });
+    expect(nodeGenerationIssue('video', { ...switched, params: { ...switched.params as object, resolution: '720p' } }, fast)).toMatch('清晰度');
   });
 });

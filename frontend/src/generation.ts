@@ -1,3 +1,4 @@
+import { validateSpecCombination } from './model-specs';
 import type { Asset, ImageMode, VideoMode, Model, TaskInput } from './types';
 import { validateGenerationMode } from './generation-modes';
 import { getDefaultImageSize, getImageSizesForRatio, getSupportedRatios, getSupportedResolutions, validateModelSelection, validateVideoDuration } from './capabilities';
@@ -69,10 +70,10 @@ export function buildGenerationInput(options: GenerationOptions): Omit<TaskInput
     if (durationError) throw new Error(durationError);
     const resolution = options.resolution ?? '720p';
     if (!getSupportedResolutions(model).includes(resolution)) throw new Error('当前模型不支持所选视频清晰度，请重新选择');
-    return {
-      kind, model_id: modelId, input_asset_id: inputAssetId,
-      params: { prompt, generation_mode: mode, duration, ratio, resolution, generate_audio: false },
-    };
+    const params = { prompt, generation_mode: mode, duration, ratio, resolution, generate_audio: false };
+    const specError = validateSpecCombination(model, params);
+    if (specError) throw new Error(specError);
+    return { kind, model_id: modelId, input_asset_id: inputAssetId, params };
   }
 
   if (imageMode !== 'text_to_image' && imageMode !== 'image_to_image') {
@@ -83,8 +84,8 @@ export function buildGenerationInput(options: GenerationOptions): Omit<TaskInput
   const size = options.imageSize ?? getDefaultImageSize(model, ratio);
   if (!size || !getImageSizesForRatio(model, ratio).includes(size)) throw new Error('当前图片尺寸不支持所选比例，请重新选择输出规格');
   const inputAssetId = imageMode === 'image_to_image' ? requireImage(reference, '参考图').id : null;
-  return {
-    kind, model_id: modelId, input_asset_id: inputAssetId,
-    params: { prompt, generation_mode: imageMode, size },
-  };
+  const params = { prompt, generation_mode: imageMode, size, ...(model?.capabilities?.parameter_combinations ? { ratio } : {}) };
+  const specError = validateSpecCombination(model, params);
+  if (specError) throw new Error(specError);
+  return { kind, model_id: modelId, input_asset_id: inputAssetId, params };
 }

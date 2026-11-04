@@ -1,10 +1,11 @@
 import { getDefaultImageSize, getImageSizesForRatio, getSupportedRatios } from '../capabilities';
 import { imageSizeTier, imageTierOptions, ratioPreview } from '../image-specs';
+import type { SpecSelection } from '../model-specs';
 import type { Model } from '../types';
 import './StoryboardOutputSettings.css';
 
 export interface StoryboardOutputSettingsProps {
-  model: Model | undefined;
+  model: Model | undefined; selection?: SpecSelection;
   size: string;
   onChange: (size: string) => void;
   disabled?: boolean;
@@ -23,20 +24,20 @@ function isApproximate(size: string, ratio: string): boolean {
 }
 
 /** Every visible option maps to an actual model size; rendering never changes the saved selection. */
-export default function StoryboardOutputSettings({ model, size, onChange, disabled = false }: StoryboardOutputSettingsProps) {
+export default function StoryboardOutputSettings({ model, selection, size, onChange, disabled = false }: StoryboardOutputSettingsProps) {
   const imageModel = model?.kind === 'image' ? model : undefined;
-  const ratios = getSupportedRatios(imageModel).filter(ratio => getImageSizesForRatio(imageModel, ratio).length > 0);
-  const ratio = ratios.find(value => getImageSizesForRatio(imageModel, value).includes(size));
-  const tiers = ratio ? imageTierOptions(imageModel, ratio) : [];
+  const ratios = getSupportedRatios(imageModel, selection).filter(ratio => getImageSizesForRatio(imageModel, ratio, selection).length > 0);
+  const ratio = ratios.find(value => getImageSizesForRatio(imageModel, value, selection).includes(size));
+  const tiers = ratio ? imageTierOptions(imageModel, ratio, selection) : [];
   const currentTier = tiers.find(tier => tier.sizes.includes(size));
-  const currentSizes = ratio ? getImageSizesForRatio(imageModel, ratio) : [];
+  const currentSizes = ratio ? getImageSizesForRatio(imageModel, ratio, selection) : [];
 
   function selectRatio(nextRatio: string) {
     if (disabled || !ratios.includes(nextRatio)) return;
-    const sizes = getImageSizesForRatio(imageModel, nextRatio);
+    const sizes = getImageSizesForRatio(imageModel, nextRatio, selection);
     if (sizes.includes(size)) return;
-    const sameTier = imageTierOptions(imageModel, nextRatio).find(tier => tier.label === imageSizeTier(size));
-    const nextSize = sameTier?.sizes[0] ?? getDefaultImageSize(imageModel, nextRatio) ?? sizes[0];
+    const sameTier = imageTierOptions(imageModel, nextRatio, selection).find(tier => tier.label === imageSizeTier(size));
+    const nextSize = sameTier?.sizes[0] ?? getDefaultImageSize(imageModel, nextRatio, selection) ?? sizes[0];
     if (nextSize) onChange(nextSize);
   }
 

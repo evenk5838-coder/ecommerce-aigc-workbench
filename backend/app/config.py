@@ -76,6 +76,7 @@ MODEL_REGISTRY = {
 
 # ---------- 云端（火山方舟 Ark）模型登记：模型 ID 来自官方「模型列表」，是否已开通需账号核对 ----------
 CLOUD = os.getenv("APP_PROVIDER", "ark") == "ark"
+CLOUD_PROVIDERS = {"ark", "aihubmix"}
 
 # 图片计价（2026-10-23 官方《模型价格》核对）：
 #   flash  输出图 0.12 元/张（不区分像素档），输入图免费
@@ -126,7 +127,7 @@ RESOLUTION_WH = {  # 分辨率档 → (宽, 高)，按常见横版；竖版比�
 MODEL_ACTIVATION = {
     "doubao-seedream-5-0-flash-260915": "verified",
     "doubao-seedance-1-0-pro-fast-251015": "verified",
-    "doubao-seedream-5-0-pro-260628": "not_opened",
+    "doubao-seedream-5-0-pro-260628": "verified",  # 2026-10-29：文生图和图生图真实通过
     "doubao-seedream-5-0-260128": "not_opened",
     "doubao-seedance-2-0-260128": "not_opened",
     "doubao-seedance-2-0-fast-260128": "not_opened",
@@ -266,6 +267,9 @@ MODEL_CAPABILITIES = {
 }
 
 # ---------- 模型生命周期（2026-10-23 官方《模型下线公告》核实） ----------
+from . import aihubmix_models
+aihubmix_models.register(MODEL_REGISTRY, MODEL_CAPABILITIES, MODEL_ACTIVATION)
+
 # 公告：https://www.volcengine.com/docs/82379/1350667（第十批模型下线说明）
 #   通知 2026-09-22 10:00 (UTC+8)；EOM 2026-09-24 10:00 (UTC+8) 停止新购；
 #   EOS 2026-11-24 14:00 (UTC+8) 模型服务下线。
@@ -314,6 +318,8 @@ def parse_size_px(size: str | None) -> tuple[int, int]:
 def image_cost_cny(model_id: str, size: str | None, reference_images: int = 0) -> float:
     """图片单次调用估算价：支持单一价与像素档两种口径；ref 图从第 2 张起加价。"""
     cost = 0.0
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        return aihubmix_models.estimate_cost("image", model_id, {"size": size, "reference_images": reference_images})
     if model_id in IMAGE_PIXEL_TIERS:
         w, h = parse_size_px(size)
         mp = (w * h) / 1_000_000
@@ -465,6 +471,8 @@ def video_cost_cny(model_id: str, params: dict, *, legacy: bool = False) -> floa
     **不再在解析失败时按 5 秒兜底**（那会把历史 10 秒错算成 5 秒）。
     无法解析 → 直接报错，由调用方决定如何处理。
     """
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        return aihubmix_models.estimate_cost("video", model_id, params, legacy=legacy)
     resolved = resolve_duration_s(model_id, params.get("duration"),
                                   strict=True, legacy=legacy)
     tokens = video_token_estimate(
@@ -561,39 +569,81 @@ def model_lifecycle_state(model_id: str, now_ts: float | None = None) -> dict:
     }
 
 
+def model_activation(model_id: str) -> str:
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        return aihubmix_models.activation_state(model_id)
+    return MODEL_ACTIVATION.get(model_id, "unknown")
+
+
+def model_note(model_id: str) -> str | None:
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        return aihubmix_models.model_note(model_id)
+    return MODEL_REGISTRY.get(model_id, {}).get("note")
+
+
+def model_pricing(model_id: str) -> dict | None:
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        return aihubmix_models.public_pricing(model_id)
+    return (MODEL_CAPABILITIES.get(model_id) or {}).get("pricing")
+
+
 def model_submittability(model_id: str, now_ts: float | None = None) -> dict:
     """模型当前是否**允许新提交**（与前端是否可选一致）。
 
     同时检查：activation（账号开通）与 lifecycle（EOS）；再叠加时长策略是否可用。
     """
-    activation = MODEL_ACTIVATION.get(model_id, "unknown")
+    activation = model_activation(model_id)
     life = model_lifecycle_state(model_id, now_ts)
     policy = duration_policy(model_id)
     kind = (MODEL_REGISTRY.get(model_id) or {}).get("kind")
     reasons = []
+    from .model_specs import combinations_valid
+    if not combinations_valid(MODEL_CAPABILITIES.get(model_id) or {}):
+        reasons.append("MODEL_SPEC_POLICY_UNAVAILABLE")
     if activation == "not_opened":
         reasons.append("MODEL_NOT_OPENED")
+    elif activation == "pending_validation":
+        reasons.append("MODEL_NOT_VERIFIED")
     elif activation in ("local_not_downloaded",):
         reasons.append("MODEL_NOT_DOWNLOADED")
     if life.get("status") == "eos_expired":
         reasons.append("MODEL_EOS")
     if kind == "video" and policy["kind"] == "unavailable":
         reasons.append("DURATION_POLICY_UNAVAILABLE")
-    return {
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        if activation != "verified" and "MODEL_NOT_VERIFIED" not in reasons:
+            reasons.append("MODEL_NOT_VERIFIED")
+        if not aihubmix_models.pricing_ready(model_id):
+            reasons.append("MODEL_PRICE_UNCONFIRMED")
+        if not os.getenv("AIHUBMIX_API_KEY", "").strip():
+            reasons.append("AUTH_MISSING")
+    result = {
         "submittable": not reasons,
         "reasons": reasons,
         "activation": activation,
         "lifecycle_status": life.get("status"),
         "duration_policy_kind": policy["kind"] if kind == "video" else None,
     }
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        validation = aihubmix_models.validation_info(model_id)
+        result.update(sample_generation_verified=validation["sample_generation_verified"],
+                      operational_enabled=validation["operational_enabled"],
+                      enabled_models_config_valid=validation["enabled_models_config_valid"],
+                      pricing_status=aihubmix_models.public_pricing(model_id)["status"],
+                      vendor_duration_policy_kind=policy["kind"] if kind == "video" else None,
+                      duration_policy_kind=("enum" if aihubmix_models.operational_profiles(model_id)
+                                            else "unavailable") if kind == "video" else None)
+    return result
 
 
 def validate_params_for_model(model_id: str, kind: str, params: dict) -> list[dict]:
     """对**最终生效参数**做模型能力校验；返回问题列表（空=通过）。"""
+    params = aihubmix_models.effective_candidate_params(model_id, kind, params)
+    from . import media_policy
+    problems = media_policy.parameter_problems(params) if MODEL_REGISTRY.get(model_id, {}).get("provider") in CLOUD_PROVIDERS else []
     caps = MODEL_CAPABILITIES.get(model_id)
     if not caps:
-        return []
-    problems: list[dict] = []
+        return problems
     if kind == "image":
         mode = params.get("generation_mode", "text_to_image")
         allowed_modes = caps.get("input_modes", [])
@@ -620,7 +670,28 @@ def validate_params_for_model(model_id: str, kind: str, params: dict) -> list[di
         allowed_res = caps.get("resolutions") or []
         if resolution and allowed_res and resolution not in allowed_res:
             problems.append({"field": "resolution", "got": resolution, "allowed": allowed_res})
-    return problems
+    from .model_specs import validate_combination
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        problems.extend(aihubmix_models.parameter_problems(kind, params))
+        problems.extend(aihubmix_models.operational_problems(model_id, kind, params))
+    return problems + validate_combination(caps, params)
+
+
+def public_model_capabilities(model_id: str) -> dict:
+    from .model_specs import public_capabilities
+    kind = (MODEL_REGISTRY.get(model_id) or {}).get("kind")
+    result = public_capabilities(MODEL_CAPABILITIES.get(model_id) or {},
+                                 duration_policy(model_id) if kind == "video" else None)
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") == "aihubmix":
+        result = aihubmix_models.public_operational_capabilities(
+            model_id, MODEL_CAPABILITIES.get(model_id) or {},
+            duration_policy(model_id) if kind == "video" else None)
+    if MODEL_REGISTRY.get(model_id, {}).get("provider") in CLOUD_PROVIDERS:
+        from . import media_policy, providers_aihubmix
+        result["output_policy"] = (providers_aihubmix.output_policy(kind, model_id)
+                                   if MODEL_REGISTRY[model_id]["provider"] == "aihubmix"
+                                   else media_policy.specification(kind))
+    return result
 
 
 REQUIRED_FILES = {

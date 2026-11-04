@@ -1,0 +1,82 @@
+[
+  {
+    "file": "bad-cases/image-to-video-before-after.jpg",
+    "dimensions": [
+      864,
+      1040
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "bad-cases/image-to-video-before.mp4",
+    "full_decode": "passed"
+  },
+  {
+    "file": "bad-cases/image-to-video-v2-last-frame.png",
+    "dimensions": [
+      864,
+      496
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "bad-cases/text-to-video-before-after.jpg",
+    "dimensions": [
+      864,
+      1040
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "bad-cases/text-to-video-before.mp4",
+    "full_decode": "passed"
+  },
+  {
+    "file": "reference-results/image-result.jpg",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "reference-results/image-to-video-contact-sheet.jpg",
+    "dimensions": [
+      2160,
+      1088
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "reference-results/image-to-video.mp4",
+    "full_decode": "passed"
+  },
+  {
+    "file": "reference-results/reference.jpg",
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "reference-results/text-to-video-contact-sheet.jpg",
+    "dimensions": [
+      2160,
+      1088
+    ],
+    "exif_fields": 0
+  },
+  {
+    "file": "reference-results/text-to-video.mp4",
+    "full_decode": "passed"
+  },
+  {
+    "file": "reference-results/video-first-frame-v2.png",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "exif_fields": 0
+  }
+]

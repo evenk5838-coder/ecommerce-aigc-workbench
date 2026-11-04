@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="物料间电商 AIGC 工作台的免费静态交互原型，体验快捷生成与多角色导演画布。">
+  <title>物料间 · 交互演示</title>
+  <link rel="stylesheet" href="showcase/demo.css">
+</head>
+<body>
+  <div class="demo-banner"><span><i aria-hidden="true"></i>交互原型 · 示例内容，不调用模型</span><a href="https://github.com/evenk5838-coder/ecommerce-aigc-workbench">查看源码 ↗</a></div>
+  <header class="topbar">
+    <button class="brand" data-view="home" aria-label="物料间首页"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>物料间<small>MATERIAL STUDIO</small></span></button>
+    <nav aria-label="主导航"><button data-view="home">项目首页</button><button data-view="quick">快捷工作台</button><button data-view="director">导演台</button></nav>
+    <button class="theme" id="theme" aria-label="切换深浅主题" title="切换深浅主题">◐</button>
+  </header>
+  <main id="app"></main>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <noscript><p class="noscript">请启用 JavaScript 查看交互原型。图片与真实生成结果可直接在仓库 README 查看。</p></noscript>
+  <script src="showcase/demo.js"></script>
+</body>
+</html>

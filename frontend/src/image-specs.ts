@@ -1,4 +1,5 @@
 import { getImageSizesForRatio } from './capabilities';
+import type { SpecSelection } from './model-specs';
 import type { Model } from './types';
 
 /** Labels describe pixel budgets, not image quality or model capabilities. */
@@ -12,9 +13,9 @@ export function imageSizeTier(size: string): string {
   }
   return '自定义';
 }
-export function imageTierOptions(model: Model | undefined, ratio: string): { label: string; sizes: string[] }[] {
+export function imageTierOptions(model: Model | undefined, ratio: string, selection?: SpecSelection): { label: string; sizes: string[] }[] {
   const options: { label: string; sizes: string[] }[] = [];
-  for (const size of getImageSizesForRatio(model, ratio)) {
+  for (const size of getImageSizesForRatio(model, ratio, selection)) {
     const label = imageSizeTier(size), group = options.find(item => item.label === label);
     if (group) group.sizes.push(size); else options.push({ label, sizes: [size] });
   }

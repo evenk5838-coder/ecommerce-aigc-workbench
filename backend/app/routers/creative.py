@@ -142,6 +142,7 @@ class StoryboardQuoteIn(BaseModel):
     model_id: str
     size: str = "2048x2048"
     prompt: str | None = None
+    input_asset_id: str | None = None
 
 
 class StoryboardGenIn(BaseModel):
@@ -193,7 +194,8 @@ def delete_shot(shot_id: str):
 @router.post("/storyboards/quote")
 def quote_storyboard(body: StoryboardQuoteIn):
     """分镜图报价（不建任务）。"""
-    return shots.quote_storyboard(body.shot_ids, body.model_id, body.size, body.prompt)
+    return shots.quote_storyboard(body.shot_ids, body.model_id, body.size, body.prompt,
+                                  body.input_asset_id)
 
 
 @router.post("/shots/{shot_id}/storyboard")

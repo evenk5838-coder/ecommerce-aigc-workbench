@@ -192,16 +192,32 @@ def _validate_config(cfg: dict) -> dict:
                                   "allowed": caps.get("input_modes")})
         params = out.get("params") or {}
         if kind == "video":
+            if config.MODEL_REGISTRY[model_id].get("provider") == "aihubmix":
+                # New node defaults follow the permitted application profile;
+                # explicit user settings are still validated, never downgraded.
+                operational = config.public_model_capabilities(model_id)
+                for field, key in (("ratio", "ratios"), ("resolution", "resolutions")):
+                    values = operational.get(key) or []
+                    if field not in params and values:
+                        params[field] = values[0]
+                params.setdefault("generate_audio", False)
             if params.get("duration") is not None:
                 params["duration"] = config.resolve_duration_s(
                     model_id, params["duration"], strict=True)
-            problems = config.validate_params_for_model(model_id, "video", params)
+            from .model_specs import effective_params
+            effective = effective_params("video", params, mode=mode)
+            effective["duration"] = config.resolve_duration_s(
+                model_id, params.get("duration"), strict=True)
+            problems = config.validate_params_for_model(
+                model_id, "video", effective)
             if problems:
                 raise err("MODEL_CAPABILITY_MISMATCH", "节点参数不被模型支持",
                           detail={"problems": problems})
             out["params"] = params
         if kind == "image":
-            problems = config.validate_params_for_model(model_id, "image", {**params, "generation_mode": mode or "text_to_image"})
+            from .model_specs import effective_params
+            problems = config.validate_params_for_model(
+                model_id, "image", effective_params("image", params, mode=mode))
             if problems:
                 raise err("MODEL_CAPABILITY_MISMATCH", "节点参数不被模型支持", detail={"problems": problems})
         if mode in ("text_to_image", "text_to_video"):

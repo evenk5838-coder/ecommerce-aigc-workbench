@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from typing import Any, Callable
 
 from . import canvas, config, db, node_execution, projects, storage
@@ -254,26 +253,22 @@ def write_script(project_id: str, args: dict, ctx: dict) -> dict:
 
 
 def _ratio(size: str) -> str:
+    from .model_specs import image_ratio
     if not isinstance(size, str):
         raise err("MODEL_CAPABILITY_MISMATCH", "图片尺寸必须为字符串")
-    if size in node_execution.IMAGE_PRESET_RATIOS:
-        return node_execution.IMAGE_PRESET_RATIOS[size]
-    try:
-        width, height = map(int, size.split("x"))
-        if width <= 0 or height <= 0:
-            raise ValueError("non-positive dimensions")
-        divisor = math.gcd(width, height)
-        return f"{width // divisor}:{height // divisor}"
-    except (TypeError, ValueError, ZeroDivisionError):
-        raise err("MODEL_CAPABILITY_MISMATCH", "图片尺寸不受支持") from None
+    ratio = image_ratio(size)
+    if ratio is None:
+        raise err("MODEL_CAPABILITY_MISMATCH", "图片尺寸不受支持")
+    return ratio
 
 
 def _media_config(kind: str, model_id: str, prompt: str, params: dict, *,
                   asset_id: str | None = None, title: str | None = None) -> dict:
     model = config.MODEL_REGISTRY.get(model_id) or {}
-    caps = config.MODEL_CAPABILITIES.get(model_id) or {}
+    caps = (config.public_model_capabilities(model_id) if model.get("provider") == "aihubmix"
+            else config.MODEL_CAPABILITIES.get(model_id) or {})
     mode = ("image_to_" if asset_id else "text_to_") + kind
-    if model.get("provider") != "ark" or model.get("kind") != kind or mode not in caps.get("input_modes", []):
+    if model.get("provider") not in config.CLOUD_PROVIDERS or model.get("kind") != kind or mode not in caps.get("input_modes", []):
         raise err("MODEL_CAPABILITY_MISMATCH", "请选择支持当前生成方式的已接入模型")
     params = dict(_object(params, node_execution.PARAM_KEYS[kind], "params"))
     if kind == "image":

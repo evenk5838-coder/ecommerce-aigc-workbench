@@ -202,9 +202,10 @@ def _shot_view(row: dict, storyboards: list[dict]) -> dict:
 
 # ---------------- 分镜 ----------------
 def quote_storyboard(shot_ids: list[str], model_id: str,
-                     size: str = "2048x2048", prompt: str | None = None) -> dict:
+                     size: str = "2048x2048", prompt: str | None = None,
+                     input_asset_id: str | None = None) -> dict:
     """分镜图**报价**：只算钱，不建任务、不调模型。"""
-    from . import cloud_tasks
+    from . import main as core
 
     if not shot_ids:
         raise err("VALIDATION_FAILED", "shot_ids 不能为空")
@@ -214,8 +215,11 @@ def quote_storyboard(shot_ids: list[str], model_id: str,
         shot = db.get("shots", sid)
         if not shot:
             raise err("SHOT_NOT_FOUND", f"镜头不存在：{sid}")
-        est = cloud_tasks.estimate_cost("image", model_id,
-                                        {"size": size, "generation_mode": "text_to_image"})
+        resolved = core.resolve_task(core.TaskIn(
+            kind="image", model_id=model_id, input_asset_id=input_asset_id,
+            params={"size": size, "prompt": (prompt or "").strip() or shot["description"],
+                    "generation_mode": "image_to_image" if input_asset_id else "text_to_image"}))
+        est = resolved["estimated_cost_cny"]
         total += est
         items.append({"shot_id": sid, "estimated_cost_cny": est})
     return {"shots": items, "count": len(items), "total_estimate_cny": round(total, 4),
@@ -235,7 +239,7 @@ def generate_storyboard(shot_id: str, model_id: str, confirm: bool,
         raise err("SHOT_NOT_FOUND", f"镜头不存在：{shot_id}")
     _require_script_confirmed(shot["project_id"])     # B2
     if not confirm:
-        return {**quote_storyboard([shot_id], model_id, size, prompt),
+        return {**quote_storyboard([shot_id], model_id, size, prompt, input_asset_id),
                 "need_confirm": True,
                 "hint": "确认后将创建 1 个图片任务（产生图片费用）"}
     if not config.model_submittability(model_id)["submittable"]:

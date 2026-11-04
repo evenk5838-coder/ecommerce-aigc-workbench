@@ -1,16 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp, Check, Clapperboard, Download, Film as FilmIcon, Image as ImageIcon, Layers3, LoaderCircle, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { api, ApiError, mediaUrl } from '../api';
-import { getDurationPolicy, getModelUnavailableReason, getSupportedImageSizes, getSupportedRatios, getSupportedResolutions } from '../capabilities';
+import { getSupportedDurations, getModelUnavailableReason, getSupportedRatios, getSupportedResolutions, imageSizeRatio } from '../capabilities';
 import { inspectGenerationEstimates } from '../estimates';
 import { imageSizeTier } from '../image-specs';
+import { modelDisplayName, orderCloudModels } from '../model-catalog';
+import { objectValue, textValue, withNodeModel } from './node-config';
+import { validateSpecCombination } from '../model-specs';
 import StoryboardOutputSettings from './StoryboardOutputSettings';
 import type { Asset, Model, Task, TaskInput } from '../types';
 import type { CreativeProjectDetail, CreativeScript } from './types';
 import { productionApi } from './production-api';
 import { inspectFailedSelection, inspectScope } from './production-guards';
 import type { Film, ProductionStatus, ProjectExport, ScopeInput, ScopeQuote, Shot, Storyboard, StoryboardCreation, StoryboardInput } from './production-types';
-import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, isActiveStatus, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, savedShotPlan, shotDraftChanged, shotPlanChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
+import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, initialProductionSelection, isActiveStatus, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, savedShotPlan, shotDraftChanged, shotPlanChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
 import type { ProductionEditorState, ShotDraft } from './production-state';
 import { displayDate } from './state';
 import './ProductionFlow.css';
@@ -35,6 +38,9 @@ function readEdit(id: string): ProductionEditorState | null { try { return parse
 function readPending(id: string): string { try { return localStorage.getItem(PENDING_KEY + id) || ''; } catch { return ''; } }
 function writePending(id: string, value: string): void { try { localStorage.setItem(PENDING_KEY + id, value); } catch { /* The visible navigation guard remains active. */ } }
 const isRecord = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+function DurationOptions({values,current}:{values:number[];current:string}) {
+  return <><option value="">选择时长</option>{current&&!values.includes(Number(current))&&<option value={current} disabled>{current} 秒 · 需调整</option>}{values.map(value=><option key={value} value={value}>{value} 秒</option>)}</>;
+}
 function Loading() { return <LoaderCircle size={16} className="pf-spin" aria-hidden="true" />; }
 function durationLabel(ms?: number | null): string { return typeof ms === 'number' && Number.isFinite(ms) && ms >= 0 ? `${(ms/1000).toFixed(2)} 秒（实测）` : '实际时长待探测'; }
 
@@ -107,6 +113,7 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   const [resolution, setResolution] = useState(local?.resolution ?? '');
   const [imageModelId, setImageModelId] = useState(local?.imageModelId ?? '');
   const [imageSize, setImageSize] = useState(local?.imageSize ?? '');
+  const modelDefaultsInitialized = useRef(!!local);
   const [mode, setMode] = useState<'full'|'clips'>(local?.mode ?? 'full');
   const [selectedIds, setSelectedIds] = useState<string[]>(local?.selectedIds ?? []);
   const [selectedTakes, setSelectedTakes] = useState<Record<string,string>>({});
@@ -158,7 +165,9 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   const liveFingerprint = useRef(fingerprint); liveFingerprint.current = fingerprint;
   const storyFingerprint = JSON.stringify({fingerprint,imageModelId,imageSize});
   const liveStoryFingerprint = useRef(storyFingerprint); liveStoryFingerprint.current = storyFingerprint;
-  const videoError = getModelUnavailableReason(videoModel) || (!getSupportedRatios(videoModel).includes(ratio) ? '请选择当前模型支持的比例。' : !getSupportedResolutions(videoModel).includes(resolution) ? '请选择当前模型支持的清晰度。' : null);
+  const videoSelection = {generation_mode:'image_to_video', generate_audio:false};
+  const videoDurations = getSupportedDurations(videoModel, {...videoSelection,ratio,resolution});
+  const videoError = getModelUnavailableReason(videoModel) || (!getSupportedRatios(videoModel, videoSelection).includes(ratio) ? '请选择当前模型支持的比例。' : !getSupportedResolutions(videoModel, {...videoSelection,ratio}).includes(resolution) ? '请选择当前模型支持的清晰度。' : null) || rows.filter(row=>row.shot_id&&selectedIds.includes(row.shot_id)).map(row=>validateSpecCombination(videoModel,{...videoSelection,ratio,resolution,duration:Number(row.duration)})).find(Boolean) || null;
   const submitBlocked = useRef(blocked || !!videoError || dirty); submitBlocked.current = blocked || !!videoError || dirty;
   const selectedTakeIds = shots.map(shot => { const options = successfulTakes(shot,status); const chosen=selectedTakes[shot.shot_id]; return options.find(take=>take.take_id===chosen)?.take_id ?? options.at(-1)?.take_id ?? ''; });
   const missingShots = shots.filter((_,index)=>!selectedTakeIds[index]).map(shot=>shot.shot_id);
@@ -178,10 +187,18 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   useEffect(() => { if (!scope) return; const timer=setInterval(()=>setClock(Date.now()),1000); return()=>clearInterval(timer); },[scope]);
   useEffect(() => { const onVisible=()=>setVisible(document.visibilityState==='visible');document.addEventListener('visibilitychange',onVisible);return()=>document.removeEventListener('visibilitychange',onVisible); },[]);
 
+  useEffect(() => {
+    if (modelDefaultsInitialized.current || !shotsLoaded || !models.length) return;
+    modelDefaultsInitialized.current = true;
+    const initial = initialProductionSelection(local, shots, models);
+    setVideoModelId(initial.videoModelId); setRatio(initial.ratio); setResolution(initial.resolution);
+    setImageModelId(initial.imageModelId); setImageSize(initial.imageSize);
+  }, [local, shotsLoaded, shots, models]);
+
   const readResources = async () => {
     const results=await Promise.allSettled([api.models(),api.assets(),api.tasks()]);if(!mounted.current)return;
     const failures:string[]=[];
-    if(results[0].status==='fulfilled'){const list=results[0].value.items;setModels(list);const vm=list.find(item=>item.kind==='video'&&!getModelUnavailableReason(item));const im=list.find(item=>item.kind==='image'&&!getModelUnavailableReason(item));if(!videoModelId&&vm){setVideoModelId(vm.id);if(!ratio)setRatio(getSupportedRatios(vm)[0]??'');if(!resolution)setResolution(getSupportedResolutions(vm)[0]??'');}if(!imageModelId&&im){setImageModelId(im.id);if(!imageSize)setImageSize(getSupportedImageSizes(im)[0]??'');}}else failures.push('模型能力读取失败');
+    if(results[0].status==='fulfilled')setModels(orderCloudModels(results[0].value.items));else failures.push('模型能力读取失败');
     if(results[1].status==='fulfilled')setAssets(results[1].value.items);else failures.push('参考素材读取失败');
     if(results[2].status==='fulfilled')setTasks(results[2].value.items);else failures.push('任务状态读取失败');
     setResourceError(failures.join('；'));
@@ -221,8 +238,18 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   const updateRow=(key:string,patch:Partial<ShotDraft>)=>{invalidate();setRows(current=>current.map(row=>row.key===key?{...row,...patch}:row));};
   const setStoryboardModel = (modelId: string) => {
     if (disabled || (focusedId && !focusedRow)) return;
-    if (focusedRow) updateRow(focusedRow.key, { storyboardModelId: modelId, storyboardSize: '' });
-    else { invalidate(); setImageModelId(modelId); setImageSize(''); }
+    modelDefaultsInitialized.current = true;
+    const model = models.find(item => item.id === modelId);
+    const size = model ? textValue(objectValue(withNodeModel({ generation_mode: focusedRow?.input_asset_id ? 'image_to_image' : 'text_to_image', params: { ratio: imageSizeRatio(nodeImageSettings.size), size: nodeImageSettings.size } }, model).params).size) : '';
+    if (focusedRow) updateRow(focusedRow.key, { storyboardModelId: modelId, storyboardSize: size });
+    else { invalidate(); setImageModelId(modelId); setImageSize(size); }
+  };
+  const setVideoModel = (modelId: string) => {
+    modelDefaultsInitialized.current = true; invalidate(); setVideoModelId(modelId);
+    const model = models.find(item => item.id === modelId);
+    if (!model) return;
+    const params = objectValue(withNodeModel({ generation_mode: 'image_to_video', params: { ratio, resolution } }, model).params);
+    setRatio(textValue(params.ratio)); setResolution(textValue(params.resolution));
   };
   const setStoryboardSize = (size: string) => {
     if (disabled || nodeImageUnavailable || (focusedId && !focusedRow)) return;
@@ -280,9 +307,9 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
   const scopeCheck=scope?inspectScope(scope.quote,scope.input,clock):null;
   const groupVideoSettings = <fieldset className="pf-fields" disabled={disabled}>
       <div className="pf-video-settings">
-        <label>本组视频模型<select value={videoModelId} onChange={event=>{invalidate();setVideoModelId(event.target.value);}}><option value="">选择模型</option>{models.filter(model=>model.kind==='video').map(model=><option key={model.id} value={model.id} disabled={!!getModelUnavailableReason(model)}>{model.name}{getModelUnavailableReason(model)?' · 暂不可用':''}</option>)}</select></label>
-        <label>视频比例<select value={ratio} onChange={event=>{invalidate();setRatio(event.target.value);}}><option value="">选择比例</option>{getSupportedRatios(videoModel).map(option=><option key={option}>{option}</option>)}</select></label>
-        <label>清晰度<select value={resolution} onChange={event=>{invalidate();setResolution(event.target.value);}}><option value="">选择清晰度</option>{getSupportedResolutions(videoModel).map(option=><option key={option}>{option}</option>)}</select></label>
+        <label>本组视频模型<select value={videoModelId} onChange={event=>setVideoModel(event.target.value)}><option value="">选择模型</option>{videoModelId&&!models.some(model=>model.id===videoModelId&&!getModelUnavailableReason(model))&&<option value={videoModelId} disabled hidden>请重新选择可用模型</option>}{models.filter(model=>model.kind==='video'&&!getModelUnavailableReason(model)).map(model=><option key={model.id} value={model.id}>{modelDisplayName(model)}</option>)}</select></label>
+        <label>视频比例<select value={ratio} onChange={event=>{invalidate();setRatio(event.target.value);}}><option value="">选择比例</option>{ratio&&!getSupportedRatios(videoModel,videoSelection).includes(ratio)&&<option value={ratio} disabled>{ratio} · 需调整</option>}{getSupportedRatios(videoModel, videoSelection).map(option=><option key={option}>{option}</option>)}</select></label>
+        <label>清晰度<select value={resolution} onChange={event=>{invalidate();setResolution(event.target.value);}}><option value="">选择清晰度</option>{resolution&&!getSupportedResolutions(videoModel,{...videoSelection,ratio}).includes(resolution)&&<option value={resolution} disabled>{resolution} · 需调整</option>}{getSupportedResolutions(videoModel, {...videoSelection,ratio}).map(option=><option key={option}>{option}</option>)}</select></label>
       </div>
       <p className="pf-small">本组所有镜头共用以上视频设置。</p>
       {videoError&&<p className="pf-small pf-warning-text">{videoError}</p>}
@@ -294,12 +321,7 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
         <div className="pf-shot-grid">
           <label className="pf-wide">画面描述<textarea rows={2} value={videoFocusedRow.description} onChange={event=>updateRow(videoFocusedRow.key,{description:event.target.value})}/></label>
           <label>运镜<input value={videoFocusedRow.motion} onChange={event=>updateRow(videoFocusedRow.key,{motion:event.target.value})} placeholder="如：缓慢推近"/></label>
-          <label>镜头时长（秒）{(() => {
-            const policy = getDurationPolicy(videoModel);
-            return policy.kind === 'enum'
-              ? <select value={videoFocusedRow.duration} onChange={event=>updateRow(videoFocusedRow.key,{duration:event.target.value})}><option value="">选择时长</option>{policy.allowed.map(value=><option key={value} value={value}>{value} 秒</option>)}</select>
-              : <input type="number" value={videoFocusedRow.duration} min={policy.kind==='range'?policy.min:undefined} max={policy.kind==='range'?policy.max:undefined} step={policy.kind==='range'?policy.step:1} onChange={event=>updateRow(videoFocusedRow.key,{duration:event.target.value})} placeholder={policy.kind==='range'?`${policy.min}–${policy.max} 秒`:'请先选择视频模型'}/>;
-          })()}</label>
+          <label>镜头时长（秒）<select value={videoFocusedRow.duration} onChange={event=>updateRow(videoFocusedRow.key,{duration:event.target.value})}><DurationOptions values={videoDurations} current={videoFocusedRow.duration}/></select></label>
         </div>
       </fieldset>
       <p className="pf-small">修改后需重新确认分镜和费用；已有视频仍会保留。</p>
@@ -317,8 +339,8 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
     <section className="pf-section" hidden={!!panel&&panel!=='storyboard'} aria-labelledby="pf-plan-title"><div className="pf-section-heading"><h3 id="pf-plan-title">{focusedId?'分镜画面':'镜头计划与分镜'}</h3></div>
       {shotError&&<div className="pf-notice pf-warning">暂时无法读取镜头：{shotError}。当前编辑已保留，请稍后刷新。</div>}
       <div className="pf-image-settings">
-        <label>{focusedId?'此分镜的图片模型':'默认分镜模型'}<select disabled={disabled||!!focusedId&&!focusedRow} value={nodeImageSettings.modelId} onChange={event=>setStoryboardModel(event.target.value)}><option value="">选择模型</option>{nodeImageSettings.modelId&&!models.some(model=>model.id===nodeImageSettings.modelId)&&<option value={nodeImageSettings.modelId} disabled>已选模型暂不可用</option>}{models.filter(model=>model.kind==='image').map(model=><option key={model.id} value={model.id} disabled={!!getModelUnavailableReason(model)}>{model.name}{getModelUnavailableReason(model)?' · 暂不可用':''}</option>)}</select></label>
-        <StoryboardOutputSettings model={nodeImageModel} size={nodeImageSettings.size} disabled={disabled||!!nodeImageUnavailable||!!focusedId&&!focusedRow} onChange={setStoryboardSize}/>
+        <label>{focusedId?'此分镜的图片模型':'默认分镜模型'}<select disabled={disabled||!!focusedId&&!focusedRow} value={nodeImageSettings.modelId} onChange={event=>setStoryboardModel(event.target.value)}><option value="">选择模型</option>{nodeImageSettings.modelId&&!models.some(model=>model.id===nodeImageSettings.modelId&&!getModelUnavailableReason(model))&&<option value={nodeImageSettings.modelId} disabled hidden>请重新选择可用模型</option>}{models.filter(model=>model.kind==='image'&&!getModelUnavailableReason(model)).map(model=><option key={model.id} value={model.id}>{modelDisplayName(model)}</option>)}</select></label>
+        <StoryboardOutputSettings selection={focusedRow?{generation_mode:focusedRow.input_asset_id?'image_to_image':'text_to_image'}:undefined} model={nodeImageModel} size={nodeImageSettings.size} disabled={disabled||!!nodeImageUnavailable||!!focusedId&&!focusedRow} onChange={setStoryboardSize}/>
         {nodeImageModel&&nodeImageUnavailable&&<p className="pf-small pf-warning-text">{nodeImageUnavailable}</p>}
       </div>
       <p className="pf-small">{focusedId?'只调整当前分镜，其他镜头保持各自设置。':'未单独设置的分镜使用以上默认值。'}</p>
@@ -327,9 +349,9 @@ function ProductionProject({ panel, focusShotId = null, project, script, blocked
       <p className="pf-small">提示词、参考图和模型选择暂存于此浏览器。</p>{dirty&&<div className="pf-unsaved">镜头计划有未保存修改，请先保存再生成。{shots.length>0&&<button className="pf-link" disabled={disabled} onClick={()=>{if(window.confirm('放弃未保存的镜头编辑，恢复已保存的计划吗？')){invalidate();setRows(shots.map(draftFromShot));}}}>恢复已保存计划</button>}</div>}
       {focusedId&&!focusedRow&&<div className="pf-notice" role="status">当前镜头暂未找到，请返回镜头计划重新选择。</div>}
       {!focusedId&&!rows.length&&<div className="pf-empty"><Clapperboard size={28}/><p>添加第一条镜头，描述你想看到的画面。</p></div>}
-      <div className="pf-shot-list">{rows.map((row,index)=>{const saved=shots.find(shot=>shot.shot_id===row.shot_id),changed=shotDraftChanged(row,saved),policy=getDurationPolicy(videoModel);const boards=saved?boardItems(saved):[];const latestStatus=status?.shots.find(item=>item.shot_id===row.shot_id);const storyCheck=inspectStoryboardDraft(row,{imageModelId,imageSize},models);return <article className="pf-shot" hidden={!!focusedId&&row!==focusedRow} key={row.key} id={"pf-shot-"+(row.shot_id??row.key)} tabIndex={-1}>
+      <div className="pf-shot-list">{rows.map((row,index)=>{const saved=shots.find(shot=>shot.shot_id===row.shot_id),changed=shotDraftChanged(row,saved);const boards=saved?boardItems(saved):[];const latestStatus=status?.shots.find(item=>item.shot_id===row.shot_id);const storyCheck=inspectStoryboardDraft(row,{imageModelId,imageSize},models);return <article className="pf-shot" hidden={!!focusedId&&row!==focusedRow} key={row.key} id={"pf-shot-"+(row.shot_id??row.key)} tabIndex={-1}>
         <header><div><span className="pf-shot-index">{String(index+1).padStart(2,'0')}</span><strong>镜头 {index+1}</strong><span className="pf-badge">{!row.shot_id?'尚未保存':changed?'编辑未保存':'已保存'}</span>{latestStatus&&<span className="pf-badge">{names[latestStatus.status]??latestStatus.status}</span>}</div><div className="pf-actions"><button className="pf-icon" aria-label={`上移镜头${index+1}`} hidden={!!focusedId} disabled={disabled||index===0} onClick={()=>moveRow(index,-1)}><ArrowUp size={15}/></button><button className="pf-icon" aria-label={`下移镜头${index+1}`} hidden={!!focusedId} disabled={disabled||index===rows.length-1} onClick={()=>moveRow(index,1)}><ArrowDown size={15}/></button><button className="pf-icon" aria-label={`删除镜头${index+1}`} disabled={disabled} onClick={()=>void removeRow(row)}><Trash2 size={15}/></button></div></header>
-        <fieldset className="pf-fields" disabled={disabled}><div className="pf-shot-grid"><label className="pf-wide">画面描述<textarea rows={2} value={row.description} onChange={event=>updateRow(row.key,{description:event.target.value})} placeholder="这一镜展示什么商品事实、画面与动作"/></label><label>镜头时长（秒）{policy.kind==='enum'?<select value={row.duration} onChange={event=>updateRow(row.key,{duration:event.target.value})}><option value="">选择时长</option>{policy.allowed.map(value=><option key={value} value={value}>{value} 秒</option>)}</select>:<input type="number" value={row.duration} min={policy.kind==='range'?policy.min:undefined} max={policy.kind==='range'?policy.max:undefined} step={policy.kind==='range'?policy.step:1} onChange={event=>updateRow(row.key,{duration:event.target.value})} placeholder={policy.kind==='range'?`${policy.min}–${policy.max} 秒`:'请先选择视频模型'}/>}</label><label>运镜<input value={row.motion} onChange={event=>updateRow(row.key,{motion:event.target.value})} placeholder="如：缓慢推近"/></label><label className="pf-wide">参考图<select value={row.input_asset_id} onChange={event=>updateRow(row.key,{input_asset_id:event.target.value})}><option value="">不使用参考图</option>{row.input_asset_id&&!assets.some(asset=>asset.id===row.input_asset_id)&&<option value={row.input_asset_id}>已保存的参考图（不在本次素材列表）</option>}{assets.filter(asset=>asset.kind==='image').map(asset=><option key={asset.id} value={asset.id}>{asset.source==='upload'?'上传原图':'生成图片'} · {asset.width}×{asset.height} · {displayDate(asset.created_at)}</option>)}</select><span className="pf-small">从素材库选择；需要新图片时，可先在快捷工作台上传。</span></label>{row.input_asset_id&&<img className="pf-reference" src={mediaUrl(row.input_asset_id)} alt={`镜头 ${index+1} 参考图`}/>}
+        <fieldset className="pf-fields" disabled={disabled}><div className="pf-shot-grid"><label className="pf-wide">画面描述<textarea rows={2} value={row.description} onChange={event=>updateRow(row.key,{description:event.target.value})} placeholder="这一镜展示什么商品事实、画面与动作"/></label><label>镜头时长（秒）<select value={row.duration} onChange={event=>updateRow(row.key,{duration:event.target.value})}><DurationOptions values={videoDurations} current={row.duration}/></select></label><label>运镜<input value={row.motion} onChange={event=>updateRow(row.key,{motion:event.target.value})} placeholder="如：缓慢推近"/></label><label className="pf-wide">参考图<select value={row.input_asset_id} onChange={event=>updateRow(row.key,{input_asset_id:event.target.value})}><option value="">不使用参考图</option>{row.input_asset_id&&!assets.some(asset=>asset.id===row.input_asset_id)&&<option value={row.input_asset_id}>已保存的参考图（不在本次素材列表）</option>}{assets.filter(asset=>asset.kind==='image').map(asset=><option key={asset.id} value={asset.id}>{asset.source==='upload'?'上传原图':'生成图片'} · {asset.width}×{asset.height} · {displayDate(asset.created_at)}</option>)}</select><span className="pf-small">从素材库选择；需要新图片时，可先在快捷工作台上传。</span></label>{row.input_asset_id&&<img className="pf-reference" src={mediaUrl(row.input_asset_id)} alt={`镜头 ${index+1} 参考图`}/>}
         <label className="pf-wide">生成提示词<textarea rows={3} value={row.prompt} onChange={event=>updateRow(row.key,{prompt:event.target.value})} placeholder="描述分镜画面、商品细节和期望风格"/><button type="button" className="pf-link" onClick={()=>updateRow(row.key,{prompt:row.description})}>用画面描述作为提示词</button></label></div></fieldset>
         <footer><span className="pf-small">{storyCheck.error??`${models.find(model=>model.id===storyCheck.input?.model_id)?.name??'分镜图片'} · ${imageSizeTier(storyCheck.input?.size??'')}`}</span><div className="pf-actions"><button className="pf-button" disabled={disabled||!!shotError||!changed||!script} onClick={()=>void saveRow(row,index)}><Save size={15}/>保存镜头</button><button className="pf-button pf-primary" disabled={disabled||!row.shot_id||changed||!!storyCheck.error} onClick={()=>void estimateBoard(row)}><ImageIcon size={15}/>估价并生成分镜</button></div></footer>
         {boards.length>0&&<div className="pf-boards">{boards.map(board=>{const task=tasks.find(item=>item.id===board.task_id),assetId=board.asset_id??task?.output_asset_id,working=task?isActiveStatus(task.status):isActiveStatus(board.status);return <section className="pf-board" key={board.storyboard_id}><div className="pf-board-media">{assetId?<a href={mediaUrl(assetId)} target="_blank" rel="noreferrer"><img src={mediaUrl(assetId)} alt={`镜头 ${index+1} 分镜图`}/></a>:<span>{working?<Loading/>:<ImageIcon size={25}/>} {task?names[task.status]??task.status:names[board.status]??'等待读取图片结果'}</span>}</div><div><strong>分镜图</strong>{board.created_at&&<span className="pf-small"> · {displayDate(board.created_at)}</span>}<p className="pf-small">{names[board.status]??board.status}{task?.error_message?` · ${task.error_message}`:''}</p>{board.reject_reason&&<p className="pf-small">驳回原因：{board.reject_reason}</p>}<div className="pf-actions"><button className="pf-button" disabled={disabled||!assetId||working||board.status==='approved'} onClick={()=>void boardReview(board,true)}><Check size={14}/>审核通过</button></div><label>驳回原因<input value={rejections[board.storyboard_id]??''} onChange={event=>setRejections(current=>({...current,[board.storyboard_id]:event.target.value}))} disabled={disabled} placeholder="说明画面哪里不符合要求"/></label><button className="pf-link" disabled={disabled||!assetId||!rejections[board.storyboard_id]?.trim()} onClick={()=>void boardReview(board,false)}><X size={14}/>驳回此画面</button></div></section>;})}</div>}

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Model, Task } from '../types';
 import type { ProductionStatus, ScopeInput, Shot } from './production-types';
-import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, savedShotPlan, shotDraftChanged, shotPlanChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
+import { draftFromShot, failedShotIds, hasActiveProduction, inspectShotDraft, inspectStoryboardDraft, initialProductionSelection, parseProductionEditor, planOrderChanged, productionFingerprint, restoreShotDraft, savedShotPlan, shotDraftChanged, shotPlanChanged, storyboardSettings, submitAfterScopeConfirmation, successfulTakes, unionFilms } from './production-state';
 const model: Model = { id:'video', name:'video', kind:'video', provider:'ark', downloaded:true, loaded:false, weights_mb:0, submittability:{submittable:true,reasons:[]}, capabilities:{duration_policy:{kind:'range',min:2,max:12,step:1}} };
 const shot: Shot = {shot_id:'s1',project_id:'p',revision:2,seq:1,duration_s:6,description:'保留产品',input_asset_id:'a1'};
 const status: ProductionStatus = {project_id:'p',mode:'clips',shots:[],batch:null,film:null};
@@ -188,5 +188,36 @@ describe('independent storyboard node settings', () => {
     expect(edited?.size).toBe('1536x2688');
     expect(edited).not.toEqual(quoted);
     expect(productionFingerprint('p', 'scr', {}, [row], [shot], input)).not.toBe(productionFingerprint('p', 'scr', {}, [{ ...row, storyboardSize: '1536x2688' }], [shot], input));
+  });
+});
+
+describe('AiHubMix production selection', () => {
+  const image: Model = { id: 'aihubmix:flash', name: 'Flash', kind: 'image', provider: 'aihubmix', downloaded: false, loaded: false, weights_mb: 0,
+    submittability: { submittable: true, reasons: [] }, capabilities: { input_modes: ['text_to_image', 'image_to_image'], ratios: ['1:1'], sizes: ['1024x1024'],
+      parameter_combinations: [{ generation_mode: ['text_to_image', 'image_to_image'], ratio: ['1:1'], size: ['1024x1024'] }] } };
+  const video: Model = { ...image, id: 'aihubmix:fast', kind: 'video', capabilities: { input_modes: ['image_to_video', 'text_to_video'], ratios: ['16:9'], resolutions: ['480p'], duration_policy: { kind: 'enum', allowed: [5] },
+      parameter_combinations: [{ generation_mode: ['text_to_video', 'image_to_video'], ratio: ['16:9'], resolution: ['480p'], duration: [5], generate_audio: [false] }] } };
+  const models = [{ ...image, id: 'old-image', provider: 'ark' as const }, image, video];
+
+  it('starts an empty plan with supported AiHubMix defaults and does not mutate metadata', () => {
+    const before = structuredClone(models);
+    expect(initialProductionSelection(null, [], models)).toEqual({ imageModelId: image.id, imageSize: '1024x1024', videoModelId: video.id, ratio: '16:9', resolution: '480p' });
+    expect(models).toEqual(before);
+  });
+  it('retains explicit browser settings including an empty choice and preserves an older shot provider', () => {
+    const old = { imageModelId: 'old-image', imageSize: '2048x2048', videoModelId: '', ratio: '9:16', resolution: '720p' };
+    expect(initialProductionSelection(old, [], models)).toEqual(old);
+    expect(initialProductionSelection(null, [{ ...shot, model_id: 'ark-old-video' }], models)).toEqual({ videoModelId: 'ark-old-video', ratio: '', resolution: '', imageModelId: '', imageSize: '' });
+    expect(initialProductionSelection(null, [{ ...shot, model_id: 'a' }, { ...shot, shot_id: 's2', model_id: 'b' }], models).videoModelId).toBe('');
+  });
+  it('derives storyboard ratio for the model combination rule without adding hidden API fields', () => {
+    const draft = { ...draftFromShot(shot), prompt: 'whole cup', input_asset_id: '' };
+    const defaults = { imageModelId: image.id, imageSize: '1024x1024' };
+    for (const reference of ['', 'reference']) {
+      const result = inspectStoryboardDraft({ ...draft, input_asset_id: reference }, defaults, models);
+      expect(result.error).toBeNull();
+      expect(result.input).toEqual({ model_id: image.id, size: '1024x1024', prompt: 'whole cup', input_asset_id: reference || null });
+    }
+    expect(inspectStoryboardDraft(draft, { ...defaults, imageSize: '2048x2048' }, models).input).toBeNull();
   });
 });

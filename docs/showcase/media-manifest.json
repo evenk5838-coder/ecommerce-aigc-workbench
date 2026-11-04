@@ -1,0 +1,122 @@
+[
+  {
+    "file": "reference-results/reference.jpg",
+    "source": "docs/evidence/v0.11-AiHubMix无水印复验-20261030/text_to_image.jpg",
+    "sha256": "1d74cefb5d1ea8a97cfb072444869359a0bb95306b25641de846a22eb0aaf163",
+    "bytes": 90123,
+    "mode": "文生图 / 后续图生图与图生视频的参考原图",
+    "model": "Seedream Flash",
+    "evidence": "真实生成，虚构无品牌白杯",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "reference-results/image-result.jpg",
+    "source": "docs/evidence/v0.11-AiHubMix无水印复验-20261030/image_to_image.jpg",
+    "sha256": "47a36eeeb6e15c7eb7a59b0320be381b9364ac7435b0aaa77e7858428d828d37",
+    "bytes": 99019,
+    "mode": "图生图",
+    "model": "Seedream Flash",
+    "evidence": "真实生成，换浅蓝背景",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "reference-results/video-first-frame-v2.png",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/prepared-first-frame.png",
+    "sha256": "41b80b6767ca1a8b090241b135ece32e638f5301f49a71ba208637354457b7b4",
+    "bytes": 106645,
+    "mode": "图生视频实际发送首帧",
+    "model": "本地边缘延展",
+    "evidence": "同一白杯图，生成前预处理，非成片后处理",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "reference-results/text-to-video.mp4",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/text_to_video.mp4",
+    "sha256": "cfd061d8845cf0452fb8f92f8ef78acf34de56178336abc48fa9701dcb952ff9",
+    "bytes": 541300,
+    "mode": "文生视频 v2",
+    "model": "Seedance Fast",
+    "evidence": "真实生成原片，5.04秒、864×496、无音轨",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "reference-results/image-to-video.mp4",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/image_to_video.mp4",
+    "sha256": "2d1f2d14ed7f8bb3685f7ea67c0b362f3ed3344d5a02a0f1b4b52e4ce688209e",
+    "bytes": 632169,
+    "mode": "图生视频 v2",
+    "model": "Seedance Fast",
+    "evidence": "真实生成原片，5.04秒、864×496、无音轨",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "reference-results/text-to-video-contact-sheet.jpg",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/text_to_video-contact-sheet.jpg",
+    "sha256": "e16a465efb4751a4e41ce3cae5703d94dc66e335acb44970fc333d991cf0dcc5",
+    "bytes": 173775,
+    "mode": "文生视频 v2 抽帧",
+    "model": "Seedance Fast",
+    "evidence": "既有逐帧核查表",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "reference-results/image-to-video-contact-sheet.jpg",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/image_to_video-contact-sheet.jpg",
+    "sha256": "07bdcba13d3c23cc2a8fb1c7140b72982f220b60a7b243fbd03c9ae7a7c1dbdc",
+    "bytes": 178417,
+    "mode": "图生视频 v2 抽帧",
+    "model": "Seedance Fast",
+    "evidence": "既有逐帧核查表",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "bad-cases/text-to-video-before.mp4",
+    "source": "docs/evidence/v0.11-AiHubMix无水印复验-20261030/text_to_video.mp4",
+    "sha256": "d9ea5dbbed668c6ec53b675fef008d848c60ad31dbdbe8ecfc6f91447bdadd43",
+    "bytes": 591019,
+    "mode": "文生视频修正前",
+    "model": "Seedance Fast",
+    "evidence": "真实历史失败样例，后半段杯底裁切",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "bad-cases/image-to-video-before.mp4",
+    "source": "docs/evidence/v0.11-AiHubMix无水印复验-20261030/image_to_video.mp4",
+    "sha256": "c7a70bf6c9ab6b7a2e733ff8cf47e3d42bf78abc95601f28490439b574cc4b72",
+    "bytes": 551449,
+    "mode": "图生视频修正前",
+    "model": "Seedance Fast",
+    "evidence": "真实历史失败样例，补边方框接缝明显",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "bad-cases/text-to-video-before-after.jpg",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/compare/文生视频末段对比.jpg",
+    "sha256": "a0825296833dcbd93a118eff3c450ca2200eeb22b37302b609d05b9e71746b12",
+    "bytes": 59640,
+    "mode": "文生视频末段前后对比",
+    "model": "Seedance Fast",
+    "evidence": "直接复用既有对照图，上旧下新",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "bad-cases/image-to-video-before-after.jpg",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/compare/图生视频补边对比.jpg",
+    "sha256": "da170c7ee04f48161f4feeae3605422528fb98d7266b32212c19a370cab62b79",
+    "bytes": 62259,
+    "mode": "图生视频补边前后对比",
+    "model": "Seedance Fast",
+    "evidence": "直接复用既有对照图，上旧下新",
+    "processing": "byte-identical copy; no modification"
+  },
+  {
+    "file": "bad-cases/image-to-video-v2-last-frame.png",
+    "source": "docs/evidence/v0.11-视频构图v2真实复验-20261030/image_to_video-last-exact.png",
+    "sha256": "e9a0190cea38c3da66e6e57eabefd0ab7b1993db57fd1c203ea82673f31cbecc",
+    "bytes": 127690,
+    "mode": "图生视频 v2 实际末帧",
+    "model": "Seedance Fast",
+    "evidence": "保留左下阴影局部接痕证据",
+    "processing": "byte-identical copy; no modification"
+  }
+]

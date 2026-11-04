@@ -1,3 +1,4 @@
+import { validateSpecCombination } from './model-specs';
 import { ApiError } from './api';
 import { validateModelSelection, validateVideoDuration, getImageSizesForRatio, getSupportedRatios, getSupportedResolutions } from './capabilities';
 import type { Model, TaskInput } from './types';
@@ -21,6 +22,10 @@ export function templateInput(selection:SingleTemplateSelection,model:Model|unde
  const values:Record<string,unknown>={};
  if(t.kind==='image'){if(!getImageSizesForRatio(model,params.ratio).includes(params.imageSize))throw new Error('请为当前比例选择清晰度。');values.size=params.imageSize;}
  else {const durationError=validateVideoDuration(model,params.duration);if(durationError)throw new Error(durationError);if(!getSupportedRatios(model).includes(params.ratio)||!getSupportedResolutions(model).includes(params.resolution))throw new Error('请重新选择当前模型支持的视频规格。');values.duration=params.duration;values.ratio=params.ratio;values.resolution=params.resolution;}
+ const generation_mode=t.kind==='image'?(params.reference?'image_to_image':'text_to_image'):'image_to_video';
+ const exact={...t.default_params,...values,ratio:params.ratio,generation_mode,...(t.kind==='video'?{generate_audio:t.default_params.generate_audio??false}:{})};
+ const specError=validateSpecCombination(model,exact);if(specError)throw new Error(specError);
+ if(model.capabilities?.parameter_combinations){values.ratio=params.ratio;values.generation_mode=generation_mode;if(t.kind==='video')values.generate_audio=exact.generate_audio;}
  if(params.prompt.trim())values.prompt=params.prompt;
  return {kind:t.kind,model_id:model.id,input_asset_id:params.reference,template_id:t.template_id,template_version:t.latest_version,template_fields:{...selection.fields},params:values};
 }

@@ -47,11 +47,11 @@ def freeze(project_id: str, shot_ids: list[str], specs: dict) -> dict:
         raise err("MODEL_NOT_OPENED", f"模型 {model_id} 不可提交")
     ratio = specs.get("ratio")
     resolution = specs.get("resolution")
-    params = {"ratio": ratio, "resolution": resolution, "generate_audio": False}
-    problems = config.validate_params_for_model(model_id, "video", params)
-    if problems:
-        raise err("MODEL_CAPABILITY_MISMATCH", "生成规格不被模型支持",
-                  detail={"problems": problems})
+    if (config.MODEL_REGISTRY.get(model_id) or {}).get("kind") != "video":
+        raise err("MODEL_CAPABILITY_MISMATCH", "请选择视频模型")
+    allowed_modes = (config.MODEL_CAPABILITIES.get(model_id) or {}).get("input_modes") or []
+    if allowed_modes and "image_to_video" not in allowed_modes:
+        raise err("MODEL_CAPABILITY_MISMATCH", "所选模型不支持分镜图生成视频")
 
     items = []
     for sid in shot_ids:
@@ -63,6 +63,12 @@ def freeze(project_id: str, shot_ids: list[str], specs: dict) -> dict:
             raise err("SHOT_NOT_READY", f"镜头缺少已通过的分镜：{sid}",
                       detail={"shot_id": sid})
         dur = config.resolve_duration_s(model_id, shot["duration_s"], strict=True)
+        params = {"ratio": ratio, "resolution": resolution, "duration": dur,
+                  "generation_mode": "image_to_video", "generate_audio": False}
+        problems = config.validate_params_for_model(model_id, "video", params)
+        if problems:
+            raise err("MODEL_CAPABILITY_MISMATCH", "生成规格不被模型支持",
+                      detail={"shot_id": sid, "problems": problems})
         items.append({
             "shot_id": sid, "seq": int(shot["seq"]),
             "description": shot["description"], "prompt": shot["description"],
@@ -203,7 +209,7 @@ def submit_scope(scope_id: str) -> dict:
             now = db.now()
             params = {"prompt": it["prompt"], "duration": it["duration_s"],
                       "ratio": it["ratio"], "resolution": it["resolution"],
-                      "generate_audio": False}
+                      "generation_mode": "image_to_video", "generate_audio": False}
             c.execute(
                 "INSERT INTO tasks(id, kind, status, params_json, model_id, model_revision, "
                 "input_asset_id, progress, stage, attempts, cancel_requested, batch_id, "

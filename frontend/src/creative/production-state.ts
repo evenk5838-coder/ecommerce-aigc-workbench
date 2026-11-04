@@ -1,4 +1,6 @@
-import { getModelUnavailableReason, getSupportedImageSizes, validateVideoDuration } from '../capabilities';
+import { validateSpecCombination } from '../model-specs';
+import { getModelUnavailableReason, getSupportedImageSizes, imageSizeRatio, validateVideoDuration } from '../capabilities';
+import { withDefaultNodeModel, objectValue, textValue } from './node-config';
 import { validateGenerationMode } from '../generation-modes';
 import type { Model, Task } from '../types';
 import type { Film, ProductionStatus, ScopeInput, Shot, ShotInput, ShotTake, StoryboardInput } from './production-types';
@@ -17,6 +19,19 @@ export interface ProductionEditorState {
 }
 export interface SavedShotPlan {
   shot_id: string; seq: number; description: string; motion: string; duration_s: number;
+}
+export type ProductionModelSelection = Pick<ProductionEditorState, 'videoModelId'|'ratio'|'resolution'|'imageModelId'|'imageSize'>;
+/** Called once after both resources and the plan are read; refreshes do not select a new provider. */
+export function initialProductionSelection(local: ProductionModelSelection | null, shots: Shot[], models: Model[]): ProductionModelSelection {
+  if (local) return { videoModelId: local.videoModelId, ratio: local.ratio, resolution: local.resolution, imageModelId: local.imageModelId, imageSize: local.imageSize };
+  if (shots.length) {
+    const oldModels = [...new Set(shots.map(shot => shot.model_id).filter((id): id is string => !!id))];
+    return { videoModelId: oldModels.length === 1 ? oldModels[0] : '', ratio: '', resolution: '', imageModelId: '', imageSize: '' };
+  }
+  const video = withDefaultNodeModel({ generation_mode: 'image_to_video' }, 'video', models);
+  const image = withDefaultNodeModel({ generation_mode: 'text_to_image' }, 'image', models);
+  const videoParams = objectValue(video.params), imageParams = objectValue(image.params);
+  return { videoModelId: textValue(video.model_id), ratio: textValue(videoParams.ratio), resolution: textValue(videoParams.resolution), imageModelId: textValue(image.model_id), imageSize: textValue(imageParams.size) };
 }
 export function savedShotPlan(shots: readonly Shot[]): SavedShotPlan[] {
   return shots.map(shot => ({ shot_id: shot.shot_id, seq: shot.seq, description: shot.description,
@@ -56,6 +71,8 @@ export function inspectStoryboardDraft(draft: ShotDraft, defaults: StoryboardDef
   const modeError = validateGenerationMode(model, draft.input_asset_id ? 'image_to_image' : 'text_to_image');
   if (modeError) return fail(modeError);
   if (!getSupportedImageSizes(model).includes(settings.size)) return fail('请选择这个图片模型支持的比例和清晰度。');
+  const specError = validateSpecCombination(model, {generation_mode: draft.input_asset_id ? 'image_to_image' : 'text_to_image', ratio: imageSizeRatio(settings.size), size: settings.size});
+  if (specError) return fail(specError);
   if (!draft.prompt.trim()) return fail('请填写这条分镜的生成提示词。');
   return { input: { model_id: settings.modelId, size: settings.size, prompt: draft.prompt, input_asset_id: draft.input_asset_id || null }, error: null };
 }

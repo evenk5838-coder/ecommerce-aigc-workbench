@@ -1,5 +1,7 @@
+import { validateSpecCombination, type SpecSelection } from '../model-specs';
 import type { GenerationMode, Model } from '../types';
-import { getDurationPolicy, getImageSizesForRatio, getSupportedRatios, getSupportedResolutions, validateModelSelection, validateVideoDuration } from '../capabilities';
+import { isCloudModel, orderCloudModels } from '../model-catalog';
+import { getSupportedDurations, getImageSizesForRatio, getSupportedRatios, getSupportedResolutions, validateModelSelection, validateVideoDuration } from '../capabilities';
 
 export type NodeConfig = Record<string, unknown>;
 function orderedConfig(value: unknown): unknown {
@@ -18,22 +20,33 @@ export const modeLabels: Record<GenerationMode, string> = { text_to_image: '文�
 export function nodeModes(kind: string): GenerationMode[] { return kind === 'image' ? ['text_to_image', 'image_to_image'] : ['text_to_video', 'image_to_video']; }
 export function objectValue(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
 export function textValue(value: unknown): string { return typeof value === 'string' ? value : ''; }
-export function durationsFor(model: Model | undefined): number[] {
-  const p = getDurationPolicy(model);
-  return p.kind === 'enum' ? p.allowed : p.kind === 'range' ? Array.from({length: Math.min(300, Math.floor((p.max-p.min)/p.step)+1)}, (_,i)=>p.min+i*p.step) : [];
+export function durationsFor(model: Model | undefined, selection?: SpecSelection): number[] {
+  return getSupportedDurations(model, selection);
+}
+export function nodeModelChoices(kind: 'image'|'video', mode: GenerationMode, models: Model[]): Model[] {
+  return orderCloudModels(models).filter(model => isCloudModel(model) && model.kind === kind && model.capabilities?.input_modes?.includes(mode));
+}
+/** Apply only at new-node creation; an explicit saved choice, including empty, stays untouched. */
+export function withDefaultNodeModel(config: NodeConfig, kind: 'image'|'video', models: Model[]): NodeConfig {
+  if (Object.hasOwn(config, 'model_id')) return config;
+  const mode = (textValue(config.generation_mode) || nodeModes(kind)[0]) as GenerationMode;
+  const model = nodeModelChoices(kind, mode, models).find(item => !validateModelSelection(item, kind));
+  return model ? withNodeModel(config, model) : config;
 }
 /** Model switches retain creative content, while incompatible specs are intentionally replaced. */
 export function withNodeModel(config: NodeConfig, model: Model): NodeConfig {
-  const old = objectValue(config.params), ratios = getSupportedRatios(model), ratio = ratios.includes(textValue(old.ratio)) ? textValue(old.ratio) : ratios[0];
+  const old = objectValue(config.params), selection = {generation_mode: textValue(config.generation_mode) || nodeModes(model.kind)[0], ...(model.kind === 'video' ? {generate_audio: false} : {})}, ratios = getSupportedRatios(model, selection), ratio = ratios.includes(textValue(old.ratio)) ? textValue(old.ratio) : ratios[0];
   const params: NodeConfig = {};
   if (ratio) params.ratio = ratio;
   if (model.kind === 'image') {
-    const sizes = getImageSizesForRatio(model, ratio);
+    const sizes = getImageSizesForRatio(model, ratio, selection);
     if (sizes.length) params.size = sizes.includes(textValue(old.size)) ? old.size : sizes[0];
   } else {
-    const resolutions = getSupportedResolutions(model), durations = durationsFor(model);
+    const resolutions = getSupportedResolutions(model, {...selection, ratio});
     if (resolutions.length) params.resolution = resolutions.includes(textValue(old.resolution)) ? old.resolution : resolutions[0];
-    if (durations.length) params.duration = durations.includes(Number(old.duration)) ? Number(old.duration) : durations[0];
+    const durations = durationsFor(model, {...selection, ratio, resolution: params.resolution});
+    if (durations.length) params.duration = durations.includes(old.duration as number) ? old.duration : durations[0];
+    if (model.capabilities?.parameter_combinations) { params.generate_audio = false; }
   }
   return {...config, model_id: model.id, params};
 }
@@ -42,6 +55,12 @@ export function withNodeMode(config: NodeConfig, mode: GenerationMode): NodeConf
   const next: NodeConfig = {...config, generation_mode: mode};
   if (mode.startsWith('text_')) delete next.input_asset_id;
   return next;
+}
+
+export function nodeExecutionConfig(config: NodeConfig, model: Model | undefined): NodeConfig {
+  if (model?.kind !== 'video' || !model.capabilities?.parameter_combinations) return config;
+  const params = objectValue(config.params);
+  return {...config, params: {...params, generate_audio: params.generate_audio ?? false}};
 }
 
 /** Check the exact visible input before opening a quote. The backend remains authoritative. */
@@ -56,7 +75,7 @@ export function nodeGenerationIssue(kind: 'image'|'video', config: NodeConfig, m
   if (mode.startsWith('text_') && config.input_asset_id) return '请移除参考图片，或切换为图生模式。';
   const params = objectValue(config.params), ratio = textValue(params.ratio);
   if (!getSupportedRatios(model).includes(ratio)) return '选择模型支持的画面比例。';
-  if (kind === 'image') return getImageSizesForRatio(model, ratio).includes(textValue(params.size)) ? null : '选择与画面比例对应的清晰度。';
+  if (kind === 'image') return getImageSizesForRatio(model, ratio).includes(textValue(params.size)) ? validateSpecCombination(model, {...params, generation_mode: mode}) : '选择与画面比例对应的清晰度。';
   if (!getSupportedResolutions(model).includes(textValue(params.resolution))) return '选择模型支持的视频清晰度。';
-  return validateVideoDuration(model, params.duration);
+  return validateVideoDuration(model, params.duration) || validateSpecCombination(model, {generate_audio: false, ...params, generation_mode: mode});
 }

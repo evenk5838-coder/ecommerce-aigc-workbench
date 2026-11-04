@@ -37,7 +37,8 @@ def write_json(path: Path, value) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def serve(directory: str, port: int, film: bool = False, legacy_reservation: bool = False, shared_reference: bool = False) -> None:
+def serve(directory: str, port: int, film: bool = False, legacy_reservation: bool = False, shared_reference: bool = False, spec_combinations: bool = False, aihubmix: bool = False) -> None:
+    global IMAGE, VIDEO
     private = Path(directory).resolve()
     if (not private.is_relative_to(Path("/private/tmp")) or not private.name.startswith("director-workflow-http-")
             or json.loads((private / "isolation.json").read_text()).get("isolated") is not True):
@@ -55,6 +56,21 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
     config.POLL_INTERVAL = .03
     config._load_dotenv = lambda: None
     config.model_lifecycle_state = lambda *args, **kwargs: {"status": "active"}
+    if aihubmix:
+        from app import aihubmix_models
+        IMAGE, VIDEO = aihubmix_models.FLASH, aihubmix_models.FAST
+        config.MODEL_ACTIVATION[IMAGE] = config.MODEL_ACTIVATION[VIDEO] = "verified"
+        os.environ["AIHUBMIX_API_KEY"] = "fixture-unused-aihubmix-key"
+        os.environ["AIHUBMIX_USD_TO_CNY"] = "8"  # Isolated estimate fixture, no payment authority.
+        os.environ["AIHUBMIX_ENABLED_MODELS"] = f"{IMAGE},{VIDEO}"
+    if spec_combinations:
+        # Hypothetical rules in this disposable process only, not provider claims.
+        config.MODEL_CAPABILITIES[IMAGE]["parameter_combinations"] = [{
+            "generation_mode": ["text_to_image", "image_to_image"],
+            "size": ["1024x1024"], "ratio": ["1:1"]}]
+        config.MODEL_CAPABILITIES[VIDEO]["parameter_combinations"] = [{
+            "generation_mode": ["image_to_video"], "ratio": ["16:9"],
+            "resolution": ["720p"], "duration": [5], "generate_audio": [False]}]
     for folder in (config.ASSETS, config.MODELS):
         folder.mkdir(exist_ok=True)
     for model_id, metadata in config.MODEL_REGISTRY.items():
@@ -135,7 +151,8 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
                 nodes = sorted((node for node in context["nodes"] if node["type"] == "image"),
                                key=lambda node: 0 if ("BLUE" if film else "RED") in node["config"]["title"] else 1)
                 name, args = "prepare_video_nodes", {"model_id": VIDEO,
-                    "params": {"duration": 5, "ratio": "16:9", "resolution": "720p"}, "sources": [
+                    "params": {"duration": 5, "ratio": "16:9", "resolution": "480p" if aihubmix else "720p",
+                               "generate_audio": False}, "sources": [
                         {"node_id": node["node_id"], "expected_config_revision": node["config_revision"],
                          "asset_id": node["asset"]["id"], "execution_id": node["last_execution"]["execution_id"],
                          "title": node["config"]["title"].replace("image", "clip"),
@@ -175,6 +192,8 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
     def runner(kind):
         def fixed(task_id, model_id, params, token, on_progress=None):
             token.raise_if_canceled()
+            if spec_combinations:
+                assert not config.validate_params_for_model(model_id, kind, params), "Worker received an invalid combination"
             cloud_tasks.budget_gate(cloud_tasks.estimate_cost(kind, model_id, params))
             if kind == "video":
                 cloud_tasks.build_content(params)
@@ -196,6 +215,38 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
                     "load_ms": 0, "latency_ms": 0}
         return fixed
     cloud_tasks.run_image, cloud_tasks.run_video = runner("image"), runner("video")
+    if aihubmix:
+        from app import providers_aihubmix
+        providers_aihubmix.POLL_SECONDS = 0
+        jobs = private / "native-jobs"
+        jobs.mkdir(exist_ok=True)
+        def native_transport(method, path, body=None, **kwargs):
+            if method == "POST":
+                kind = "image" if path == "/ai/v1/images/generations" else "video"
+                assert path == ("/ai/v1/images/generations" if kind == "image" else "/ai/v1/videos")
+                assert body["model"] == config.MODEL_REGISTRY[IMAGE if kind == "image" else VIDEO]["upstream_model_id"]
+                reference = body.get("image") if kind == "image" else body["frame_images"][0]["image_url"]["url"]
+                if shared_reference and kind == "image":
+                    assert hashlib.sha256(base64.b64decode(reference.split(",", 1)[1])).hexdigest() == shared_asset["sha256"]
+                color = "red" if "RED" in body["prompt"] else "blue"
+                remote_id = db.new_id("fixture")
+                write_json(jobs / (remote_id + ".json"), {"kind": kind, "color": color})
+                event({"kind": "media_fixture", "media_kind": kind, "provider": "aihubmix",
+                       "color": color, "remote_task_id": remote_id, "native_path": path,
+                       "reference_sent": bool(reference),
+                       "reference_asset_id": shared_asset["id"] if shared_reference and kind == "image" else None,
+                       "reference_sha256": shared_asset["sha256"] if shared_reference and kind == "image" else None})
+                return {"id": remote_id}
+            assert method == "GET"
+            remote_id = path.split("/")[4]
+            job = json.loads((jobs / (remote_id + ".json")).read_text())
+            assert db.query("SELECT id FROM tasks WHERE remote_task_id=?", (remote_id,)), "ID must be durable before query"
+            if kwargs.get("binary"):
+                return (fixtures / (job["color"] + (".png" if job["kind"] == "image" else ".mp4"))).read_bytes()
+            suffix = "/content/result" if job["kind"] == "image" else "/content"
+            return {"id": remote_id, "object": job["kind"], "status": "completed",
+                    "output": [{"content_url": "https://aihubmix.com" + path + suffix}]}
+        providers_aihubmix._request = native_transport
 
     @main.app.get("/__check__/metrics")
     def metrics():
@@ -213,7 +264,7 @@ def serve(directory: str, port: int, film: bool = False, legacy_reservation: boo
     uvicorn.run(main.app, host="127.0.0.1", port=port, log_level="warning", access_log=False)
 
 
-def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_reservation: bool = False, shared_reference: bool = False) -> None:
+def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_reservation: bool = False, shared_reference: bool = False, spec_combinations: bool = False, aihubmix: bool = False) -> None:
     evidence = Path(evidence_directory).resolve() if evidence_directory else Path(tempfile.mkdtemp(prefix="director-http-evidence-", dir="/private/tmp"))
     evidence.mkdir(parents=True, exist_ok=True)
     if any((evidence / name).exists() for name in ("director-workflow-http.json", "fixed-blue-then-red.mp4")):
@@ -223,6 +274,7 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
               "scope": scenario, "video_output_mode": "film" if film_mode else "clips",
               "legacy_reservation_fixture": legacy_reservation,
               "shared_reference_fixture": shared_reference,
+              "spec_combinations_fixture": spec_combinations,
               "started_at": datetime.now(timezone.utc).isoformat(), "passed": False, "http": []}
     with socket.socket() as reservation:
         reservation.bind(("127.0.0.1", 0))
@@ -260,6 +312,10 @@ def run(evidence_directory: str | None = None, film_mode: bool = False, legacy_r
                 command.append("--legacy-budget-reservation")
             if shared_reference:
                 command.append("--shared-reference")
+            if spec_combinations:
+                command.append("--spec-combinations")
+            if aihubmix:
+                command.append("--aihubmix")
             process = subprocess.Popen(command,
                                        env=environment, stdout=log, stderr=subprocess.STDOUT)
             try:
@@ -442,10 +498,12 @@ if __name__ == "__main__":
     parser.add_argument("--film", action="store_true", help="Check one video+ordered-film confirmation instead of separate composition")
     parser.add_argument("--legacy-budget-reservation", action="store_true", help="Include the historical unknown-video budget regression")
     parser.add_argument("--shared-reference", action="store_true", help="Use one product reference for both image nodes and verify worker inputs")
+    parser.add_argument("--spec-combinations", action="store_true", help="Validate mode/size/ratio/duration/audio combinations using isolated hypothetical rules")
+    parser.add_argument("--aihubmix", action="store_true", help="Exercise native AiHubMix adapter with blocked network and fixed media, not real generation")
     parser.add_argument("--serve", help=argparse.SUPPRESS)
     parser.add_argument("--port", type=int, default=0, help=argparse.SUPPRESS)
     arguments = parser.parse_args()
     if arguments.serve:
-        serve(arguments.serve, arguments.port, arguments.film, arguments.legacy_budget_reservation, arguments.shared_reference)
+        serve(arguments.serve, arguments.port, arguments.film, arguments.legacy_budget_reservation, arguments.shared_reference, arguments.spec_combinations, arguments.aihubmix)
     else:
-        run(arguments.evidence_dir, arguments.film, arguments.legacy_budget_reservation, arguments.shared_reference)
+        run(arguments.evidence_dir, arguments.film, arguments.legacy_budget_reservation, arguments.shared_reference, arguments.spec_combinations, arguments.aihubmix)
